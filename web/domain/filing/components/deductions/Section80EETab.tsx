@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -49,6 +49,24 @@ export default function Section80EETab() {
 
   const hasEntry = !!filing.section80Ee?.deductionId;
   const totalAmount = formData.interestOnLoan || 0;
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'section-80ee-tab-compact-style';
+    style.textContent = `
+      .section-80ee-tab-compact input,
+      .section-80ee-tab-compact select {
+        padding: 0.75rem 0.5rem 0.375rem 0.5rem !important;
+        height: 40px !important;
+      }
+    `;
+    if (!document.getElementById('section-80ee-tab-compact-style')) {
+      document.head.appendChild(style);
+    }
+    return () => {
+      document.getElementById('section-80ee-tab-compact-style')?.remove();
+    };
+  }, []);
 
   const update = (field: keyof Deduction80EEModel, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -99,60 +117,154 @@ export default function Section80EETab() {
   const lenderOptions = [{ value: '', label: 'Select lender type' }, ...LENDER_TYPES];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-2 text-gray-900 hover:text-gray-700">
-            {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronRightIcon className="w-5 h-5" />}
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
-              <HomeIcon className="w-4 h-4" />
-            </span>
-            <h4 className="text-sm font-semibold text-gray-900">80EE - Home Loan (First Time)</h4>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <div className="text-xs text-gray-500">Interest</div>
-            <span className="text-base font-bold text-blue-600">₹{formatCurrency(totalAmount)}</span>
-          </div>
-          {hasEntry && !isEditing && (
-            <>
-              <IconButton label="Edit" onClick={handleEdit}><PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" /></IconButton>
-              <IconButton label="Delete" onClick={() => setConfirmDeleteOpen(true)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>
-            </>
-          )}
-          {!hasEntry && !isEditing && <IconButton label="Add Entry" onClick={() => setIsEditing(true)}><PlusCircleIcon className="w-5 h-5" /></IconButton>}
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div className="mt-4">
-          {!hasEntry && !isEditing ? (
-            <AddButton label="Add 80EE Entry" colorScheme="orange" onClick={() => setIsEditing(true)} />
-          ) : (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select label="Lender Type" required value={formData.lenderType || ''} onChange={(e) => update('lenderType', e.target.value)} options={lenderOptions} disabled={!isEditing} error={errors.lenderType} />
-                <Input label="Lender Name" required value={formData.lenderName || ''} onChange={(e) => update('lenderName', e.target.value)} disabled={!isEditing} error={errors.lenderName} />
-                <Input label="Loan Account Number" required value={formData.loanAccountNumber || ''} onChange={(e) => update('loanAccountNumber', e.target.value)} disabled={!isEditing} error={errors.loanAccountNumber} />
-                <DatePicker label="Loan Sanction Date" required value={formData.loanSanctionDate ? new Date(formData.loanSanctionDate) : null} onChange={(d) => update('loanSanctionDate', d)} disabled={!isEditing} error={errors.loanSanctionDate} />
-                <Input label="Total Loan Amount" required type="number" value={formData.totalLoanAmount || 0} onChange={(e) => update('totalLoanAmount', Number(e.target.value))} prefix="₹" disabled={!isEditing} error={errors.totalLoanAmount} />
-                <Input label="Loan Outstanding" required type="number" value={formData.loanOutstanding || 0} onChange={(e) => update('loanOutstanding', Number(e.target.value))} prefix="₹" disabled={!isEditing} error={errors.loanOutstanding} />
-                <Input label="Interest on Loan" required type="number" value={formData.interestOnLoan || 0} onChange={(e) => update('interestOnLoan', Number(e.target.value))} prefix="₹" disabled={!isEditing} error={errors.interestOnLoan} />
-              </div>
-              {isEditing && (
-                <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-200">
-                  <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
-                  <Button variant="primary" size="sm" onClick={handleSave}>Save</Button>
-                </div>
-              )}
+    <div className="section-80ee-tab-compact">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-2 text-gray-900 hover:text-gray-700">
+              {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronRightIcon className="w-5 h-5" />}
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                <HomeIcon className="w-4 h-4" />
+              </span>
+              <h4 className="text-sm font-semibold text-gray-900">80EE - Home Loan (First Time)</h4>
             </div>
-          )}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-base font-bold text-blue-600">Rs.{formatCurrency(totalAmount)}</span>
+            {!hasEntry && !isEditing && (
+              <IconButton
+                onClick={() => { if (!isExpanded) setIsExpanded(true); savedRef.current = null; setIsEditing(true); setFormData({ ...INITIAL_FORM }); }}
+                label="Add Entry"
+              >
+                <PlusCircleIcon className="w-5 h-5" />
+              </IconButton>
+            )}
+            {hasEntry && !isEditing && (
+              <>
+                <IconButton label="Edit" onClick={handleEdit}>
+                  <PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" />
+                </IconButton>
+                <IconButton label="Delete" onClick={() => setConfirmDeleteOpen(true)}>
+                  <TrashIcon className="w-3.5 h-3.5 text-red-600" />
+                </IconButton>
+              </>
+            )}
+          </div>
         </div>
-      )}
-      <ConfirmModal open={confirmDeleteOpen} title="Delete Entry?" message="Are you sure you want to delete this Section 80EE entry?" confirmText="Delete" tone="danger" isLoading={false} onConfirm={handleDelete} onCancel={() => setConfirmDeleteOpen(false)} />
+
+        {isExpanded && (
+          <div className="mt-4">
+            {!hasEntry && !isEditing ? (
+              <div className="py-2">
+                <AddButton label="Add Entry" colorScheme="orange" onClick={() => { savedRef.current = null; setIsEditing(true); setFormData({ ...INITIAL_FORM }); }} />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <div className="space-y-2.5">
+                    {/* Row 1: Lender Type | Loan Sanction Date */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <Select
+                        label="Lender Type *"
+                        value={formData.lenderType || ''}
+                        onChange={(e) => update('lenderType', e.target.value)}
+                        options={lenderOptions}
+                        error={errors.lenderType}
+                        disabled={!isEditing}
+                      />
+                      <DatePicker
+                        label="Loan Sanction Date *"
+                        value={formData.loanSanctionDate || null}
+                        onChange={(date) => update('loanSanctionDate', date)}
+                        error={errors.loanSanctionDate}
+                        disabled={!isEditing}
+                      />
+                    </div>
+
+                    {/* Row 2: Lender Name | Loan Account Number */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <Input
+                        label="Lender Name *"
+                        value={formData.lenderName || ''}
+                        onChange={(e) => update('lenderName', e.target.value)}
+                        placeholder="Name of lender"
+                        error={errors.lenderName}
+                        disabled={!isEditing}
+                      />
+                      <Input
+                        label="Loan Account Number *"
+                        value={formData.loanAccountNumber || ''}
+                        onChange={(e) => update('loanAccountNumber', e.target.value)}
+                        placeholder="Enter loan account number"
+                        error={errors.loanAccountNumber}
+                        disabled={!isEditing}
+                      />
+                    </div>
+
+                    {/* Row 3: Total Loan Amount | Loan Outstanding */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <Input
+                        label="Total Loan Amount *"
+                        type="number"
+                        value={formData.totalLoanAmount || 0}
+                        onChange={(e) => update('totalLoanAmount', Number(e.target.value))}
+                        placeholder="0"
+                        prefix="Rs."
+                        error={errors.totalLoanAmount}
+                        disabled={!isEditing}
+                      />
+                      <Input
+                        label="Loan Outstanding *"
+                        type="number"
+                        value={formData.loanOutstanding || 0}
+                        onChange={(e) => update('loanOutstanding', Number(e.target.value))}
+                        placeholder="0"
+                        prefix="Rs."
+                        error={errors.loanOutstanding}
+                        disabled={!isEditing}
+                      />
+                    </div>
+
+                    {/* Row 4: Interest on Loan + Action Buttons */}
+                    <div className="flex items-end gap-2.5">
+                      <div className="flex-1">
+                        <Input
+                          label="Interest on Loan *"
+                          type="number"
+                          value={formData.interestOnLoan || 0}
+                          onChange={(e) => update('interestOnLoan', Number(e.target.value))}
+                          placeholder="0"
+                          prefix="Rs."
+                          error={errors.interestOnLoan}
+                          disabled={!isEditing}
+                        />
+                      </div>
+                      {isEditing && (
+                        <div className="flex gap-1 pb-0.5">
+                          <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
+                          <Button variant="primary" size="sm" onClick={handleSave}>Save</Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <ConfirmModal
+        open={confirmDeleteOpen}
+        title="Delete Entry?"
+        message="Are you sure you want to delete this entry? This action cannot be undone."
+        confirmText="Delete"
+        tone="danger"
+        isLoading={false}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </div>
   );
 }

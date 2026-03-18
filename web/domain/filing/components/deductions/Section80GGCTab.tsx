@@ -1,19 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ChevronDownIcon,
   ChevronRightIcon,
-  BuildingLibraryIcon,
+  HeartIcon,
   TrashIcon,
   PlusCircleIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/outline';
-import Input from '@/domain/filing/ui/Input';
-import DatePicker from '@/domain/filing/ui/DatePicker';
 import IconButton from '@/domain/filing/ui/IconButton';
 import AddButton from '@/domain/filing/ui/AddButton';
 import Button from '@/domain/filing/ui/Button';
+import Input from '@/domain/filing/ui/Input';
+import DatePicker from '@/domain/filing/ui/DatePicker';
 import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/domain/filing/context/FilingContext';
 import type { Deduction80GGCModel } from '@/domain/filing/models/deductions/donation/deduction-80ggc-model';
@@ -44,6 +44,37 @@ export default function Section80GGCTab() {
   const [editingId, setEditingId] = useState<number | null | undefined>(null);
   const [entryErrors, setEntryErrors] = useState<Record<number, Record<string, string>>>({});
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null | undefined>(null);
+  const prevCountRef = useRef(0);
+  const lastEntryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'section-80ggc-tab-compact-style';
+    style.textContent = `
+      .section-80ggc-tab-compact input,
+      .section-80ggc-tab-compact select {
+        padding: 0.75rem 0.5rem 0.375rem 0.5rem !important;
+        height: 40px !important;
+      }
+    `;
+    if (!document.getElementById('section-80ggc-tab-compact-style')) {
+      document.head.appendChild(style);
+    }
+    return () => {
+      document.getElementById('section-80ggc-tab-compact-style')?.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (entries.length > prevCountRef.current) {
+      const last = entries[entries.length - 1];
+      if ((last.deductionId ?? 0) < 0) {
+        setEditingId(last.deductionId);
+        setTimeout(() => lastEntryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+      }
+    }
+    prevCountRef.current = entries.length;
+  }, [entries.length]);
 
   const totalAmount = entries.reduce((sum, e) => sum + (e.totalContribution || 0), 0);
 
@@ -61,7 +92,6 @@ export default function Section80GGCTab() {
   const addEntry = () => {
     const tempId = -Date.now();
     setEntries(prev => [...prev, { ...INITIAL_ENTRY, deductionId: tempId }]);
-    setEditingId(tempId);
   };
 
   const saveEntry = (entry: Deduction80GGCModel) => {
@@ -69,22 +99,17 @@ export default function Section80GGCTab() {
     if (!entry.doneeName?.trim()) errs.doneeName = 'Donee name is required';
     if (!entry.politicalPartyName?.trim()) errs.politicalPartyName = 'Political party name is required';
     if (!entry.transactionId?.trim()) errs.transactionId = 'Transaction ID is required';
-    if (!entry.donorBankIfsc?.trim()) {
-      errs.donorBankIfsc = 'Donor bank IFSC is required';
-    } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(entry.donorBankIfsc)) {
-      errs.donorBankIfsc = 'Invalid IFSC format (e.g., HDFC0001234)';
-    }
     if (!entry.dateOfDonation) errs.dateOfDonation = 'Date of donation is required';
+    if (!entry.totalContribution || entry.totalContribution <= 0) errs.totalContribution = 'Total contribution is required';
     if ((entry.contributionAmountCash || 0) === 0 && (entry.contributionAmountNonCash || 0) === 0) {
-      errs.totalContribution = 'At least one contribution amount is required';
+      errs.totalContribution = errs.totalContribution || 'At least one contribution amount is required';
     }
-    if (!entry.totalContribution || entry.totalContribution <= 0) errs.totalContribution = errs.totalContribution || 'Total contribution is required';
-
+    if (entry.donorBankIfsc?.trim() && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(entry.donorBankIfsc)) errs.donorBankIfsc = 'Invalid IFSC format (e.g., HDFC0001234)';
+    if (!entry.donorBankIfsc?.trim()) errs.donorBankIfsc = 'Donor bank IFSC is required';
     if (Object.keys(errs).length > 0) {
       if (entry.deductionId != null) setEntryErrors(prev => ({ ...prev, [entry.deductionId!]: errs }));
       return;
     }
-
     const isNew = (entry.deductionId ?? 0) < 0;
     const savedId = isNew ? Date.now() : entry.deductionId!;
     const saved = { ...entry, deductionId: savedId };
@@ -109,82 +134,166 @@ export default function Section80GGCTab() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-2 text-gray-900 hover:text-gray-700">
-            {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronRightIcon className="w-5 h-5" />}
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-              <BuildingLibraryIcon className="w-4 h-4" />
-            </span>
-            <h4 className="text-sm font-semibold text-gray-900">80GGC - Political Contributions</h4>
+    <div className="section-80ggc-tab-compact">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 text-gray-900 hover:text-gray-700"
+            >
+              {isExpanded ? (
+                <ChevronDownIcon className="w-5 h-5" />
+              ) : (
+                <ChevronRightIcon className="w-5 h-5" />
+              )}
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                <HeartIcon className="w-4 h-4" />
+              </span>
+              <h4 className="text-sm font-semibold text-gray-900">80GGC - Political Parties</h4>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-base font-bold text-blue-600">Rs.{formatCurrency(totalAmount)}</span>
+            <IconButton label="Add Entry" onClick={() => { if (!isExpanded) setIsExpanded(true); addEntry(); }}>
+              <PlusCircleIcon className="w-5 h-5 text-indigo-600" />
+            </IconButton>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold text-blue-600">₹{formatCurrency(totalAmount)}</span>
-          <IconButton label="Add Entry" onClick={() => { if (!isExpanded) setIsExpanded(true); addEntry(); }}>
-            <PlusCircleIcon className="w-5 h-5 text-green-600" />
-          </IconButton>
-        </div>
-      </div>
 
-      {isExpanded && (
-        <div className="mt-4 space-y-2">
-          {entries.length === 0 ? (
-            <AddButton label="Add Political Contribution" onClick={addEntry} colorScheme="teal" />
-          ) : (
-            entries.map((entry) => {
-              const isEditing = editingId === entry.deductionId;
-              const errs = entryErrors[entry.deductionId!] || {};
-              return (
-                <div key={entry.deductionId} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                  {!isEditing ? (
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{entry.doneeName}</p>
-                        <p className="text-xs text-gray-500">Party: {entry.politicalPartyName} | Total: ₹{formatCurrency(entry.totalContribution || 0)}</p>
-                      </div>
-                      <div className="flex gap-1">
-                        <IconButton label="Edit" onClick={() => setEditingId(entry.deductionId)}>
-                          <PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" />
-                        </IconButton>
-                        <IconButton label="Delete" onClick={() => setPendingDeleteId(entry.deductionId)}>
-                          <TrashIcon className="w-3.5 h-3.5 text-red-600" />
-                        </IconButton>
+        {isExpanded && (
+          <div className="mt-4">
+            {entries.length === 0 ? (
+              <div className="py-2">
+                <AddButton label="Add Entry" onClick={addEntry} colorScheme="purple" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {entries.map((entry, index) => {
+                  const isEditing = editingId === entry.deductionId;
+                  const errors = entryErrors[entry.deductionId!] || {};
+
+                  return (
+                    <div
+                      key={entry.deductionId ?? `new-${index}`}
+                      className="border border-gray-200 rounded-lg p-2.5 bg-gray-50"
+                      ref={index === entries.length - 1 ? lastEntryRef : null}
+                    >
+                      <div className="space-y-2.5">
+                        {/* Row 1: Donee Name | Political Party Name | Transaction ID | Donor Bank IFSC */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                          <Input
+                            label="Donee Name *"
+                            value={entry.doneeName || ''}
+                            onChange={(e) => updateEntry(entry.deductionId, 'doneeName', e.target.value)}
+                            placeholder="Name of person/organization"
+                            error={errors.doneeName}
+                            disabled={!isEditing}
+                          />
+                          <Input
+                            label="Political Party Name *"
+                            value={entry.politicalPartyName || ''}
+                            onChange={(e) => updateEntry(entry.deductionId, 'politicalPartyName', e.target.value)}
+                            placeholder="Name of political party"
+                            disabled={!isEditing}
+                            error={errors.politicalPartyName}
+                          />
+                          <Input
+                            label="Transaction ID *"
+                            value={entry.transactionId || ''}
+                            onChange={(e) => updateEntry(entry.deductionId, 'transactionId', e.target.value)}
+                            placeholder="Required"
+                            disabled={!isEditing}
+                            error={errors.transactionId}
+                          />
+                          <Input
+                            label="Donor Bank IFSC *"
+                            value={entry.donorBankIfsc || ''}
+                            onChange={(e) => updateEntry(entry.deductionId, 'donorBankIfsc', e.target.value.toUpperCase())}
+                            placeholder="e.g., HDFC0001234"
+                            error={errors.donorBankIfsc}
+                            disabled={!isEditing}
+                          />
+                        </div>
+
+                        {/* Row 2: Date of Donation | Cash Amount | Non-Cash Amount | Total Contribution + Buttons */}
+                        <div className="flex items-end gap-2.5">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5 flex-1">
+                            <DatePicker
+                              label="Date of Donation *"
+                              value={entry.dateOfDonation || null}
+                              onChange={(date) => updateEntry(entry.deductionId, 'dateOfDonation', date)}
+                              disabled={!isEditing}
+                              error={errors.dateOfDonation}
+                            />
+                            <Input
+                              label="Cash Amount"
+                              type="number"
+                              value={entry.contributionAmountCash || 0}
+                              onChange={(e) => updateEntry(entry.deductionId, 'contributionAmountCash', Number(e.target.value))}
+                              placeholder="0"
+                              prefix="Rs."
+                              disabled={!isEditing}
+                            />
+                            <Input
+                              label="Non-Cash Amount"
+                              type="number"
+                              value={entry.contributionAmountNonCash || 0}
+                              onChange={(e) => updateEntry(entry.deductionId, 'contributionAmountNonCash', Number(e.target.value))}
+                              placeholder="0"
+                              prefix="Rs."
+                              disabled={!isEditing}
+                            />
+                            <Input
+                              label="Total Contribution *"
+                              type="number"
+                              value={entry.totalContribution || 0}
+                              onChange={(e) => updateEntry(entry.deductionId, 'totalContribution', Number(e.target.value))}
+                              placeholder="0"
+                              prefix="Rs."
+                              error={errors.totalContribution}
+                              disabled={!isEditing}
+                            />
+                          </div>
+                          <div className="flex gap-2 pb-0.5">
+                            {!isEditing ? (
+                              <>
+                                <IconButton label="Edit" onClick={() => setEditingId(entry.deductionId)}>
+                                  <PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" />
+                                </IconButton>
+                                <IconButton label="Delete" onClick={() => setPendingDeleteId(entry.deductionId)}>
+                                  <TrashIcon className="w-3.5 h-3.5 text-red-600" />
+                                </IconButton>
+                              </>
+                            ) : (
+                              <>
+                                <Button variant="outline" size="sm" onClick={() => cancelEdit(entry.deductionId)}>Cancel</Button>
+                                <Button variant="primary" size="sm" onClick={() => saveEntry(entry)}>Save</Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <Input label="Donee Name" required value={entry.doneeName || ''} onChange={(e) => updateEntry(entry.deductionId, 'doneeName', e.target.value)} error={errs.doneeName} />
-                        <Input label="Political Party Name" required value={entry.politicalPartyName || ''} onChange={(e) => updateEntry(entry.deductionId, 'politicalPartyName', e.target.value)} error={errs.politicalPartyName} />
-                        <Input label="Transaction ID" required value={entry.transactionId || ''} onChange={(e) => updateEntry(entry.deductionId, 'transactionId', e.target.value)} error={errs.transactionId} />
-                        <Input label="Donor Bank IFSC" required value={entry.donorBankIfsc || ''} onChange={(e) => updateEntry(entry.deductionId, 'donorBankIfsc', e.target.value.toUpperCase())} error={errs.donorBankIfsc} />
-                        <DatePicker label="Date of Donation" required value={entry.dateOfDonation ? new Date(entry.dateOfDonation) : null} onChange={(d) => updateEntry(entry.deductionId, 'dateOfDonation', d)} error={errs.dateOfDonation} />
-                        <Input label="Cash Contribution" type="number" value={entry.contributionAmountCash || 0} onChange={(e) => updateEntry(entry.deductionId, 'contributionAmountCash', Number(e.target.value))} prefix="₹" />
-                        <Input label="Non-Cash Contribution" type="number" value={entry.contributionAmountNonCash || 0} onChange={(e) => updateEntry(entry.deductionId, 'contributionAmountNonCash', Number(e.target.value))} prefix="₹" />
-                        <Input label="Total Contribution" required type="number" value={entry.totalContribution || 0} onChange={(e) => updateEntry(entry.deductionId, 'totalContribution', Number(e.target.value))} prefix="₹" error={errs.totalContribution} />
-                      </div>
-                      <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
-                        <Button variant="outline" size="sm" onClick={() => cancelEdit(entry.deductionId)}>Cancel</Button>
-                        <Button variant="primary" size="sm" onClick={() => saveEntry(entry)}>Save</Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-          {entries.length > 0 && (
-            <button onClick={addEntry} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1">
-              <PlusCircleIcon className="w-4 h-4" /> Add another contribution
-            </button>
-          )}
-        </div>
-      )}
-      <ConfirmModal open={pendingDeleteId != null} title="Delete Entry?" message="Are you sure you want to delete this 80GGC entry?" confirmText="Delete" tone="danger" isLoading={false} onConfirm={() => deleteEntry(pendingDeleteId)} onCancel={() => setPendingDeleteId(null)} />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <ConfirmModal
+        open={pendingDeleteId !== null && pendingDeleteId !== undefined}
+        title="Delete Entry?"
+        message="Are you sure you want to delete this entry? This action cannot be undone."
+        confirmText="Delete"
+        tone="danger"
+        isLoading={false}
+        onConfirm={() => { if (pendingDeleteId != null) deleteEntry(pendingDeleteId); setPendingDeleteId(null); }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   DocumentTextIcon,
   TrashIcon,
-  PlusCircleIcon,
   PencilSquareIcon,
+  PlusCircleIcon,
 } from '@heroicons/react/24/outline';
 import Input from '@/domain/filing/ui/Input';
 import IconButton from '@/domain/filing/ui/IconButton';
@@ -41,10 +41,28 @@ export default function OtherDeductionsTab() {
 
   const [entry, setEntry] = useState<OtherDeductionModel | null>(() => buildEntry(filing));
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const savedRef = useRef<OtherDeductionModel | null>(null);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.id = 'other-deductions-tab-compact-style';
+    style.textContent = `
+      .other-deductions-tab-compact input,
+      .other-deductions-tab-compact select {
+        padding: 0.75rem 0.5rem 0.375rem 0.5rem !important;
+        height: 40px !important;
+      }
+    `;
+    if (!document.getElementById('other-deductions-tab-compact-style')) {
+      document.head.appendChild(style);
+    }
+    return () => {
+      document.getElementById('other-deductions-tab-compact-style')?.remove();
+    };
+  }, []);
 
   const hasEntry = entry !== null;
   const totalAmount = entry
@@ -62,53 +80,49 @@ export default function OtherDeductionsTab() {
     setEntry(prev => prev ? { ...prev, [section]: { ...prev[section], [field]: value } } : prev);
     const keyMap: Record<string, string> = { deduction80Tta: 'tta', deduction80Ttb: 'ttb', deduction80Cch: 'cch', deduction80Gg: 'gg' };
     const errKey = keyMap[section];
-    if (errKey && errors[errKey]) setErrors(prev => ({ ...prev, [errKey]: '' }));
-    if (errors._form) setErrors(prev => ({ ...prev, _form: '' }));
+    if (errKey && errors[errKey]) setErrors(prev => ({ ...prev, [errKey]: '', _form: '' }));
   };
 
-  const validate = (): boolean => {
-    if (!entry) return false;
-    const e: Record<string, string> = {};
-    if ((entry.deduction80Tta.interestAmount || 0) < 0) e.tta = 'Amount cannot be negative';
-    if ((entry.deduction80Ttb.interestAmount || 0) < 0) e.ttb = 'Amount cannot be negative';
-    if ((entry.deduction80Cch.contributionAmount || 0) < 0) e.cch = 'Amount cannot be negative';
-    if ((entry.deduction80Gg.rentPaidAmount || 0) < 0) e.gg = 'Amount cannot be negative';
-    const allZero = (entry.deduction80Tta.interestAmount || 0) === 0
-      && (entry.deduction80Ttb.interestAmount || 0) === 0
-      && (entry.deduction80Cch.contributionAmount || 0) === 0
-      && (entry.deduction80Gg.rentPaidAmount || 0) === 0;
-    if (allZero) e._form = 'Please enter at least one deduction amount';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleAdd = () => {
-    const newEntry = { ...INITIAL_OTHER_DEDUCTION_FORM_DATA };
-    setEntry(newEntry);
-    setIsEditing(true);
+  const addEntry = () => {
     savedRef.current = null;
+    setEntry({ ...INITIAL_OTHER_DEDUCTION_FORM_DATA });
+    setIsEditMode(true);
   };
 
-  const handleEdit = () => {
+  const handleEditMode = () => {
     savedRef.current = entry ? { ...entry } : null;
-    setIsEditing(true);
+    setIsEditMode(true);
   };
 
-  const handleCancel = () => {
-    if (savedRef.current !== null) setEntry(savedRef.current);
-    else if (!hasEntry) setEntry(null);
+  const handleCancelEdit = () => {
+    if (savedRef.current !== null) {
+      setEntry(savedRef.current);
+    }
     setErrors({});
-    setIsEditing(false);
-    savedRef.current = null;
+    setIsEditMode(false);
   };
 
   const handleSave = () => {
-    if (!entry || !validate()) return;
+    if (!entry) return;
+    const newErrors: Record<string, string> = {};
+    const tta = entry.deduction80Tta.interestAmount || 0;
+    const ttb = entry.deduction80Ttb.interestAmount || 0;
+    const cch = entry.deduction80Cch.contributionAmount || 0;
+    const gg = entry.deduction80Gg.rentPaidAmount || 0;
+    if (tta < 0) newErrors.tta = 'Amount cannot be negative';
+    if (ttb < 0) newErrors.ttb = 'Amount cannot be negative';
+    if (cch < 0) newErrors.cch = 'Amount cannot be negative';
+    if (gg < 0) newErrors.gg = 'Amount cannot be negative';
+    if (tta === 0 && ttb === 0 && cch === 0 && gg === 0) {
+      newErrors._form = 'Please enter at least one deduction amount';
+    }
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+    setErrors({});
     updateSection('section80Tta', entry.deduction80Tta.interestAmount ? entry.deduction80Tta : null);
     updateSection('section80Ttb', entry.deduction80Ttb.interestAmount ? entry.deduction80Ttb : null);
     updateSection('section80Cch', entry.deduction80Cch.contributionAmount ? entry.deduction80Cch : null);
     updateSection('section80Gg', entry.deduction80Gg.rentPaidAmount ? entry.deduction80Gg : null);
-    setIsEditing(false);
+    setIsEditMode(false);
   };
 
   const handleDelete = () => {
@@ -117,104 +131,127 @@ export default function OtherDeductionsTab() {
     updateSection('section80Ttb', null);
     updateSection('section80Cch', null);
     updateSection('section80Gg', null);
-    setIsEditing(false);
+    setIsEditMode(false);
     setConfirmDeleteOpen(false);
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-2 text-gray-900 hover:text-gray-700">
-            {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronRightIcon className="w-5 h-5" />}
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
-              <DocumentTextIcon className="w-4 h-4" />
-            </span>
-            <h4 className="text-sm font-semibold text-gray-900">Other Deductions (80TTA / 80TTB / 80CCH / 80GG)</h4>
+    <div className="other-deductions-tab-compact">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 text-gray-900 hover:text-gray-700"
+            >
+              {isExpanded ? (
+                <ChevronDownIcon className="w-5 h-5" />
+              ) : (
+                <ChevronRightIcon className="w-5 h-5" />
+              )}
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
+                <DocumentTextIcon className="w-4 h-4" />
+              </span>
+              <h4 className="text-sm font-semibold text-gray-900">Other Deductions</h4>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-base font-bold text-blue-600">Rs.{formatCurrency(totalAmount)}</span>
+            {!hasEntry && (
+              <IconButton label="Add Entry" onClick={() => { if (!isExpanded) setIsExpanded(true); addEntry(); }}>
+                <PlusCircleIcon className="w-5 h-5 text-slate-600" />
+              </IconButton>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold text-blue-600">₹{formatCurrency(totalAmount)}</span>
-          {hasEntry && !isEditing && (
-            <>
-              <IconButton label="Edit" onClick={handleEdit}><PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" /></IconButton>
-              <IconButton label="Delete" onClick={() => setConfirmDeleteOpen(true)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>
-            </>
-          )}
-          {!hasEntry && !isEditing && <IconButton label="Add Entry" onClick={handleAdd}><PlusCircleIcon className="w-5 h-5" /></IconButton>}
-        </div>
-      </div>
 
-      {isExpanded && (
-        <div className="mt-4">
-          {!hasEntry && !isEditing ? (
-            <AddButton label="Add Other Deductions" onClick={handleAdd} colorScheme="blue" />
-          ) : entry && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              {errors._form && <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700">{errors._form}</div>}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Input
-                    label="80TTA - Savings A/C Interest"
-                    type="number"
-                    value={entry.deduction80Tta.interestAmount || 0}
-                    onChange={(e) => updateSubField('deduction80Tta', 'interestAmount', Number(e.target.value))}
-                    prefix="₹"
-                    disabled={!isEditing}
-                    error={errors.tta}
-                    hint="Max ₹10,000 — savings bank interest (non-senior citizens)"
-                  />
-                </div>
-                <div>
-                  <Input
-                    label="80TTB - Senior Citizen Interest"
-                    type="number"
-                    value={entry.deduction80Ttb.interestAmount || 0}
-                    onChange={(e) => updateSubField('deduction80Ttb', 'interestAmount', Number(e.target.value))}
-                    prefix="₹"
-                    disabled={!isEditing}
-                    error={errors.ttb}
-                    hint="Max ₹50,000 — bank/post office interest (senior citizens)"
-                  />
-                </div>
-                <div>
-                  <Input
-                    label="80CCH - Agnipath Contribution"
-                    type="number"
-                    value={entry.deduction80Cch.contributionAmount || 0}
-                    onChange={(e) => updateSubField('deduction80Cch', 'contributionAmount', Number(e.target.value))}
-                    prefix="₹"
-                    disabled={!isEditing}
-                    error={errors.cch}
-                    hint="Contribution to Agnipath Scheme (Agniveer Corpus Fund)"
-                  />
-                </div>
-                <div>
-                  <Input
-                    label="80GG - Rent Paid (HRA not received)"
-                    type="number"
-                    value={entry.deduction80Gg.rentPaidAmount || 0}
-                    onChange={(e) => updateSubField('deduction80Gg', 'rentPaidAmount', Number(e.target.value))}
-                    prefix="₹"
-                    disabled={!isEditing}
-                    error={errors.gg}
-                    hint="For self-employed or employees not receiving HRA"
-                  />
+        {isExpanded && (
+          <div className="mt-4">
+            {errors._form && <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded"><p className="text-sm text-amber-700">{errors._form}</p></div>}
+            {!hasEntry ? (
+              <div className="py-2">
+                <AddButton label="Add Entry" onClick={addEntry} colorScheme="blue" />
+              </div>
+            ) : (
+              <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div className="flex items-end gap-2.5">
+                  <div className="grid grid-cols-4 gap-2.5 flex-1">
+                    <Input
+                      label="80TTA - Savings Interest"
+                      type="number"
+                      value={entry.deduction80Tta.interestAmount || 0}
+                      onChange={(e) => updateSubField('deduction80Tta', 'interestAmount', Number(e.target.value))}
+                      placeholder="0"
+                      prefix="Rs."
+                      error={errors.tta}
+                      disabled={!isEditMode}
+                    />
+                    <Input
+                      label="80TTB - Senior Citizen"
+                      type="number"
+                      value={entry.deduction80Ttb.interestAmount || 0}
+                      onChange={(e) => updateSubField('deduction80Ttb', 'interestAmount', Number(e.target.value))}
+                      placeholder="0"
+                      prefix="Rs."
+                      error={errors.ttb}
+                      disabled={!isEditMode}
+                    />
+                    <Input
+                      label="80CCH - Agnipath"
+                      type="number"
+                      value={entry.deduction80Cch.contributionAmount || 0}
+                      onChange={(e) => updateSubField('deduction80Cch', 'contributionAmount', Number(e.target.value))}
+                      placeholder="0"
+                      prefix="Rs."
+                      error={errors.cch}
+                      disabled={!isEditMode}
+                    />
+                    <Input
+                      label="80GG - Rent Paid"
+                      type="number"
+                      value={entry.deduction80Gg.rentPaidAmount || 0}
+                      onChange={(e) => updateSubField('deduction80Gg', 'rentPaidAmount', Number(e.target.value))}
+                      placeholder="0"
+                      prefix="Rs."
+                      error={errors.gg}
+                      disabled={!isEditMode}
+                    />
+                  </div>
+                  <div className="flex gap-2 pb-0.5">
+                    {!isEditMode ? (
+                      <>
+                        <IconButton label="Edit" onClick={handleEditMode}>
+                          <PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" />
+                        </IconButton>
+                        <IconButton label="Delete" onClick={() => setConfirmDeleteOpen(true)}>
+                          <TrashIcon className="w-3.5 h-3.5 text-red-600" />
+                        </IconButton>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="outline" size="sm" onClick={handleCancelEdit}>Cancel</Button>
+                        <Button variant="primary" size="sm" onClick={handleSave}>Save</Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-              {isEditing && (
-                <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-gray-200">
-                  <Button variant="outline" size="sm" onClick={handleCancel}>Cancel</Button>
-                  <Button variant="primary" size="sm" onClick={handleSave}>Save</Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-      <ConfirmModal open={confirmDeleteOpen} title="Delete Other Deductions?" message="Are you sure you want to clear all other deductions (80TTA / 80TTB / 80CCH / 80GG)?" confirmText="Delete" tone="danger" isLoading={false} onConfirm={handleDelete} onCancel={() => setConfirmDeleteOpen(false)} />
+            )}
+          </div>
+        )}
+      </div>
+      <ConfirmModal
+        open={confirmDeleteOpen}
+        title="Delete Entry?"
+        message="Are you sure you want to delete this entry? This action cannot be undone."
+        confirmText="Delete"
+        tone="danger"
+        isLoading={false}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </div>
   );
 }

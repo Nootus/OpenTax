@@ -1,93 +1,106 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  UserIcon,
-  CurrencyRupeeIcon,
-  ReceiptPercentIcon,
-  BanknotesIcon,
-  CalculatorIcon,
-  ChartBarIcon,
-} from '@heroicons/react/24/outline';
+import { CalculatorIcon } from '@heroicons/react/24/outline';
 import PersonalDetailsTab from '@/domain/filing/components/PersonalDetailsTab';
 import IncomeTab from '@/domain/filing/components/IncomeTab';
 import DeductionsTab from '@/domain/filing/components/DeductionsTab';
 import TaxPaidTab from '@/domain/filing/components/TaxPaidTab';
 import SummaryTab from '@/domain/filing/components/SummaryTab';
 import { useFilingContext } from '@/domain/filing/context/FilingContext';
+import { ayToFy } from '@/domain/utils/tax-year';
 
 const TABS = [
-  { id: 'personal', label: 'Personal', icon: <UserIcon className="w-5 h-5" /> },
-  { id: 'income', label: 'Income', icon: <CurrencyRupeeIcon className="w-5 h-5" /> },
-  { id: 'deductions', label: 'Deductions', icon: <ReceiptPercentIcon className="w-5 h-5" /> },
-  { id: 'tax-paid', label: 'Tax Paid', icon: <BanknotesIcon className="w-5 h-5" /> },
-  { id: 'summary', label: 'Summary', icon: <ChartBarIcon className="w-5 h-5" /> },
-];
+  { id: 'summary', label: 'Summary' },
+  { id: 'personal-details', label: 'Personal Details' },
+  { id: 'income', label: 'Income' },
+  { id: 'deductions', label: 'Deductions' },
+  { id: 'tax-paid', label: 'Tax Paid' },
+] as const;
 
-function AppHeader({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (id: string) => void }) {
+export default function Home() {
   const { filing } = useFilingContext();
+  const [activeTab, setActiveTab] = useState<string>('summary');
+
+  const assessmentYear = filing.assessmentYear || '2026-27';
+  const financialYear = ayToFy(assessmentYear);
+  const personName = [filing.person?.firstName, filing.person?.lastName].filter(Boolean).join(' ');
+  const personPan = filing.person?.panNumber ?? '';
+
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header / Brand */}
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-3 h-14">
+          <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
             <CalculatorIcon className="w-5 h-5" />
           </span>
           <div>
             <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
-            <p className="text-[10px] text-gray-400 leading-tight">
-              Free ITR-1 Filing &nbsp;|&nbsp; AY {filing.assessmentYear || '2026-27'}
-            </p>
+            <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR-1 Filing</p>
           </div>
         </div>
-        {/* Regime selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 hidden sm:inline">Regime:</span>
-          <select
-            className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-            value={filing.regime || 'new'}
-            onChange={() => { /* updateSection('regime', ...) — handled in PersonalDetailsTab */ }}
-            disabled
-          >
-            <option value="new">New</option>
-            <option value="old">Old</option>
-          </select>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* Client Info Header */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2">
+              <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2 pt-3">
+                <label className="absolute -top-2 left-2 text-xs font-medium text-gray-500 bg-white px-2">Client Name</label>
+                <p className="text-sm font-semibold text-gray-900">{personName || '—'}</p>
+              </div>
+              <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2 pt-3">
+                <label className="absolute -top-2 left-2 text-xs font-medium text-gray-500 bg-white px-2">PAN Number</label>
+                <p className="text-sm font-semibold text-gray-900">{personPan || '—'}</p>
+              </div>
+              <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2 pt-3">
+                <label className="absolute -top-2 left-2 text-xs font-medium text-gray-500 bg-white px-2">Financial Year (FY)</label>
+                <p className="text-sm font-semibold text-gray-900">{financialYear || '—'}</p>
+              </div>
+              <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2 pt-3">
+                <label className="absolute -top-2 left-2 text-xs font-medium text-gray-500 bg-white px-2">Assessment Year (AY)</label>
+                <p className="text-sm font-semibold text-indigo-700">{assessmentYear}</p>
+              </div>
+              <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2 pt-3">
+                <label className="absolute -top-2 left-2 text-xs font-medium text-gray-500 bg-white px-2">ITR Type</label>
+                <p className="text-sm font-semibold text-blue-600">ITR-1</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-4">
+          <div className="border-b border-gray-200">
+            <nav className="flex px-4">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 py-3 px-1 border-b-2 font-medium text-sm transition-colors duration-200 whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="mb-4">
+          {activeTab === 'summary' && <SummaryTab />}
+          {activeTab === 'personal-details' && <PersonalDetailsTab />}
+          {activeTab === 'income' && <IncomeTab />}
+          {activeTab === 'deductions' && <DeductionsTab />}
+          {activeTab === 'tax-paid' && <TaxPaidTab />}
         </div>
       </div>
-      {/* Tab Navigation */}
-      <nav className="max-w-5xl mx-auto px-4 flex gap-0 border-t border-gray-100 overflow-x-auto">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
-              ${activeTab === tab.id
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-          >
-            <span className="w-4 h-4">{tab.icon}</span>
-            <span className="hidden sm:inline">{tab.label}</span>
-          </button>
-        ))}
-      </nav>
-    </header>
-  );
-}
-
-export default function Home() {
-  const [activeTab, setActiveTab] = useState('personal');
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <AppHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="max-w-5xl mx-auto px-4 py-6">
-        {activeTab === 'personal' && <PersonalDetailsTab />}
-        {activeTab === 'income' && <IncomeTab />}
-        {activeTab === 'deductions' && <DeductionsTab />}
-        {activeTab === 'tax-paid' && <TaxPaidTab />}
-        {activeTab === 'summary' && <SummaryTab />}
-      </main>
     </div>
   );
 }

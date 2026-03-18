@@ -17,3 +17,4 @@ web/node_modules
 /out/
 
 web/.next
+web/out

@@ -81,7 +81,7 @@ export default function Section80ETab() {
     if (!entry.loanAccountNumber?.trim()) errs.loanAccountNumber = 'Loan account number is required';
     if (!entry.loanSanctionDate) errs.loanSanctionDate = 'Loan sanction date is required';
     if (!entry.totalLoanAmount || entry.totalLoanAmount <= 0) errs.totalLoanAmount = 'Total loan amount must be > 0';
-    if (!entry.loanOutstanding || entry.loanOutstanding <= 0) errs.loanOutstanding = 'Loan outstanding must be > 0';
+    if (!entry.loanOutstanding && entry.loanOutstanding !== 0) errs.loanOutstanding = 'Loan outstanding is required';
     if (!entry.interestOnLoan || entry.interestOnLoan <= 0) errs.interestOnLoan = 'Interest amount must be > 0';
     if (Object.keys(errs).length > 0) {
       if (entry.deductionId != null) setEntryErrors(prev => ({ ...prev, [entry.deductionId!]: errs }));
@@ -111,73 +111,157 @@ export default function Section80ETab() {
   };
 
   return (
-    <div>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-2 text-gray-900 hover:text-gray-700">
-              {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronRightIcon className="w-5 h-5" />}
-            </button>
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                <AcademicCapIcon className="w-4 h-4" />
-              </span>
-              <h4 className="text-sm font-semibold text-gray-900">80E - Education Loan Interest</h4>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <div className="text-xs text-gray-500">Total Interest</div>
-              <span className="text-base font-bold text-blue-600">₹{formatCurrency(totalAmount)}</span>
-            </div>
-            <IconButton label="Add Loan" onClick={() => { if (!isExpanded) setIsExpanded(true); addEntry(); }}>
-              <PlusCircleIcon className="w-5 h-5 text-blue-600" />
-            </IconButton>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsExpanded(!isExpanded)} className="flex items-center gap-2 text-gray-900 hover:text-gray-700">
+            {isExpanded ? <ChevronDownIcon className="w-5 h-5" /> : <ChevronRightIcon className="w-5 h-5" />}
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+              <AcademicCapIcon className="w-4 h-4" />
+            </span>
+            <h4 className="text-sm font-semibold text-gray-900">80E - Education Loan Interest</h4>
           </div>
         </div>
-
-        {isExpanded && (
-          <div className="mt-4">
-            {entries.length === 0 ? (
-              <AddButton label="Add Education Loan" colorScheme="blue" onClick={addEntry} />
-            ) : (
-              <div className="space-y-3">
-                {entries.map((entry, index) => {
-                  const isEditing = editingEntryId === entry.deductionId;
-                  const errs = entryErrors[entry.deductionId!] || {};
-                  return (
-                    <div key={entry.deductionId || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50" ref={index === entries.length - 1 ? lastEntryRef : null}>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                        <Select label="Lender Type" required value={entry.lenderType || ''} onChange={(e) => updateEntry(entry.deductionId, 'lenderType', e.target.value)} options={lenderOptions} disabled={!isEditing} error={errs.lenderType} />
-                        <Input label="Lender Name" required value={entry.lenderName || ''} onChange={(e) => updateEntry(entry.deductionId, 'lenderName', e.target.value)} disabled={!isEditing} error={errs.lenderName} />
-                        <Input label="Loan Account Number" required value={entry.loanAccountNumber || ''} onChange={(e) => updateEntry(entry.deductionId, 'loanAccountNumber', e.target.value)} disabled={!isEditing} error={errs.loanAccountNumber} />
-                        <DatePicker label="Sanction Date" required value={entry.loanSanctionDate ? new Date(entry.loanSanctionDate) : null} onChange={(d) => updateEntry(entry.deductionId, 'loanSanctionDate', d)} disabled={!isEditing} error={errs.loanSanctionDate} />
-                        <Input label="Total Loan Amount" required type="number" value={entry.totalLoanAmount || 0} onChange={(e) => updateEntry(entry.deductionId, 'totalLoanAmount', Number(e.target.value))} prefix="₹" disabled={!isEditing} error={errs.totalLoanAmount} />
-                        <Input label="Loan Outstanding" required type="number" value={entry.loanOutstanding || 0} onChange={(e) => updateEntry(entry.deductionId, 'loanOutstanding', Number(e.target.value))} prefix="₹" disabled={!isEditing} error={errs.loanOutstanding} />
-                        <Input label="Interest on Loan" required type="number" value={entry.interestOnLoan || 0} onChange={(e) => updateEntry(entry.deductionId, 'interestOnLoan', Number(e.target.value))} prefix="₹" disabled={!isEditing} error={errs.interestOnLoan} />
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        {!isEditing ? (
-                          <>
-                            <IconButton label="Edit" onClick={() => setEditingEntryId(entry.deductionId)}><PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" /></IconButton>
-                            <IconButton label="Delete" onClick={() => setPendingDeleteId(entry.deductionId)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>
-                          </>
-                        ) : (
-                          <>
-                            <Button variant="outline" size="sm" onClick={() => cancelEdit(entry.deductionId)}>Cancel</Button>
-                            <Button variant="primary" size="sm" onClick={() => saveEntry(entry)}>Save</Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="text-xs text-gray-500">Total Interest</div>
+            <span className="text-base font-bold text-blue-600">Rs.{formatCurrency(totalAmount)}</span>
           </div>
-        )}
+          <IconButton label="Add Entry" onClick={() => { if (!isExpanded) setIsExpanded(true); addEntry(); }}>
+            <PlusCircleIcon className="w-5 h-5" />
+          </IconButton>
+        </div>
       </div>
-      <ConfirmModal open={pendingDeleteId !== null} title="Delete Entry?" message="Are you sure you want to delete this loan entry?" confirmText="Delete" tone="danger" isLoading={false} onConfirm={() => { if (pendingDeleteId != null) deleteEntry(pendingDeleteId); }} onCancel={() => setPendingDeleteId(null)} />
+
+      {/* Body */}
+      {isExpanded && (
+        <div className="mt-4 space-y-3">
+          {entries.length === 0 ? (
+            <div className="py-4">
+              <p className="text-sm text-gray-500 mb-3 text-center">No education loan entries added</p>
+              <AddButton label="Add Entry" colorScheme="orange" onClick={addEntry} />
+            </div>
+          ) : (
+            entries.map((entry, index) => {
+              const isEditing = editingEntryId === entry.deductionId;
+              const errors = entryErrors[entry.deductionId!] || {};
+
+              return (
+                <div key={entry.deductionId || index} className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3"
+                  ref={index === entries.length - 1 ? lastEntryRef : null}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-500">Loan #{index + 1}</span>
+                    <div className="flex gap-2 items-center">
+                      {!isEditing ? (
+                        <>
+                          <IconButton label="Edit" onClick={() => setEditingEntryId(entry.deductionId)}>
+                            <PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" />
+                          </IconButton>
+                          <IconButton label="Delete" onClick={() => setPendingDeleteId(entry.deductionId)}>
+                            <TrashIcon className="w-3.5 h-3.5 text-red-600" />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => cancelEdit(entry.deductionId)}>Cancel</Button>
+                          <Button variant="primary" size="sm" onClick={() => saveEntry(entry)}>Save</Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Select
+                      label="Lender Type *"
+                      value={entry.lenderType || ''}
+                      onChange={(e) => updateEntry(entry.deductionId, 'lenderType', e.target.value)}
+                      options={lenderOptions}
+                      error={errors.lenderType}
+                      disabled={!isEditing}
+                    />
+                    <Input
+                      label="Lender Name *"
+                      value={entry.lenderName || ''}
+                      onChange={(e) => updateEntry(entry.deductionId, 'lenderName', e.target.value)}
+                      placeholder="Name of lender"
+                      error={errors.lenderName}
+                      disabled={!isEditing}
+                    />
+                    <Input
+                      label="Loan Account Number *"
+                      value={entry.loanAccountNumber || ''}
+                      onChange={(e) => updateEntry(entry.deductionId, 'loanAccountNumber', e.target.value)}
+                      placeholder="Enter loan account number"
+                      error={errors.loanAccountNumber}
+                      disabled={!isEditing}
+                    />
+                    <DatePicker
+                      label="Loan Sanction Date *"
+                      value={entry.loanSanctionDate || null}
+                      onChange={(date) => updateEntry(entry.deductionId, 'loanSanctionDate', date)}
+                      error={errors.loanSanctionDate}
+                      disabled={!isEditing}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <Input
+                      label="Total Loan Amount *"
+                      type="number"
+                      value={entry.totalLoanAmount || 0}
+                      onChange={(e) => updateEntry(entry.deductionId, 'totalLoanAmount', Number(e.target.value))}
+                      placeholder="0"
+                      prefix="Rs."
+                      error={errors.totalLoanAmount}
+                      disabled={!isEditing}
+                    />
+                    <Input
+                      label="Loan Outstanding *"
+                      type="number"
+                      value={entry.loanOutstanding || 0}
+                      onChange={(e) => updateEntry(entry.deductionId, 'loanOutstanding', Number(e.target.value))}
+                      placeholder="0"
+                      prefix="Rs."
+                      error={errors.loanOutstanding}
+                      disabled={!isEditing}
+                    />
+                    <Input
+                      label="Interest on Loan *"
+                      type="number"
+                      value={entry.interestOnLoan || 0}
+                      onChange={(e) => updateEntry(entry.deductionId, 'interestOnLoan', Number(e.target.value))}
+                      placeholder="0"
+                      prefix="Rs."
+                      error={errors.interestOnLoan}
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+              );
+            })
+          )}
+
+          {entries.length > 0 && (
+            <div className="pt-1">
+              <AddButton label="Add Another Loan" colorScheme="orange" onClick={addEntry} />
+            </div>
+          )}
+        </div>
+      )}
+      <ConfirmModal
+        open={pendingDeleteId !== null && pendingDeleteId !== undefined}
+        title="Delete Entry?"
+        message="Are you sure you want to delete this entry? This action cannot be undone."
+        confirmText="Delete"
+        tone="danger"
+        isLoading={false}
+        onConfirm={() => { if (pendingDeleteId != null) deleteEntry(pendingDeleteId); }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }
