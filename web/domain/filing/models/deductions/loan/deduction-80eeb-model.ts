@@ -4,7 +4,7 @@
  * Extends Deduction80EModel with vehicle details
  */
 
-import { Deduction80EModel } from '../../deduction-80e/models/deduction-80e-model'
+import { Deduction80EModel } from './deduction-80e-model'
 
 export interface Deduction80EEBModel extends Deduction80EModel {
   vehicleMakeModel: string

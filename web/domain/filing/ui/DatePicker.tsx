@@ -1,7 +1,7 @@
 "use client"
 import React, { useMemo, useState, useRef, useEffect } from 'react'
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
-import { parseApiDate } from '@/domain/core/utils/format/date'
+import { parseApiDate } from '@/domain/utils/format/date'
 
 interface DatePickerProps {
   label?: string

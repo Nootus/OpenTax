@@ -179,6 +179,26 @@ export const PAYMENT_MODES = [
   { value: 'OFFLINE', label: 'Offline (Bank Challan)' },
 ]
 
+export const HEALTH_INSURANCE_TAKEN_FOR = [
+  { value: 'S', label: 'Self' },
+  { value: 'SF', label: 'Self & Family' },
+  { value: 'P', label: 'Parents' },
+]
+
+export const PREVENTIVE_MEDICAL_TAKEN_FOR = [
+  { value: 'S', label: 'Self' },
+  { value: 'SF', label: 'Self & Family' },
+  { value: 'P', label: 'Parents' },
+]
+
+export const RELATION_TO_DEPENDANT = [
+  { value: 'Spouse', label: 'Spouse' },
+  { value: 'Child', label: 'Child' },
+  { value: 'Parent', label: 'Parent' },
+  { value: 'Sibling', label: 'Sibling' },
+  { value: 'Other', label: 'Other' },
+]
+
 export const DISABILITY_TYPES = [
   { value: 'D', label: 'Disabled (40%-79%)' },
   { value: 'SD', label: 'Severely Disabled (80% or more)' },
@@ -207,6 +227,19 @@ export const DONATION_TYPES = [
   { value: '50NC', label: '50% without limit' },
   { value: '100WL', label: '100% with limit' },
   { value: '50WL', label: '50% with limit' },
+]
+
+export const CLAUSE_TYPES_80GGA = [
+  { value: '35(1)(i)', label: '35(1)(i) - Research Association (Scientific Research)' },
+  { value: '35(1)(ii)', label: '35(1)(ii) - University/College (Scientific Research)' },
+  { value: '35(1)(iii)', label: '35(1)(iii) - Research Association (Social Science)' },
+  { value: '35(1)(iia)', label: '35(1)(iia) - Indian Company (Scientific Research)' },
+  { value: '35(2AA)', label: '35(2AA) - National Laboratory/IIT' },
+  { value: '35(2AB)', label: '35(2AB) - In-house Scientific Research' },
+  { value: '80GGA(2)(a)', label: '80GGA(2)(a) - Rural Development' },
+  { value: '80GGA(2)(b)', label: '80GGA(2)(b) - Afforestation' },
+  { value: '80GGA(2)(bb)', label: '80GGA(2)(bb) - National Urban Poverty Fund' },
+  { value: '80GGA(2)(c)', label: '80GGA(2)(c) - Rural Development Fund' },
 ]
 
 export const QUALIFYING_PERCENTAGES = [
@@ -238,10 +271,14 @@ export const MASTER_DATA = {
   quarters: QUARTERS,
   paymentModes: PAYMENT_MODES,
   disabilityTypes: DISABILITY_TYPES,
+  healthInsuranceTakenFor: HEALTH_INSURANCE_TAKEN_FOR,
+  preventiveMedicalTakenFor: PREVENTIVE_MEDICAL_TAKEN_FOR,
+  relationToDependant: RELATION_TO_DEPENDANT,
   treatmentFor: TREATMENT_FOR,
   seniorCitizenTypes: SENIOR_CITIZEN_TYPES,
   diseases80DDB: DISEASES_80DDB,
   donationTypes: DONATION_TYPES,
+  clauseTypes80GGA: CLAUSE_TYPES_80GGA,
   qualifyingPercentages: QUALIFYING_PERCENTAGES,
   limitOnDeduction: LIMIT_ON_DEDUCTION,
 }

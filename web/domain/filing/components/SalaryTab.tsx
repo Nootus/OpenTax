@@ -81,14 +81,14 @@ export default function SalaryTab() {
       const find172 = (cid: number) => (entry.salarySection172 ?? []).find((s) => s.componentId === cid);
       const find173 = (cid: number) => (entry.salarySection173 ?? []).find((s) => s.componentId === cid);
 
-      const knownIds171 = [SECTION_171.BASIC_SALARY, SECTION_171.HRA, SECTION_171.LTA, SECTION_171.OTHER_ALLOWANCES];
+      const knownIds171: number[] = [SECTION_171.BASIC_SALARY, SECTION_171.HRA, SECTION_171.LTA, SECTION_171.OTHER_ALLOWANCES];
       const unknownAmt171 = (entry.salarySection171 ?? []).filter((s) => s.componentId != null && !knownIds171.includes(s.componentId)).reduce((s, i) => s + (i.amount || 0), 0);
       const unknownExempt171 = (entry.salarySection171 ?? []).filter((s) => s.componentId != null && !knownIds171.includes(s.componentId)).reduce((s, i) => s + (i.exemptionAmount || 0), 0);
 
-      const knownIds172 = [SECTION_172.COMPANY_CAR, SECTION_172.RFA, SECTION_172.OTHER_PERQUISITES];
+      const knownIds172: number[] = [SECTION_172.COMPANY_CAR, SECTION_172.RFA, SECTION_172.OTHER_PERQUISITES];
       const unknownAmt172 = (entry.salarySection172 ?? []).filter((s) => s.componentId != null && !knownIds172.includes(s.componentId)).reduce((s, i) => s + (i.amount || 0), 0);
 
-      const knownIds173 = [SECTION_173.TERMINATION_COMP, SECTION_173.GRATUITY, SECTION_173.OTHER_PROFITS];
+      const knownIds173: number[] = [SECTION_173.TERMINATION_COMP, SECTION_173.GRATUITY, SECTION_173.OTHER_PROFITS];
       const unknownAmt173 = (entry.salarySection173 ?? []).filter((s) => s.componentId != null && !knownIds173.includes(s.componentId)).reduce((s, i) => s + (i.amount || 0), 0);
 
       return {

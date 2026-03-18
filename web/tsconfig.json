@@ -39,7 +39,15 @@
     ".next\\dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "domain/filing/models/income/capital-gains/capital-deemed-api.ts",
+    "domain/filing/models/income/capital-gains/capital-foreign-api.ts",
+    "domain/filing/models/income/capital-gains/capital-movable-api.ts",
+    "domain/filing/models/income/capital-gains/capital-real-estate-api.ts",
+    "domain/filing/models/income/capital-gains/capital-securities-api.ts",
+    "domain/filing/models/income/capital-gains/capital-gains-others-model.ts",
+    "domain/filing/models/income/capital-gains/foreign-asset-model.ts",
+    "domain/filing/models/income/capital-gains/movable-asset-model.ts"
   ]
 }
 

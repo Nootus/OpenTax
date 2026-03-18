@@ -4,7 +4,7 @@
  * Extends Deduction80EModel
  */
 
-import { Deduction80EModel } from '../../deduction-80e/models/deduction-80e-model'
+import { Deduction80EModel } from './deduction-80e-model'
 
 export interface Deduction80EEAModel extends Deduction80EModel {}
 
