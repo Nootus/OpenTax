@@ -106,6 +106,8 @@ export default function Section80GGATab() {
       errs.doneePan = 'Donee PAN is required';
     } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(entry.doneePan)) {
       errs.doneePan = 'Invalid PAN format (e.g., AAATA9999A)';
+    } else if (filing.person?.panNumber && entry.doneePan.toUpperCase() === filing.person.panNumber.toUpperCase()) {
+      errs.doneePan = 'Donee PAN cannot be the same as your filing PAN';
     }
     if ((entry.donationAmountCash || 0) === 0 && (entry.donationAmountNonCash || 0) === 0) {
       errs.totalDonationAmount = 'At least one donation amount is required';

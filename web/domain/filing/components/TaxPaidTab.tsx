@@ -221,6 +221,7 @@ export default function TaxPaidTab() {
     if (!entry.collectorName?.trim()) errors[`tcs_${index}_collectorName`] = 'Collector name is required';
     if (!entry.tan?.trim()) errors[`tcs_${index}_tan`] = 'TAN is required';
     else if (!/^[A-Z]{4}[0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tcs_${index}_tan`] = 'Invalid TAN (e.g. AAAA99999A)';
+    if (!entry.amountCollected || entry.amountCollected === 0) errors[`tcs_${index}_amountCollected`] = 'Gross payment amount is required';
     if (!entry.taxCollected || entry.taxCollected === 0) errors[`tcs_${index}_taxCollected`] = 'Tax collected is required';
     if (Object.keys(errors).length > 0) { setSaveErrors(errors); return; }
     setSaveErrors({});
@@ -259,6 +260,7 @@ export default function TaxPaidTab() {
     if (!entry.taxType) errors[`taxPaid_${index}_taxType`] = 'Tax type is required';
     if (!entry.taxPaidAmount || entry.taxPaidAmount === 0) errors[`taxPaid_${index}_amount`] = 'Amount is required';
     if (!entry.challanNumber) errors[`taxPaid_${index}_challan`] = 'Challan number is required';
+    else if (String(entry.challanNumber).length > 7) errors[`taxPaid_${index}_challan`] = 'Challan number must be less than or equal to 7 digits';
     if (!entry.bsrCode?.trim()) errors[`taxPaid_${index}_bsrCode`] = 'BSR code is required';
     else if (!/^[0-9]{7}$/.test(entry.bsrCode)) errors[`taxPaid_${index}_bsrCode`] = 'BSR code must be 7 digits';
     if (!entry.dateOfPayment) errors[`taxPaid_${index}_date`] = 'Date of payment is required';
@@ -412,7 +414,7 @@ export default function TaxPaidTab() {
                             <td className="px-3 py-2"><Input value={entry.collectorName} onChange={(e) => updateTcsEntry(index, 'collectorName', e.target.value)} placeholder="Collector" className="text-sm" error={saveErrors[`tcs_${index}_collectorName`]} /></td>
                             <td className="px-3 py-2 tan-column"><Input value={entry.tan} onChange={(e) => updateTcsEntry(index, 'tan', e.target.value.toUpperCase())} placeholder="AAAA99999A" maxLength={10} className="text-sm uppercase" error={saveErrors[`tcs_${index}_tan`]} /></td>
                             <td className="px-3 py-2 nature-column"><Select value={entry.natureOfCollection || ''} onChange={(e) => updateTcsEntry(index, 'natureOfCollection', e.target.value)} options={NATURE_OF_COLLECTION_OPTIONS} className="text-sm" /></td>
-                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.amountCollected || ''} onChange={(e) => updateTcsEntry(index, 'amountCollected', parseFloat(e.target.value) || 0)} placeholder="Amount" className="text-sm" /></td>
+                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.amountCollected || ''} onChange={(e) => updateTcsEntry(index, 'amountCollected', parseFloat(e.target.value) || 0)} placeholder="Amount" className="text-sm" error={saveErrors[`tcs_${index}_amountCollected`]} /></td>
                             <td className="px-3 py-2 amount-column"><Input type="number" value={entry.taxCollected || ''} onChange={(e) => updateTcsEntry(index, 'taxCollected', parseFloat(e.target.value) || 0)} placeholder="Tax" className="text-sm" error={saveErrors[`tcs_${index}_taxCollected`]} /></td>
                             <td className="px-3 py-2 certificate-column"><Input value={entry.tcsCertificateNumber || ''} onChange={(e) => updateTcsEntry(index, 'tcsCertificateNumber', e.target.value)} placeholder="Certificate" className="text-sm" /></td>
                             <td className="px-3 py-2 quarter-column"><Select value={entry.quarter || ''} onChange={(e) => updateTcsEntry(index, 'quarter', e.target.value)} options={QUARTER_OPTIONS} className="text-sm" /></td>

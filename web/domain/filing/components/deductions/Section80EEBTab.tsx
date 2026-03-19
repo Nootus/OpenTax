@@ -89,10 +89,14 @@ export default function Section80EEBTab() {
       e.loanSanctionDate = 'Loan sanction date is required';
     } else {
       const sanctionDate = new Date(formData.loanSanctionDate);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
       const minDate = new Date('2019-04-01');
       const maxDate = new Date('2023-03-31');
       maxDate.setHours(23, 59, 59, 999);
-      if (sanctionDate < minDate || sanctionDate > maxDate) {
+      if (sanctionDate > today) {
+        e.loanSanctionDate = 'Loan sanction date cannot be a future date';
+      } else if (sanctionDate < minDate || sanctionDate > maxDate) {
         e.loanSanctionDate = 'Loan sanction date must be between 01-04-2019 and 31-03-2023';
       }
     }

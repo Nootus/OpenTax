@@ -81,6 +81,11 @@ export default function Section80DDTab() {
     if (entry.dependantPan?.trim()) {
       if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(entry.dependantPan.trim())) {
         errs.dependantPan = 'Invalid PAN format (e.g., ABCDE1234F)';
+      } else {
+        const filingPan = filing.person?.panNumber?.toUpperCase();
+        if (filingPan && entry.dependantPan.trim().toUpperCase() === filingPan) {
+          errs.dependantPan = "Dependant's PAN cannot be the same as the filing PAN";
+        }
       }
     }
     if (entry.form101aFilingDate && new Date(entry.form101aFilingDate) > new Date()) {
