@@ -1,57 +1,124 @@
-# OpenTax
+<p align="center">
+  <img src="web/public/ITAI-logo.png" alt="OpenTax" height="72" />
+</p>
 
-**Free, open-source Income Tax Return (ITR) filing for India.**
+<h1 align="center">OpenTax</h1>
 
-OpenTax is a single-page web application that lets you fill out your ITR-1 form entirely in the browser — no login, no API calls during editing, no tracking. When you're done, one click submits the complete filing.
+<p align="center">
+  <a href="https://indiatax.ai"><img src="web/public/logo.webp" alt="Powered by IndiaTax.AI" height="32" /></a><br/>
+  <a href="https://indiatax.ai"><strong>Powered by IndiaTax.AI</strong></a>
+</p>
 
-## Features
+<br/>
 
-- **No login required** — start filling immediately
-- **Single page** — all sections (Personal Details, Income, Deductions, Tax Paid) on one page with tab navigation
-- **Offline-first** — data stays in your browser until you submit
-- **Open source** — MIT licensed, full transparency
+OpenTax is a free, open-source Income Tax Return (ITR) filing application for India. It provides a single-page browser interface for completing ITR-1 filings, backed by a FastAPI service that performs tax calculations, ITR-1 construction, and validation.
 
 ## Project Structure
 
 ```
 OpenTax/
-├── web/     # Next.js frontend (React 19, TypeScript, Tailwind CSS 4)
-├── api/     # Backend API (planned)
-├── docs/    # Implementation plans
+├── web/          Next.js 16 frontend — React 19, TypeScript 5.9, Tailwind CSS 4
+├── api/          FastAPI backend — tax calculation, ITR-1 building, validation
 └── README.md
 ```
 
-## Getting Started
+## Features
+
+- No authentication required
+- Single-page layout with tab navigation (Personal Details, Income, Deductions, Tax Paid, Summary)
+- Automatic tax computation under both Old and New regimes
+- ITR-1 JSON construction with validation error reporting
+- Static export — the frontend can be served directly from the FastAPI process in production
+- MIT licensed
+
+---
+
+## Frontend — web/
+
+### Prerequisites
+
+- Node.js 24.12.0 or later
+- npm 10 or later
+
+### Installation
 
 ```bash
 cd web
 npm install
+```
+
+### Development
+
+```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000`
+The application will be available at `http://localhost:3000`.
 
-## Documentation
+The frontend expects the API at `http://localhost:8000` by default. This is configured in `web/.env.local`:
 
-See [docs/](docs/) for detailed implementation plans:
-- [00 — Execution Checklist](docs/00-EXECUTION-CHECKLIST.md)
-- [01 — Project Overview](docs/01-PROJECT-OVERVIEW.md)
-- [02 — Phase 1: Scaffold](docs/02-PHASE-1-SCAFFOLD.md)
-- [03 — Phase 2: Models](docs/03-PHASE-2-MODELS.md)
-- [04 — Phase 3: Context](docs/04-PHASE-3-CONTEXT.md)
-- [05 — Phase 4: UI Components](docs/05-PHASE-4-UI-COMPONENTS.md)
-- [06 — Phase 5: Tab Components](docs/06-PHASE-5-TAB-COMPONENTS.md)
-- [07 — Phase 6: Single Page](docs/07-PHASE-6-SINGLE-PAGE.md)
-- [08 — Phase 7: Submit](docs/08-PHASE-7-SUBMIT.md)
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
 
-## Tech Stack
+### Build
 
-- Next.js 16 (App Router, static export)
-- React 19
-- TypeScript 5.9
-- Tailwind CSS 4
-- Lucide React + Heroicons
+```bash
+npm run build
+```
+
+Produces a static export in `web/out/`. In production deployments, this directory is copied to `api/frontend/` and served by the FastAPI process.
+
+### Lint
+
+```bash
+npm run lint
+```
+
+### Scripts Reference
+
+| Script | Command | Description |
+|--------|---------|-------------|
+| dev | `npm run dev` | Start Next.js development server with Turbopack |
+| build | `npm run build` | Produce static export to `out/` |
+| start | `npm start` | Start Next.js production server |
+| lint | `npm run lint` | Run ESLint |
+
+---
+
+## Backend — api/
+
+See [api/README.md](api/README.md) for full API setup and endpoint documentation.
+
+---
+
+## Running Both Services Together
+
+Open two terminal sessions from the repository root.
+
+**Terminal 1 — API:**
+```bash
+cd api
+python -m uvicorn main:app --reload --port 8000
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd web
+npm run dev
+```
+
+Access the application at `http://localhost:3000`.
+
+---
 
 ## License
 
-MIT
+Apache License 2.0
+
+---
+
+<p align="center">
+  <a href="https://indiatax.ai"><img src="web/public/logo.webp" alt="Powered by IndiaTax.AI" height="28" /></a><br/>
+  <a href="https://indiatax.ai">Powered by IndiaTax.AI</a>
+</p>

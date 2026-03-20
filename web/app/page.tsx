@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { CalculatorIcon } from '@heroicons/react/24/outline';
 import PersonalDetailsTab from '@/filing/components/PersonalDetailsTab';
 import IncomeTab from '@/filing/components/IncomeTab';
 import DeductionsTab from '@/filing/components/DeductionsTab';
@@ -30,19 +29,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header / Brand */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-3 h-14">
-          <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
-            <CalculatorIcon className="w-5 h-5" />
-          </span>
-          <div>
-            <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
-            <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR-1 Filing</p>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Client Info Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 mb-4">

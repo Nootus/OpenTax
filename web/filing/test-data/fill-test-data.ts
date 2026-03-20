@@ -1,32 +1,32 @@
 import { FilingModel } from '../models/filing-model'
 
-// Test data for development purposes only — populated from test JSON
+// Test data for development purposes only — all values are randomly generated and fictitious
 export const TEST_FILING: Partial<FilingModel> = {
   assessmentYear: '2026-27',
   regime: 'new',
 
   // ── Personal Details ──────────────────────────────────────────
   person: {
-    firstName: 'UDAYA ADITYA KUMAR',
+    firstName: 'ARJUN',
     middleName: '',
-    lastName: 'BHANDARU',
-    fatherName: 'Bhandaru Mohan Prasad',
-    panNumber: 'AWRPB1698J',
-    aadhaarNumber: '354354353454',
-    dateOfBirth: new Date('1984-05-08'),
+    lastName: 'MEHTA',
+    fatherName: 'Suresh Kumar Mehta',
+    panNumber: 'BVZPM4821H',
+    aadhaarNumber: '728394650183',
+    dateOfBirth: new Date('1985-07-14'),
     residentialStatus: 'RES',
-    email: 'udayveryrich@nootus.ai',
-    mobileNumber: '2222222222',
+    email: 'arjun.mehta@example.com',
+    mobileNumber: '9876540123',
     countryCode: '+91',
   },
 
   personAddress: {
-    flatDoorNo: '4P105',
-    premiseName: 'Sai Shakthi Sadan',
-    street: 'Road number2',
-    areaLocality: 'Bandla Guda',
+    flatDoorNo: '3B-204',
+    premiseName: 'Green Valley Apartments',
+    street: 'MG Road',
+    areaLocality: 'Banjara Hills',
     city: 'Hyderabad',
-    pincode: '506302',
+    pincode: '500034',
     state: '36',
     country: 'India',
   },
@@ -34,17 +34,17 @@ export const TEST_FILING: Partial<FilingModel> = {
   bankAccount: [
     {
       bankAccountId: null,
-      accountNumber: '1234567890',
-      ifscCode: 'SBIN0001234',
+      accountNumber: '3874920156',
+      ifscCode: 'SBIN0004721',
       bankName: 'State Bank of India',
       accountType: 'SB',
       isPrimary: true,
     },
     {
       bankAccountId: null,
-      accountNumber: '45435435435',
-      ifscCode: 'HDFC0001234',
-      bankName: 'HDFC bank',
+      accountNumber: '7261038495',
+      ifscCode: 'HDFC0002839',
+      bankName: 'HDFC Bank',
       accountType: 'SB',
       isPrimary: false,
     },
@@ -56,15 +56,15 @@ export const TEST_FILING: Partial<FilingModel> = {
       employer: {
         employerId: null,
         filingId: 0,
-        employerName: 'Nootus AI',
+        employerName: 'Meridian Tech Solutions Pvt Ltd',
         employerType: 'OTH',
-        tanNumber: 'HYDC14035A',
+        tanNumber: 'BLRM29174C',
         panNumber: null,
       },
       employerAddress: {
         employerAddressId: null,
         employerId: null,
-        addressLine1: 'Hyderabad',
+        addressLine1: 'Block A, Cyber Towers',
         city: 'Hyderabad',
         state: '36',
         pincode: '500081',
@@ -97,15 +97,15 @@ export const TEST_FILING: Partial<FilingModel> = {
       employer: {
         employerId: null,
         filingId: 0,
-        employerName: 'S&P Global',
+        employerName: 'Pinnacle Analytics Pvt Ltd',
         employerType: 'OTH',
-        tanNumber: 'HYDC14035B',
+        tanNumber: 'MUMB38427K',
         panNumber: null,
       },
       employerAddress: {
         employerAddressId: null,
         employerId: null,
-        addressLine1: 'Hyderabad',
+        addressLine1: 'Tower 2, Raheja Mindspace',
         city: 'Hyderabad',
         state: '36',
         pincode: '500032',
@@ -151,7 +151,7 @@ export const TEST_FILING: Partial<FilingModel> = {
         propertyAddressId: null,
         filingId: 0,
         propertyId: null,
-        addressLine1: 'Plot 45, Sector 12',
+        addressLine1: 'Plot 12, Sector 7',
         city: 'Hyderabad',
         district: 'Hyderabad',
         state: '36',
@@ -172,12 +172,12 @@ export const TEST_FILING: Partial<FilingModel> = {
         principalRepaid: null,
       },
       propertyTenants: [
-        { tenantId: null, filingId: 0, propertyId: null, tenantName: 'Priya Reddy', identifierType: 'PAN', identifierValue: 'XYZPQ5678R' },
-        { tenantId: null, filingId: 0, propertyId: null, tenantName: 'Keerthi Reddy', identifierType: 'PAN', identifierValue: 'AJJPA2996F' },
+        { tenantId: null, filingId: 0, propertyId: null, tenantName: 'Kavya Sharma', identifierType: 'PAN', identifierValue: 'CKTPS7312N' },
+        { tenantId: null, filingId: 0, propertyId: null, tenantName: 'Rohit Nair', identifierType: 'PAN', identifierValue: 'DXRPN4856Q' },
       ],
       propertyCoowners: [
-        { coownerId: null, filingId: 0, propertyId: null, coownerName: 'Priya Sharma', coownerPan: 'XYZPQ5678R', ownershipShare: 25 },
-        { coownerId: null, filingId: 0, propertyId: null, coownerName: 'Ravi Reddy', coownerPan: 'YYZPQ5678R', ownershipShare: 25 },
+        { coownerId: null, filingId: 0, propertyId: null, coownerName: 'Sunita Mehta', coownerPan: 'FZSPM9143R', ownershipShare: 25 },
+        { coownerId: null, filingId: 0, propertyId: null, coownerName: 'Vikram Joshi', coownerPan: 'GJVPJ6278T', ownershipShare: 25 },
       ],
     },
   ],
@@ -189,19 +189,19 @@ export const TEST_FILING: Partial<FilingModel> = {
 
   // ── TDS ───────────────────────────────────────────────────────
   tds: [
-    { tdsId: null, filingId: 0, deductorName: 'Tech Solutions Pvt Ltd', tan: 'HYDT12345D', pan: null, incomeSource: 'Salary', tdsSection: '192', amountPaid: 1200000, taxDeducted: 120000 },
-    { tdsId: null, filingId: 0, deductorName: 'NootusAI', tan: 'HYDT12345D', pan: null, incomeSource: 'Salary', tdsSection: '192', amountPaid: 1800000, taxDeducted: 55000 },
+    { tdsId: null, filingId: 0, deductorName: 'Meridian Tech Solutions Pvt Ltd', tan: 'BLRM29174C', pan: null, incomeSource: 'Salary', tdsSection: '192', amountPaid: 1200000, taxDeducted: 120000 },
+    { tdsId: null, filingId: 0, deductorName: 'Pinnacle Analytics Pvt Ltd', tan: 'MUMB38427K', pan: null, incomeSource: 'Salary', tdsSection: '192', amountPaid: 1800000, taxDeducted: 55000 },
   ],
 
   // ── TCS ───────────────────────────────────────────────────────
   tcs: [
-    { tcsId: null, filingId: 0, collectorName: 'Amazon Seller Services', tan: 'MUMZ98765F', natureOfCollection: null, amountCollected: null, taxCollected: 5000 },
-    { tcsId: null, filingId: 0, collectorName: 'FlipCart', tan: 'HYDT12345D', natureOfCollection: null, amountCollected: null, taxCollected: 6500 },
+    { tcsId: null, filingId: 0, collectorName: 'Online Marketplace Ltd', tan: 'DELZ74193P', natureOfCollection: null, amountCollected: null, taxCollected: 5000 },
+    { tcsId: null, filingId: 0, collectorName: 'Retail Commerce Pvt Ltd', tan: 'BLRK58362M', natureOfCollection: null, amountCollected: null, taxCollected: 6500 },
   ],
 
   // ── Advance Tax ───────────────────────────────────────────────
   advanceTax: [
-    { taxPaidId: null, filingId: 0, bsrCode: '0123456', challanNumber: '12345', dateOfPayment: '2025-06-15', taxPaidAmount: 25000, taxType: 'advance' },
+    { taxPaidId: null, filingId: 0, bsrCode: '4817263', challanNumber: '83921', dateOfPayment: '2025-06-15', taxPaidAmount: 25000, taxType: 'advance' },
   ],
 
   // ── Deductions ────────────────────────────────────────────────
@@ -224,7 +224,7 @@ export const TEST_FILING: Partial<FilingModel> = {
   section80Dd: {
     deductionId: null,
     filingId: 0,
-    dependantName: 'Dependent Person',
+    dependantName: 'Priya Mehta',
     dependantPan: null,
     relationToDependant: 'SPOUSE',
     disabilityType: 'Disabled',
@@ -249,7 +249,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     deductionId: null,
     filingId: 0,
     lenderType: 'bank',
-    lenderName: 'SBI',
+    lenderName: 'State Bank of India',
     loanAccountNumber: null,
     loanSanctionDate: null,
     totalLoanAmount: null,
@@ -271,7 +271,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     deductionId: null,
     filingId: 0,
     vehicleMakeModel: 'Tata Nexon EV',
-    vehicleRegistrationNumber: 'TS09AB1234',
+    vehicleRegistrationNumber: 'TS09XY5678',
     lenderType: 'bank',
     lenderName: 'HDFC Bank',
     loanAccountNumber: null,
@@ -293,7 +293,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     acknowledgementNo10Ba: null,
   },
   section80Ggc: [
-    { deductionId: null, filingId: 0, politicalPartyName: 'Local Party', contributionAmountCash: 0, contributionAmountNonCash: 55000, totalContribution: 55000 },
+    { deductionId: null, filingId: 0, politicalPartyName: 'Sample Political Party', contributionAmountCash: 0, contributionAmountNonCash: 55000, totalContribution: 55000 },
   ],
   section80Tta: {
     deductionId: null,

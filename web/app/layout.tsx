@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import Image from "next/image";
 import "./globals.css";
 import { FilingProvider } from "@/filing/context/FilingContext";
 import { ToasterProvider } from "@/filing/ui/Toaster";
@@ -35,7 +36,32 @@ export default function RootLayout({
         className={`${inter.variable} ${plusJakarta.variable} font-sans antialiased`}
       >
         <FilingProvider>
-          <ToasterProvider>{children}</ToasterProvider>
+          <ToasterProvider>
+            {/* Global header — visible on every page/view */}
+            <header className="bg-white border-b border-gray-200 shadow-sm print:hidden">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
+                {/* Left — logo + name */}
+                <div className="flex items-center gap-3">
+                  <Image src="/ITAI-logo.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
+                  <div>
+                    <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
+                    <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR-1 Filing</p>
+                  </div>
+                </div>
+                {/* Right — powered by */}
+                <a
+                  href="https://indiatax.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+                >
+                  <Image src="/logo.webp" alt="IndiaTax.AI" width={24} height={24} className="rounded" />
+                  <span className="text-xs text-gray-500 hidden sm:inline">Powered by <span className="font-semibold text-blue-600">IndiaTax.AI</span></span>
+                </a>
+              </div>
+            </header>
+            {children}
+          </ToasterProvider>
         </FilingProvider>
       </body>
     </html>

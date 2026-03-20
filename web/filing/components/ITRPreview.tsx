@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import type { ITR1Model } from '@/filing/models/itr1-model'
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -69,16 +70,24 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
   return (
     <div className="min-h-screen bg-gray-100 print:bg-white">
       {/* Sticky Top Bar */}
-      <div className="sticky top-0 z-20 bg-white border-b border-gray-300 shadow-sm print:hidden">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm print:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
+          {/* Left — logo + name (matches home header) */}
           <div className="flex items-center gap-3">
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-800 transition-colors text-lg">← Back</button>
-            <h1 className="text-lg font-bold text-gray-800">ITR‑1 SAHAJ — Preview</h1>
-            <span className="text-xs text-gray-500">Assessment Year {itr1.Form_ITR1.AssessmentYear}</span>
+            <Image src="/ITAI-logo.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
+            <div>
+              <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
+              <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR-1 Filing</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          {/* Centre — back + title */}
+          <div className="flex items-center gap-3">
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-800 transition-colors text-sm font-medium">← Back</button>
+            <span className="text-gray-300">|</span>
+            <span className="text-sm font-bold text-gray-800 hidden sm:inline">ITR‑1 SAHAJ — Preview</span>
+            <span className="text-xs text-gray-500 hidden md:inline">AY {itr1.Form_ITR1.AssessmentYear}</span>
             <span className={`text-xs px-2 py-1 rounded-full font-medium ${isOldRegime ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-              {isOldRegime ? 'Old Tax Regime' : 'New Tax Regime'}
+              {isOldRegime ? 'Old Regime' : 'New Regime'}
             </span>
             <button
               onClick={() => {
@@ -97,10 +106,17 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
             >
               ⬇ Download JSON
             </button>
-            <button onClick={() => window.print()} className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
-              🖨 Print
-            </button>
           </div>
+          {/* Right — powered by (matches home header) */}
+          <a
+            href="https://indiatax.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+          >
+            <Image src="/logo.webp" alt="IndiaTax.AI" width={24} height={24} className="rounded" />
+            <span className="text-xs text-gray-500 hidden sm:inline">Powered by <span className="font-semibold text-blue-600">IndiaTax.AI</span></span>
+          </a>
         </div>
       </div>
 
