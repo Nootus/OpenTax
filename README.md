@@ -29,7 +29,7 @@ OpenTax/
 - Automatic tax computation under both Old and New regimes
 - ITR-1 JSON construction with validation error reporting
 - Static export — the frontend can be served directly from the FastAPI process in production
-- MIT licensed
+- Apache 2.0 licensed
 
 ---
 
