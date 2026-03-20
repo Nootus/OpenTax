@@ -1294,14 +1294,14 @@ class TaxValidationService:
         Source: mIncmDtls.bas IncD.PRANNum
         """
         inc_ded = itr.ITR1_IncomeDeductions
-            pran_number = getattr(inc_ded, "PRANNum", None)
-            if pran_number is not None and len(str(pran_number)) > 125:
-                messages.append(ValidationError(
-                    field="80ccc.pranNumber",
-                    message="* PRAN number should not exceed 125 characters"
-                ))
-                return False
-            ud = getattr(inc_ded, "UsrDeductUndChapVIA", None)
+        pran_number = getattr(inc_ded, "PRANNum", None)
+        if pran_number is not None and len(str(pran_number)) > 125:
+            messages.append(ValidationError(
+                field="80ccc.pranNumber",
+                message="* PRAN number should not exceed 125 characters"
+            ))
+            return False
+        ud = getattr(inc_ded, "UsrDeductUndChapVIA", None)
         if ud is not None and getattr(ud, "Section80CCC", 0):
             pran = getattr(ud, "PRANNum", None)
             if pran is not None and len(str(pran)) > 125:

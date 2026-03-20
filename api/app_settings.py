@@ -11,7 +11,7 @@ class AppEnvSettings(BaseSettings):
     # -----------------------------
     # CORS
     # -----------------------------
-    BACKEND_CORS_ORIGINS: str = Field(..., description="Comma-separated list of allowed CORS origins")    
+    BACKEND_CORS_ORIGINS: str = Field(default="http://localhost:3000", description="Comma-separated list of allowed CORS origins")
 # AppEnvSettings
 
 @lru_cache()
