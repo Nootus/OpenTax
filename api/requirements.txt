@@ -1,0 +1,6 @@
+fastapi[standard]==0.121.3
+uvicorn[standard]==0.38.0
+pydantic[email]==2.12.4
+python-dotenv==1.2.1
+pydantic-settings==2.12.0
+
