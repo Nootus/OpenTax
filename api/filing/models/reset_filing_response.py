@@ -1,7 +1,7 @@
 """Response model for filing reset operations."""
 from typing import Optional
 from .api_base_model import ApiBaseModel
-from domain.filing.models.filing_model import FilingModel
+from .filing_model import FilingModel
 
 
 class ResetFilingResponse(ApiBaseModel):
