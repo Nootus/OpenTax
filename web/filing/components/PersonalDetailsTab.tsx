@@ -53,6 +53,7 @@ const EMPTY_ADDRESS: AddressModel = {
 };
 
 const EMPTY_BANK: BankAccountModel = {
+  bankAccountId: -Date.now(),
   accountNumber: '',
   ifscCode: '',
   bankName: '',
@@ -80,9 +81,10 @@ export default function PersonalDetailsTab() {
   const [editableAddress, setEditableAddress] = useState<AddressModel>(
     filing.personAddress ?? EMPTY_ADDRESS
   );
-  const [editableBankAccounts, setEditableBankAccounts] = useState<BankAccountModel[]>(
-    filing.bankAccount.length > 0 ? filing.bankAccount : [{ ...EMPTY_BANK }]
-  );
+  const [editableBankAccounts, setEditableBankAccounts] = useState<BankAccountModel[]>(() => {
+    const accts = filing.bankAccount.length > 0 ? filing.bankAccount : [{ ...EMPTY_BANK }];
+    return accts.map((a, i) => a.bankAccountId != null ? a : { ...a, bankAccountId: -(Date.now() + i) });
+  });
 
   // Inject compact styles
   useEffect(() => {
@@ -260,7 +262,7 @@ export default function PersonalDetailsTab() {
   const addBankAccount = () => {
     setEditableBankAccounts([
       ...editableBankAccounts,
-      { accountNumber: '', ifscCode: '', bankName: '', accountType: 'SB', isPrimary: false },
+      { bankAccountId: -Date.now(), accountNumber: '', ifscCode: '', bankName: '', accountType: 'SB', isPrimary: false },
     ]);
   };
 
@@ -269,7 +271,7 @@ export default function PersonalDetailsTab() {
       setEditModeBankAccounts(true);
       setEditableBankAccounts([
         ...(filing.bankAccount.length > 0 ? filing.bankAccount : [{ ...EMPTY_BANK }]),
-        { accountNumber: '', ifscCode: '', bankName: '', accountType: 'SB', isPrimary: false },
+        { bankAccountId: -Date.now(), accountNumber: '', ifscCode: '', bankName: '', accountType: 'SB', isPrimary: false },
       ]);
     } else {
       addBankAccount();
@@ -570,7 +572,7 @@ export default function PersonalDetailsTab() {
             </div>
             <div className="space-y-3">
               {(editModeBankAccounts ? editableBankAccounts : bankAccounts).map((account, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div key={account.bankAccountId ?? `bank-${index}`} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
                       <h4 className="text-xs font-medium text-gray-700">Account {index + 1}</h4>

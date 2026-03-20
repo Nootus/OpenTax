@@ -203,7 +203,7 @@ export default function Section80GGATab() {
 
                   return (
                     <div
-                      key={entry.deductionId ?? `new-${index}`}
+                      key={entry.deductionId}
                       className="border border-gray-200 rounded-lg p-2.5 bg-gray-50"
                       ref={index === entries.length - 1 ? lastEntryRef : null}
                     >

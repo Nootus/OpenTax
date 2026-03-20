@@ -96,19 +96,24 @@ export default function TaxPaidTab() {
   const { filing, updateSection } = useFilingContext();
   const { fyMinDate, fyMaxDate } = fyDatesFromAy(filing.assessmentYear);
 
+  // Assign stable temp IDs to entries missing them
+  const assignTdsIds = (arr: TDSModel[]) => arr.map((e, i) => e.tdsId != null ? e : { ...e, tdsId: -(Date.now() + i) });
+  const assignTcsIds = (arr: TCSModel[]) => arr.map((e, i) => e.tcsId != null ? e : { ...e, tcsId: -(Date.now() + i + 1000) });
+  const assignTaxPaidIds = (arr: TaxPaidSelfModel[]) => arr.map((e, i) => e.taxPaidId != null ? e : { ...e, taxPaidId: -(Date.now() + i + 2000) });
+
   // TDS state
-  const [tdsData, setTdsData] = useState<TDSData>(() => { const e = filing.tds ? [...filing.tds] : []; return { entries: e, totalAmount: tdsSum(e) }; });
-  const [editableTdsData, setEditableTdsData] = useState<TDSData>(() => { const e = filing.tds ? [...filing.tds] : []; return { entries: e, totalAmount: tdsSum(e) }; });
+  const [tdsData, setTdsData] = useState<TDSData>(() => { const e = assignTdsIds(filing.tds ?? []); return { entries: e, totalAmount: tdsSum(e) }; });
+  const [editableTdsData, setEditableTdsData] = useState<TDSData>(() => { const e = assignTdsIds(filing.tds ?? []); return { entries: e, totalAmount: tdsSum(e) }; });
   const [editingTdsIndex, setEditingTdsIndex] = useState<number | null>(null);
 
   // TCS state
-  const [tcsData, setTcsData] = useState<TCSData>(() => { const e = filing.tcs ? [...filing.tcs] : []; return { entries: e, totalAmount: tcsSum(e) }; });
-  const [editableTcsData, setEditableTcsData] = useState<TCSData>(() => { const e = filing.tcs ? [...filing.tcs] : []; return { entries: e, totalAmount: tcsSum(e) }; });
+  const [tcsData, setTcsData] = useState<TCSData>(() => { const e = assignTcsIds(filing.tcs ?? []); return { entries: e, totalAmount: tcsSum(e) }; });
+  const [editableTcsData, setEditableTcsData] = useState<TCSData>(() => { const e = assignTcsIds(filing.tcs ?? []); return { entries: e, totalAmount: tcsSum(e) }; });
   const [editingTcsIndex, setEditingTcsIndex] = useState<number | null>(null);
 
   // Advance Tax state
-  const [taxPaidData, setTaxPaidData] = useState<TaxPaidData>(() => { const e = filing.advanceTax ? [...filing.advanceTax] : []; return { entries: e, totalAmount: advSum(e) }; });
-  const [editableTaxPaidData, setEditableTaxPaidData] = useState<TaxPaidData>(() => { const e = filing.advanceTax ? [...filing.advanceTax] : []; return { entries: e, totalAmount: advSum(e) }; });
+  const [taxPaidData, setTaxPaidData] = useState<TaxPaidData>(() => { const e = assignTaxPaidIds(filing.advanceTax ?? []); return { entries: e, totalAmount: advSum(e) }; });
+  const [editableTaxPaidData, setEditableTaxPaidData] = useState<TaxPaidData>(() => { const e = assignTaxPaidIds(filing.advanceTax ?? []); return { entries: e, totalAmount: advSum(e) }; });
   const [editingTaxPaidIndex, setEditingTaxPaidIndex] = useState<number | null>(null);
 
   // Accordion
@@ -167,7 +172,7 @@ export default function TaxPaidTab() {
 
   // TDS handlers
   const addTdsEntry = () => {
-    const newEntry: TDSModel = { tdsId: undefined, filingId: filing.filingId, deductorName: '', tan: '', pan: null, incomeSource: undefined, tdsSection: undefined, amountPaid: undefined, taxDeducted: undefined, tdsCertificateNumber: undefined, quarter: undefined };
+    const newEntry: TDSModel = { tdsId: -Date.now(), filingId: filing.filingId, deductorName: '', tan: '', pan: null, incomeSource: undefined, tdsSection: undefined, amountPaid: undefined, taxDeducted: undefined, tdsCertificateNumber: undefined, quarter: undefined };
     const updatedEntries = [...editableTdsData.entries, newEntry];
     setEditableTdsData({ entries: updatedEntries, totalAmount: tdsSum(updatedEntries) });
     setEditingTdsIndex(updatedEntries.length - 1);
@@ -205,7 +210,7 @@ export default function TaxPaidTab() {
 
   // TCS handlers
   const addTcsEntry = () => {
-    const newEntry: TCSModel = { tcsId: undefined, filingId: filing.filingId, collectorName: '', tan: '', natureOfCollection: undefined, amountCollected: undefined, taxCollected: undefined, tcsCertificateNumber: undefined, quarter: undefined, yearOfCollection: null, taxCreditClaimed: undefined };
+    const newEntry: TCSModel = { tcsId: -Date.now(), filingId: filing.filingId, collectorName: '', tan: '', natureOfCollection: undefined, amountCollected: undefined, taxCollected: undefined, tcsCertificateNumber: undefined, quarter: undefined, yearOfCollection: null, taxCreditClaimed: undefined };
     const updatedEntries = [...editableTcsData.entries, newEntry];
     setEditableTcsData({ entries: updatedEntries, totalAmount: tcsSum(updatedEntries) });
     setEditingTcsIndex(updatedEntries.length - 1);
@@ -244,7 +249,7 @@ export default function TaxPaidTab() {
 
   // Advance Tax handlers
   const addTaxPaidEntry = () => {
-    const newEntry: TaxPaidSelfModel = { taxPaidId: undefined, filingId: filing.filingId, challanNumber: undefined, bsrCode: undefined, dateOfPayment: null, taxPaidAmount: undefined, taxPaidDate: null, taxType: undefined };
+    const newEntry: TaxPaidSelfModel = { taxPaidId: -Date.now(), filingId: filing.filingId, challanNumber: undefined, bsrCode: undefined, dateOfPayment: null, taxPaidAmount: undefined, taxPaidDate: null, taxType: undefined };
     const updatedEntries = [...editableTaxPaidData.entries, newEntry];
     setEditableTaxPaidData({ entries: updatedEntries, totalAmount: advSum(updatedEntries) });
     setEditingTaxPaidIndex(updatedEntries.length - 1);
@@ -328,7 +333,7 @@ export default function TaxPaidTab() {
                   </thead>
                   <tbody>
                     {editableTdsData.entries.map((entry, index) => (
-                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
+                      <tr key={entry.tdsId ?? `tds-${index}`} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
                         {editingTdsIndex === index ? (
                           <>
                             <td className="px-3 py-2 deductor-column"><Input value={entry.deductorName} onChange={(e) => updateTdsEntry(index, 'deductorName', e.target.value)} placeholder="Deductor" className="text-sm" error={saveErrors[`tds_${index}_deductorName`]} /></td>
@@ -408,7 +413,7 @@ export default function TaxPaidTab() {
                   </thead>
                   <tbody>
                     {editableTcsData.entries.map((entry, index) => (
-                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
+                      <tr key={entry.tcsId ?? `tcs-${index}`} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
                         {editingTcsIndex === index ? (
                           <>
                             <td className="px-3 py-2"><Input value={entry.collectorName} onChange={(e) => updateTcsEntry(index, 'collectorName', e.target.value)} placeholder="Collector" className="text-sm" error={saveErrors[`tcs_${index}_collectorName`]} /></td>
@@ -484,7 +489,7 @@ export default function TaxPaidTab() {
                   </thead>
                   <tbody>
                     {editableTaxPaidData.entries.map((entry, index) => (
-                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
+                      <tr key={entry.taxPaidId ?? `tp-${index}`} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
                         {editingTaxPaidIndex === index ? (
                           <>
                             <td className="px-3 py-2"><Input value={entry.challanNumber || ''} onChange={(e) => updateTaxPaidEntry(index, 'challanNumber', e.target.value)} placeholder="Challan" className="text-sm" error={saveErrors[`taxPaid_${index}_challan`]} /></td>

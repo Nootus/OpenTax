@@ -42,9 +42,13 @@ const normalizePropertyType = (pt: string | undefined | null): string => {
 };
 
 const normalizeEntries = (raw: PropertyModel[]): PropertyModel[] =>
-  raw.map(entry => ({
+  raw.map((entry, i) => ({
     ...entry,
-    property: { ...entry.property, propertyType: normalizePropertyType(entry.property.propertyType) },
+    property: {
+      ...entry.property,
+      propertyType: normalizePropertyType(entry.property.propertyType),
+      propertyId: entry.property.propertyId ?? -(Date.now() + i),
+    },
     propertyTenants: (entry.propertyTenants || []).map(t => ({
       ...t,
       identifierType: typeof t.identifierType === 'string' ? t.identifierType.toLowerCase() : t.identifierType,
@@ -376,7 +380,7 @@ export default function HousePropertyTab() {
               <AddButton label="Add Property" onClick={addEntry} colorScheme="teal" />
             ) : (
               data.entries.map((entry, index) => {
-                const propertyId = entry.property.propertyId || index;
+                const propertyId = entry.property.propertyId!;
                 const isLetOut = entry.property.propertyType === 'L' || entry.property.propertyType === 'D';
                 const rent = entry.property.annualRentReceived || 0;
                 const municipalTax = entry.property.municipalTaxesPaid || 0;
@@ -541,7 +545,7 @@ export default function HousePropertyTab() {
                                 ) : (
                                   <div className="space-y-3 mb-3">
                                     {entry.propertyTenants.map((tenant, ti) => (
-                                      <div key={ti} className="border border-gray-200 rounded p-2">
+                                      <div key={`${propertyId}-t-${ti}`} className="border border-gray-200 rounded p-2">
                                         <div className="flex justify-between items-center mb-2">
                                           <span className="text-xs font-medium">Tenant {ti + 1}</span>
                                           {isEditing && <IconButton label="Remove Tenant" size="xs" onClick={() => deleteTenant(entry.property.propertyId, ti)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>}
@@ -597,7 +601,7 @@ export default function HousePropertyTab() {
                               ) : (
                                 <div className="space-y-3 mb-3">
                                   {entry.propertyCoowners.map((coowner, ci) => (
-                                    <div key={ci} className="border border-gray-200 rounded p-2">
+                                    <div key={`${propertyId}-c-${ci}`} className="border border-gray-200 rounded p-2">
                                       <div className="flex justify-between items-center mb-2">
                                         <span className="text-xs font-medium">Co-owner {ci + 1}</span>
                                         {isEditing && <IconButton label="Remove Co-owner" size="xs" onClick={() => deleteCoowner(entry.property.propertyId, ci)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>}

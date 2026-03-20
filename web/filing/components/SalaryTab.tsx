@@ -122,7 +122,11 @@ export default function SalaryTab() {
   );
 
   const [data, setData] = useState<SalaryData>(() => {
-    const entries = (filing.salary ?? []).map((e, i) => normalizeEntry(e, i === 0));
+    const entries = (filing.salary ?? []).map((e, i) => {
+      const normalized = normalizeEntry(e, i === 0);
+      if (normalized.employer.employerId != null) return normalized;
+      return { ...normalized, employer: { ...normalized.employer, employerId: -(Date.now() + i) } };
+    });
     return { entries, ...calcTotals(entries) };
   });
 
@@ -347,7 +351,7 @@ export default function SalaryTab() {
 
                 return (
                   <div
-                    key={eid || index}
+                    key={eid}
                     className="border border-gray-200 rounded-lg p-4 mb-4"
                     ref={index === data.entries.length - 1 ? lastEntryRef : null}
                   >

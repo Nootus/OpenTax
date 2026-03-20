@@ -172,7 +172,7 @@ export default function Section80CTab() {
 
                   return (
                     <div
-                      key={entry.deductionId || index}
+                      key={entry.deductionId}
                       className="border border-gray-200 rounded-lg p-4 bg-gray-50"
                       ref={index === entries.length - 1 ? lastEntryRef : null}
                     >

@@ -40,9 +40,9 @@ export default function Section80DTab() {
   const [formData, setFormData] = useState<Deduction80DModel>(() => ({
     deductionId: filing.section80D?.deductionId ?? null,
     filingId: filing.section80D?.filingId ?? null,
-    healthInsurance: filing.section80D?.healthInsurance ?? [],
-    preventiveCheckup: filing.section80D?.preventiveCheckup ?? [],
-    medicalExpenditure: filing.section80D?.medicalExpenditure ?? [],
+    healthInsurance: (filing.section80D?.healthInsurance ?? []).map((e, i) => e.healthId != null ? e : { ...e, healthId: -(Date.now() + i) }),
+    preventiveCheckup: (filing.section80D?.preventiveCheckup ?? []).map((e, i) => e.checkupId != null ? e : { ...e, checkupId: -(Date.now() + i + 1000) }),
+    medicalExpenditure: (filing.section80D?.medicalExpenditure ?? []).map((e, i) => e.expenditureId != null ? e : { ...e, expenditureId: -(Date.now() + i + 2000) }),
   }));
 
   const [isExpanded, setIsExpanded] = useState(true);
@@ -111,7 +111,7 @@ export default function Section80DTab() {
 
   const addHealthInsurance = () => {
     setIsEditMode(true);
-    setFormData(prev => ({ ...prev, healthInsurance: [...(prev.healthInsurance ?? []), { ...INITIAL_HEALTH_INSURANCE_ITEM, filingId: null as unknown as number } as Deduction80DHealthInsuranceModel] }));
+    setFormData(prev => ({ ...prev, healthInsurance: [...(prev.healthInsurance ?? []), { ...INITIAL_HEALTH_INSURANCE_ITEM, healthId: -Date.now(), filingId: null as unknown as number } as Deduction80DHealthInsuranceModel] }));
   };
   const updateHealthInsurance = (index: number, field: keyof Deduction80DHealthInsuranceModel, value: any) => {
     setFormData(prev => ({ ...prev, healthInsurance: (prev.healthInsurance ?? []).map((item, i) => i === index ? { ...item, [field]: value } : item) }));
@@ -122,7 +122,7 @@ export default function Section80DTab() {
 
   const addPreventiveCheckup = () => {
     setIsEditMode(true);
-    setFormData(prev => ({ ...prev, preventiveCheckup: [...(prev.preventiveCheckup ?? []), { ...INITIAL_PREVENTIVE_CHECKUP_FORM_DATA, filingId: null as unknown as number, takenFor: 'Self & Family' } as Deduction80DPreventiveCheckupModel] }));
+    setFormData(prev => ({ ...prev, preventiveCheckup: [...(prev.preventiveCheckup ?? []), { ...INITIAL_PREVENTIVE_CHECKUP_FORM_DATA, checkupId: -Date.now(), filingId: null as unknown as number, takenFor: 'Self & Family' } as Deduction80DPreventiveCheckupModel] }));
   };
   const updatePreventiveCheckup = (index: number, field: keyof Deduction80DPreventiveCheckupModel, value: any) => {
     setFormData(prev => ({ ...prev, preventiveCheckup: (prev.preventiveCheckup ?? []).map((item, i) => i === index ? { ...item, [field]: value } : item) }));
@@ -133,7 +133,7 @@ export default function Section80DTab() {
 
   const addMedicalExpenditure = () => {
     setIsEditMode(true);
-    setFormData(prev => ({ ...prev, medicalExpenditure: [...(prev.medicalExpenditure ?? []), { ...INITIAL_MEDICAL_EXPENDITURE_FORM_DATA, filingId: null as unknown as number, takenFor: 'Self & Family' } as Deduction80DMedicalExpenditureModel] }));
+    setFormData(prev => ({ ...prev, medicalExpenditure: [...(prev.medicalExpenditure ?? []), { ...INITIAL_MEDICAL_EXPENDITURE_FORM_DATA, expenditureId: -Date.now(), filingId: null as unknown as number, takenFor: 'Self & Family' } as Deduction80DMedicalExpenditureModel] }));
   };
   const updateMedicalExpenditure = (index: number, field: keyof Deduction80DMedicalExpenditureModel, value: any) => {
     setFormData(prev => ({ ...prev, medicalExpenditure: (prev.medicalExpenditure ?? []).map((item, i) => i === index ? { ...item, [field]: value } : item) }));
@@ -203,7 +203,7 @@ export default function Section80DTab() {
               ) : (
                 <div className="space-y-3">
                   {(formData.healthInsurance ?? []).map((entry, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white">
+                    <div key={entry.healthId ?? `hi-${index}`} className="border border-gray-200 rounded-lg p-3 bg-white">
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <Select label="Taken For" required value={entry.takenFor || 'S'} onChange={(e) => updateHealthInsurance(index, 'takenFor', e.target.value)} options={hiOptions} disabled={!isEditMode} />
@@ -233,7 +233,7 @@ export default function Section80DTab() {
               ) : (
                 <div className="space-y-3">
                   {(formData.preventiveCheckup ?? []).map((entry, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white">
+                    <div key={entry.checkupId ?? `pc-${index}`} className="border border-gray-200 rounded-lg p-3 bg-white">
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <Select label="Taken For" value={entry.takenFor || 'SF'} onChange={(e) => updatePreventiveCheckup(index, 'takenFor', e.target.value)} options={pcOptions} disabled={!isEditMode} />
@@ -261,7 +261,7 @@ export default function Section80DTab() {
               ) : (
                 <div className="space-y-3">
                   {(formData.medicalExpenditure ?? []).map((entry, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3 bg-white">
+                    <div key={entry.expenditureId ?? `me-${index}`} className="border border-gray-200 rounded-lg p-3 bg-white">
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <Select label="Taken For" value={entry.takenFor || 'SF'} onChange={(e) => updateMedicalExpenditure(index, 'takenFor', e.target.value)} options={pcOptions} disabled={!isEditMode} />
