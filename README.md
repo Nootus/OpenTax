@@ -55,7 +55,7 @@ npm run dev
 
 The application will be available at `http://localhost:3000`.
 
-The frontend expects the API at `http://localhost:8000` by default. This is configured in `web/.env.local`:
+The frontend expects the API at `http://localhost:8000` by default. This is configured in `web/.env`:
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:8000
