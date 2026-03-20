@@ -94,6 +94,18 @@ See [api/README.md](api/README.md) for full API setup and endpoint documentation
 
 ## Running Both Services Together
 
+### One-command launch (Windows)
+
+Run the included PowerShell script from the repository root to start both servers and open the browser automatically:
+
+```powershell
+.\start.ps1
+```
+
+This opens two terminal windows (API + frontend) and launches `http://localhost:3000` in Chrome once the servers are ready.
+
+### Manual start
+
 Open two terminal sessions from the repository root.
 
 **Terminal 1 — API:**
