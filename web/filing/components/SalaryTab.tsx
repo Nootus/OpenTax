@@ -240,6 +240,7 @@ export default function SalaryTab() {
           if (section === 'salarySection171' || section === 'salarySection172' || section === 'salarySection173') {
             const arr = [...updated[section as 'salarySection171' | 'salarySection172' | 'salarySection173']];
             const idx = parseInt(idxStr, 10);
+            while (arr.length <= idx) arr.push(section === 'salarySection171' ? { componentId: null, amount: null, filingId: null, exemptionAmount: null } : { componentId: null, amount: null, filingId: null });
             arr[idx] = { ...arr[idx], [key]: value } as any;
             updated[section as 'salarySection171' | 'salarySection172' | 'salarySection173'] = arr as any;
           }

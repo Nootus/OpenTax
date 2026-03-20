@@ -136,12 +136,8 @@ class Itr1IncomeBuilderService:
                     
                     # Component IDs that are exempt allowances
                     if comp_id in [10, 11, 12, 13, 14, 21, 22, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]:
-                        if float(item.exemption_amount or 0.0) > float(item.amount):
-                            TotalAllwncExemptUs10 += float(item.amount or 0.0)
-                        elif item.exemption_amount is not None:
-                            TotalAllwncExemptUs10 += float(item.exemption_amount or 0.0)
-                        else:
-                            TotalAllwncExemptUs10 += float(item.amount or 0.0)
+                        exempt_amt = float(item.exemption_amount) if item.exemption_amount is not None else float(item.amount or 0.0)
+                        TotalAllwncExemptUs10 += exempt_amt
                         current_component = next(
                             (c for c in salary_components if c["component_id"] == item.component_id), None
                         )
@@ -149,7 +145,7 @@ class Itr1IncomeBuilderService:
                             AllwncExemptUs10Dtls.append({
                                 "SalNatureDesc": current_component.get("component_code", ""),
                                 "SalOthNatOfInc": current_component.get("component_name") if current_component.get("component_code") != "OTH" else None,
-                                "SalOthAmount": min(float(item.exemption_amount if item.exemption_amount is not None else item.amount or 0.0), float(item.amount or 0.0)),
+                                "SalOthAmount": int(exempt_amt),
                             })
 
         return AllwncExemptUs10Dtls, int(TotalAllwncExemptUs10)
