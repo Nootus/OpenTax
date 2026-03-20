@@ -3,8 +3,8 @@
 
 from pydantic import BaseModel
 
-from domain.filing.itr.itr1.models.itr1_model import ITR1
-from domain.filing.models.filing_model import FilingModel
+from filing.itr.itr1.models.itr1_model import ITR1
+from filing.models.filing_model import FilingModel
 
 
 class FilingBuildItr1ReturnModel(BaseModel):

@@ -6,10 +6,11 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, Optional, cast
 
-from domain.core.utils.tax_filing_helpers import compute_age
+from filing.utils.tax_filing_helpers import compute_age
+from filing.utils.master_data_service import MasterDataService
 
-from domain.filing.itr.itr1.models.filing_build_itr1_return_model import FilingBuildItr1ReturnModel
-from domain.filing.itr.itr1.models.itr1_model import (
+from filing.itr.itr1.models.filing_build_itr1_return_model import FilingBuildItr1ReturnModel
+from filing.itr.itr1.models.itr1_model import (
     ITR1,
     AccountType,
     BankAccountDtlsModel,
@@ -44,14 +45,13 @@ from domain.filing.itr.itr1.models.itr1_model import (
     TDSonSalariesModel,
     VerificationModel,
 )
-from domain.filing.models.filing_model import FilingModel
-from domain.filing.itr.models.income_only_result import IncomeOnlyResult
-from domain.filing.tax_calculation.models.tax_regime_breakdown import TaxRegimeBreakdownModel
-from domain.core.master_data.master_data_service import MasterDataService
-from domain.filing.itr.itr1.itr1_income_builder_service import Itr1IncomeBuilderService
-from domain.filing.itr.itr1.itr1_deduction_builder_service import Itr1DeductionBuilderService, Itr1ComputationContext
-from domain.filing.itr.validations.tax_validation_service import TaxValidationService
-from domain.filing.tax_calculation.interest_234_service import Interest234Service
+from filing.models.filing_model import FilingModel
+from filing.itr.models.income_only_result import IncomeOnlyResult
+from filing.tax_calculation.models.tax_regime_breakdown import TaxRegimeBreakdownModel
+from filing.itr.itr1.itr1_income_builder_service import Itr1IncomeBuilderService
+from filing.itr.itr1.itr1_deduction_builder_service import Itr1DeductionBuilderService, Itr1ComputationContext
+from filing.itr.validations.tax_validation_service import TaxValidationService
+from filing.tax_calculation.interest_234_service import Interest234Service
 
 logger = logging.getLogger(__name__)
 class Itr1BuildingService:
@@ -526,7 +526,7 @@ class Itr1BuildingService:
 
     def build_verification(self, filing: FilingModel, verification: VerificationModel) -> VerificationModel:
         """Build Verification section: use passed verification if any, set Declaration/Capacity/Place from filing."""
-        from domain.filing.itr.itr1.models.itr1_model import DeclarationModel
+        from filing.itr.itr1.models.itr1_model import DeclarationModel
 
         person = filing.person
         if person is not None:

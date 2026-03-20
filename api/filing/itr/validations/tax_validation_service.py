@@ -17,11 +17,10 @@ Validation sources (Excel/VBA dump):
 """
 import re
 from typing import List, Union, cast
-from domain.filing.itr.itr1.models.itr1_model import ITR1, LoanTknFromEnum, ReturnFileSecEnum
-from domain.filing.itr.itr2.models.itr2_model import ITR2
-from domain.filing.models.filing_model import FilingModel
-from domain.filing.itr.validations.models.validation import ValidationError    
-from domain.core.utils.encryption import decrypt_pan
+from filing.itr.itr1.models.itr1_model import ITR1, LoanTknFromEnum, ReturnFileSecEnum
+from filing.models.filing_model import FilingModel
+from filing.itr.validations.models.validation import ValidationError    
+from filing.utils.encryption import decrypt_pan
 # Excel/VB constants
 ITR1_MAX_TOTAL_INCOME_EXCL_LTCG = 5000000
 LTCG_112A_MAX = 125000
@@ -84,20 +83,18 @@ class TaxValidationService:
 
 
     @staticmethod
-    def _get_filing_status(req: Union[ITR1, ITR2]):
-        """Return the FilingStatus object regardless of ITR type."""
-        if isinstance(req, ITR2):
-            return req.PartA_GEN1.FilingStatus
+    def _get_filing_status(req: ITR1):
+        """Return the FilingStatus object from ITR1."""
         return req.FilingStatus
 
-    async def get_user_validation_errors(self, filing_model: FilingModel, itr_model: Union[ITR1, ITR2, None]) -> List[ValidationError]:
+    async def get_user_validation_errors(self, filing_model: FilingModel, itr_model: ITR1 | None) -> List[ValidationError]:
         """
         Calculate USER validation errors for the filing (for left panel).
         These are for incomplete/invalid user input, NOT ERI validation.
 
         Args:
             filing_model: The FilingModel with computed tax values
-            itr_model: ITR1 or ITR2 model; validators are dispatched by type
+            itr_model: ITR1 model
 
         Returns:
             List of ValidationError objects with field names matching FIELD_WIDGET_MAP
@@ -164,9 +161,9 @@ class TaxValidationService:
         if s == "000000000000" or s == "111111111111":
             return False
         return True   
-    def personal_info_validator(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> None:
-        """Validates the personal information (works for both ITR1 and ITR2)."""
-        personal_info = req.PartA_GEN1.PersonalInfo if isinstance(req, ITR2) else req.PersonalInfo
+    def personal_info_validator(self, req: ITR1, messages: list[ValidationError]) -> None:
+        """Validates the personal information (ITR1)."""
+        personal_info = req.PersonalInfo
         first_name = str(personal_info.AssesseeName.FirstName or "").strip()
         middle_name = str(personal_info.AssesseeName.MiddleName or "").strip()
         sur_name_or_org_name = str(personal_info.AssesseeName.SurNameOrOrgName or "").strip()
@@ -260,7 +257,7 @@ class TaxValidationService:
                         ))
 
         # SOURCE: xl/vba_code.txt ChkEmpCategory 13030-13039, PIShtValidate 14029; sheet1.EmployerCategory1
-        # EmployerCategory is only present on ITR1.PersonalInfo; ITR2 uses per-employer NatureOfEmployment
+        # EmployerCategory is on ITR1.PersonalInfo
         if isinstance(req, ITR1):
             emp_cat = str(req.PersonalInfo.EmployerCategory or "").strip()
             if not emp_cat or emp_cat == "(Select)":
@@ -269,17 +266,13 @@ class TaxValidationService:
                     message="* Nature of Employment is mandatory in personal details",
                 ))
 
-    def validate_bank_details(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
-        """Validates bank account details (works for both ITR1 and ITR2).
+    def validate_bank_details(self, req: ITR1, messages: list[ValidationError]) -> bool:
+        """Validates bank account details (ITR1).
         - At least one bank account must exist (error reported on bankDetails.accountType)
         - BankName, BankAccountNo, IFSCCode, AccountType mandatory per account
         - Exactly one account must be marked UseForRefund='true' (isPrimary)
         """
-        if isinstance(req, ITR2):
-            refund = getattr(req.PartB_TTI, "Refund", None)
-            bank_dtls = getattr(refund, "BankAccountDtls", None) if refund is not None else None
-        else:
-            bank_dtls = getattr(req.Refund, "BankAccountDtls", None)
+        bank_dtls = getattr(req.Refund, "BankAccountDtls", None)
 
         accounts: list = []
         if bank_dtls is not None:
@@ -1196,7 +1189,7 @@ class TaxValidationService:
             return False
         return True 
 
-    def ValidateSchedule80C_Amount(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80C_Amount(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """
         Amount eligible for deduction u/s 80C: mandatory, numeric, <= 14 digits per row.
         Source: md80C.bas ValidateAmount_80C
@@ -1221,7 +1214,7 @@ class TaxValidationService:
                 return False
         return True
 
-    def ValidateSchedule80C_Identification(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80C_Identification(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """
         Policy/Document Identification: mandatory, <= 50 chars, no < or > per row.
         Source: xl/vba_code.txt, md80C.bas — ValidateIdentification_Number_80C.
@@ -1252,7 +1245,7 @@ class TaxValidationService:
                 return False
         return True
 
-    def ValidateSchedule80C_Total(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80C_Total(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """
         Total of deduction u/s 80C cannot exceed 14 digits.
         Source: md80C.bas Validategreater_80C
@@ -1268,13 +1261,7 @@ class TaxValidationService:
                 ud = getattr(inc_ded, "UsrDeductUndChapVIA", None)
                 if ud is not None:
                     total_val = getattr(ud, "Section80C", None)
-            else:
-                # ITR2: fall back to ScheduleVIA
-                svia = getattr(req, "ScheduleVIA", None)
-                if svia is not None:
-                    ud = getattr(svia, "UsrDeductUndChapVIA", None)
-                    if ud is not None:
-                        total_val = getattr(ud, "Section80C", None)
+
         if total_val is None:
             return True
         v = cast(int, total_val)
@@ -1286,7 +1273,7 @@ class TaxValidationService:
             return False
         return True
 
-    def ValidateSchedule80C(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80C(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """
         Schedule 80C validations. Run only when opted out of new regime (BacValue=2).
         Source: xl/vba_code.txt, md80C.bas — Validate_80C, Validate80C_All.
@@ -1301,16 +1288,12 @@ class TaxValidationService:
         return ok
 
 
-    def validate_pran_number(self, itr: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def validate_pran_number(self, itr: ITR1, messages: list[ValidationError]) -> bool:
         """
         PRAN number should not exceed 125 characters.
         Source: mIncmDtls.bas IncD.PRANNum
         """
-        if isinstance(itr, ITR2):
-            svia = getattr(itr, "ScheduleVIA", None)
-            ud = getattr(svia, "UsrDeductUndChapVIA", None) if svia is not None else None
-        else:
-            inc_ded = itr.ITR1_IncomeDeductions
+        inc_ded = itr.ITR1_IncomeDeductions
             pran_number = getattr(inc_ded, "PRANNum", None)
             if pran_number is not None and len(str(pran_number)) > 125:
                 messages.append(ValidationError(
@@ -1335,7 +1318,7 @@ class TaxValidationService:
                 return False
         return True
     ELIGIBLE_DONATION_80GGA_PERCENT_OF_TOTAL_INCOME = 10
-    def ValidateSchedule80GGA_EligibleDonationCap(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80GGA_EligibleDonationCap(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """
         Total eligible donation u/s 80GGA should not exceed 10% of total income.
         Source: xl/vba_code.txt — Sch80GGA.bas (eligible donation cap % of total income).
@@ -1343,10 +1326,7 @@ class TaxValidationService:
         sch = getattr(req, "Schedule80GGA", None)
         if sch is None:
             return True
-        if isinstance(req, ITR2):
-            total_income = cast(int, getattr(req.PartB_TI, "GrossTotalIncome", 0) or 0)
-        else:
-            total_income = cast(int, req.ITR1_IncomeDeductions.GrossTotIncome)
+        total_income = cast(int, req.ITR1_IncomeDeductions.GrossTotIncome)
         eligible = cast(int, getattr(sch, "TotalEligibleDonationAmt80GGA", 0) or 0)
         if total_income <= 0:
             return True
@@ -1359,7 +1339,7 @@ class TaxValidationService:
             return False
         return True
 
-    def ValidateSchedule80D(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80D(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """
         Schedule 80D: InsurerName and PolicyNo are mandatory per insurance detail row,
         <= 125 / 75 chars, no < or >; reject placeholder 'NA'/'0'; HealthInsAmt mandatory.
@@ -1473,7 +1453,7 @@ class TaxValidationService:
                     ok = False
         return ok
 
-    def ValidateSchedule80GGA(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80GGA(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80GGA: item fields + totals + eligible donation cap.
         Source: xl/vba_code.txt — Sch80GGA.bas; item fields (RelevantClause, Name, Address, City, State, PinCode, PAN, DonationAmt), totals, eligible cap %% of total income."""
         ok = self.ValidateSchedule80GGA_ItemFields(req, messages)
@@ -1483,7 +1463,7 @@ class TaxValidationService:
             return ok
         return self.ValidateSchedule80GGA_EligibleDonationCap(req, messages) and ok
 
-    def ValidateSchedule80GGA_ItemFields(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80GGA_ItemFields(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80GGA item validations from Excel (Sch80GGA.bas): RelevantClause, Name, Address, City, State, PinCode, PAN, DonationAmt."""
         sch = getattr(req, "Schedule80GGA", None)
         if sch is None:
@@ -1556,7 +1536,7 @@ class TaxValidationService:
                     ok = False
         return ok
 
-    def ValidateSchedule80GGA_Totals(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80GGA_Totals(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80GGA totals cannot exceed 14 digits (Excel)."""
         sch = getattr(req, "Schedule80GGA", None)
         if sch is None:
@@ -1574,14 +1554,14 @@ class TaxValidationService:
                 ok = False
         return ok
 
-    def ValidateSchedule80GGC(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80GGC(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80GGC: item fields + totals.
         Source: xl/vba_code.txt — Sch80GGC.bas; date, cash/other mode, TransactionRef, IFSC; totals <= 14 digits."""
         a = self.ValidateSchedule80GGC_ItemFields(req, messages)
         b = self.ValidateSchedule80GGC_Totals(req, messages)
         return a and b
 
-    def ValidateSchedule80GGC_ItemFields(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80GGC_ItemFields(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80GGC item validations.
         Source: xl/vba_code.txt — Sch80GGC.bas; date (if any field filled), cash or other mode, transaction ref/IFSC for other mode, row amounts <= 14 digits."""
         sch = getattr(req, "Schedule80GGC", None)
@@ -1645,7 +1625,7 @@ class TaxValidationService:
                 ok = False
         return ok
 
-    def ValidateSchedule80GGC_Totals(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80GGC_Totals(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80GGC totals cannot exceed 14 digits (Excel)."""
         sch = getattr(req, "Schedule80GGC", None)
         if sch is None:
@@ -1664,7 +1644,7 @@ class TaxValidationService:
         return ok
 
 
-    def ValidateSchedule80G(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80G(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80G: item fields for each DoneeWithPan + section totals.
         Source: xl/vba_code.txt — Validate_80G; DoneeWithPan (name, PAN, address, donation amounts) per section."""
         a = self.ValidateSchedule80G_ItemFields(req, messages)
@@ -1739,7 +1719,7 @@ class TaxValidationService:
                         ok = False
         return ok
 
-    def ValidateSchedule80G_ItemFields(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80G_ItemFields(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80G: validate DoneeWithPan items in all four sections.
         Source: xl/vba_code.txt — Validate_80G (DoneeWithPan name, PAN, address, amounts)."""
         sch = getattr(req, "Schedule80G", None)
@@ -1759,7 +1739,7 @@ class TaxValidationService:
             ok = self._ValidateSchedule80G_DoneeList(donee_list, section_label, section_key, messages) and ok
         return ok
 
-    def ValidateSchedule80G_Totals(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80G_Totals(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80G: section totals and overall totals cannot exceed 14 digits.
         Source: xl/vba_code.txt — Validate_80G."""
         sch = getattr(req, "Schedule80G", None)
@@ -1782,7 +1762,7 @@ class TaxValidationService:
 # SCHEDULE 80E VALIDATORS (md80E.bas.bas)
 # ============================================================================
 
-    def ValidateSchedule80E(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80E(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Validate Schedule80E. Appends ValidationError to messages like personal_info_validator. VBA: Validate_80E"""
         opt_out = str(getattr(self._get_filing_status(req), "OptOutNewTaxRegime", "") or "")
         if opt_out != "Y":
@@ -1926,7 +1906,7 @@ class TaxValidationService:
 # ValidateLoanDate_80EE, ValidateLoanAmt_80EE, ValidateLoanOutstanding_80EE, ValidateIntrst_80EE.
 # ============================================================================
 
-    def ValidateSchedule80EE(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80EE(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80EE (interest on home loan): same rules as 80E on Schedule80EEDtls/Interest80EE/TotalInterest80EE.
         Source: xl/vba_code.txt — Validate_80EE, Validate80EE_All."""
         opt_out = str(getattr(self._get_filing_status(req), "OptOutNewTaxRegime", "") or "")
@@ -2070,7 +2050,7 @@ class TaxValidationService:
 # ValidateLoanOutstanding_80EEA, ValidateIntrst_80EEA.
 # ============================================================================
 
-    def ValidateSchedule80EEA(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80EEA(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80EEA (interest on loan for affordable housing): PropStmpDtyVal <= 45L,
         Schedule80EEADtls (loan from, bank, account, date, amounts, Interest80EEA), TotalInterest80EEA.
         Source: VB Dump/ITR1/md80EEA.bas — Validate80EEA_All, Validate_80EEA."""
@@ -2267,7 +2247,7 @@ class TaxValidationService:
 # ValidateLoanOutstanding_80EEB, ValidateIntrst_80EEB.
 # ============================================================================
 
-    def ValidateSchedule80EEB(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80EEB(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80EEB (interest on electric vehicle loan): same rules as 80EE with VehicleRegNo and loan date 01/04/2019–31/03/2023.
         Source: xl/vba_code.txt — Validate_80EEB, Validate80EEB_All."""
         opt_out = str(getattr(self._get_filing_status(req), "OptOutNewTaxRegime", "") or "")
@@ -2508,7 +2488,7 @@ class TaxValidationService:
 # ValidateUDIDNum_80DD, ValidatePANdependent_80DD, ValidateAadhaardependent_80DD.
 # ============================================================================
 
-    def ValidateSchedule80DD(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80DD(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80DD (deduction for maintenance of disabled dependent): NatureOfDisability, TypeOfDisability,
         DeductionAmount, DependentType, PAN, Aadhaar, Form 10IA ack, UDID. Single object per return.
         Source: VB Dump/ITR1/Sch80U_DD.bas — Validate80DD, Validate80DD_1."""
@@ -2650,7 +2630,7 @@ class TaxValidationService:
                 ))
                 ok = False
             else:
-                personal_info = req.PartA_GEN1.PersonalInfo if isinstance(req, ITR2) else req.PersonalInfo
+                personal_info = req.PersonalInfo
                 assessee_pan = (getattr(personal_info, "PAN", None) or "")
                 if assessee_pan:
                     assessee_pan = decrypt_pan(str(assessee_pan).strip())
@@ -2672,7 +2652,7 @@ class TaxValidationService:
                 ))
                 ok = False
             else:
-                personal_info = req.PartA_GEN1.PersonalInfo if isinstance(req, ITR2) else req.PersonalInfo
+                personal_info = req.PersonalInfo
                 assessee_aadhaar = str(getattr(personal_info, "AadhaarCardNo", None) or "").strip()
                 if assessee_aadhaar and s_aad == assessee_aadhaar:
                     messages.append(ValidationError(
@@ -2714,7 +2694,7 @@ class TaxValidationService:
 # Field names aligned with FIELD_WIDGET_MAP: 80u.disabilityType, 80u.expenditureIncurred (personDisability).
 # ============================================================================
 
-    def ValidateSchedule80U(self, req: Union[ITR1, ITR2], messages: list[ValidationError]) -> bool:
+    def ValidateSchedule80U(self, req: ITR1, messages: list[ValidationError]) -> bool:
         """Schedule 80U (deduction for self with disability): NatureOfDisability, TypeOfDisability,
         DeductionAmount, Form10IAAckNum, UDIDNum. Single object per return.
         Source: VB Dump/ITR1/Sch80U_DD.bas — Validate80U, Validate80U_1."""

@@ -20,10 +20,10 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, List, Optional
 
-from domain.core.utils.tax_filing_helpers import compute_age
+from filing.utils.tax_filing_helpers import compute_age
 
-from domain.filing.itr.models.filing_build_itr_return_model import FilingBuildItrReturnModel
-from domain.filing.itr.itr1.models.itr1_model import (
+from filing.itr.models.filing_build_itr_return_model import FilingBuildItrReturnModel
+from filing.itr.itr1.models.itr1_model import (
     CollectedYrEnum,
     EmployerOrDeductorOrCollectDetlModel,
     ScheduleTCSModel,
@@ -31,13 +31,9 @@ from domain.filing.itr.itr1.models.itr1_model import (
     TaxPaymentModel,
     TaxesPaidModel,
 )
-from domain.filing.models.filing_model import FilingModel
-from domain.filing.itr.itr2.models.itr2_model import (
-    ScheduleTCSModel as ScheduleTCSITR2Model
-)
-from domain.filing.itr.itr1.itr1_building_service import Itr1BuildingService
-from domain.filing.itr.itr2.itr2_building_service import Itr2BuildingService
-from domain.filing.tax_calculation.tax_calculation_service import TaxCalculationService
+from filing.models.filing_model import FilingModel
+from filing.itr.itr1.itr1_building_service import Itr1BuildingService
+from filing.tax_calculation.tax_calculation_service import TaxCalculationService
 
 logger = logging.getLogger(__name__)
 
@@ -77,19 +73,9 @@ class ItrBuildingOrchestrator:
 
         # ── Pre-build rules already require ITR2 ───────────────────────────
         if itr_type == "ITR2":
-            logger.info(
-                "Filing %s requires ITR2 (pre-build): %s",
+            logger.warning(
+                "Filing %s requires ITR2 (pre-build): %s — building ITR1 anyway (ITR2 not yet supported in OpenTax)",
                 filing.filing_id, "; ".join(reasons),
-            )
-            itr2_svc = Itr2BuildingService()
-            inc = await itr2_svc.build_itr(filing)
-            self._compute_tax_for_regime(filing, inc.new_gross_income, inc.new_regime_deductions, inc.new_income_breakdown, "new")
-            self._compute_tax_for_regime(filing, inc.old_gross_income, inc.old_regime_deductions, inc.old_income_breakdown, "old")
-            result = await itr2_svc.finalize_from_precomputed_tax(filing)
-            return FilingBuildItrReturnModel(
-                itr2=result.itr2,
-                itr_type="ITR2",
-                filingSummary=result.filingSummary,
             )
 
         # ── Phase 1: Build ITR1 income sections for both regimes (no tax) ──
@@ -100,26 +86,15 @@ class ItrBuildingOrchestrator:
             "Filing %s ITR1 income built — GrossTotIncome=%s",
             filing.filing_id, f"{inc.new_gross_income:,}",
         )
-       
+
         # ── Check gross income against ₹50-lakh ceiling ────────────────────
         if inc.new_gross_income > _TOTAL_INCOME_MAX_ITR1:
-            logger.info(
-                "Filing %s GrossTotIncome=%s exceeds ₹50 lakh — upgrading to ITR2",
+            logger.warning(
+                "Filing %s GrossTotIncome=%s exceeds ₹50 lakh — ITR2 recommended but building ITR1 (ITR2 not yet supported in OpenTax)",
                 filing.filing_id, f"{inc.new_gross_income:,}",
             )
-            itr2_svc = Itr2BuildingService()
-            inc2 = await itr2_svc.build_itr(filing)
-            self._compute_tax_for_regime(filing, inc2.new_gross_income, inc2.new_regime_deductions, inc2.new_income_breakdown, "new")
-            self._compute_tax_for_regime(filing, inc2.old_gross_income, inc2.old_regime_deductions, inc2.old_income_breakdown, "old")
-            result = await itr2_svc.finalize_from_precomputed_tax(filing)
-            
-            return FilingBuildItrReturnModel(
-                itr2=result.itr2,
-                itr_type="ITR2",
-                filingSummary=result.filingSummary,
-            )
-
-        # ── Phase 2: GrossTotIncome ≤ ₹50 lakh → compute tax, finalize ITR1
+       
+        # ── Phase 2: Compute tax, finalize ITR1
         logger.info("Filing %s computing tax and finalising ITR1", filing.filing_id)
         self._compute_tax_for_regime(filing, inc.new_gross_income, inc.new_regime_deductions, inc.new_income_breakdown, "new")
         self._compute_tax_for_regime(filing, inc.old_gross_income, inc.old_regime_deductions, inc.old_income_breakdown, "old")
@@ -222,7 +197,7 @@ class ItrBuildingOrchestrator:
 
         return ScheduleTCSModel(TCS=tcs_rows, TotalSchTCS=total_sch_tcs)
 
-    def _build_schedule_tcs_itr2(self, filing: FilingModel) -> ScheduleTCSITR2Model | None:
+    def _build_schedule_tcs_itr2(self, filing: FilingModel) -> Any | None:
         """Build ITR2 ScheduleTCS from filing.tcs using the ITR2 schema shape."""
         if not filing.tcs:
             return None
@@ -266,7 +241,7 @@ class ItrBuildingOrchestrator:
         if not rows:
             return None
 
-        return ScheduleTCSITR2Model(TCS=rows, TotalSchTCS=total)
+        return {"TCS": rows, "TotalSchTCS": total}
 
     def _build_tax_payments_rows(self, filing: FilingModel) -> tuple[list[TaxPaymentModel], int]:
         payments: list[TaxPaymentModel] = []
@@ -320,71 +295,6 @@ class ItrBuildingOrchestrator:
 
     
 
-    # ── ITR-type determination ─────────────────────────────────────────────────
-
-    @staticmethod
-    def determine_itr_type(filing: FilingModel) -> tuple[str, List[str]]:
-        """
-        Determine ITR type from FilingModel data.
-
-        Returns:
-            (itr_type, reasons) – e.g. ("ITR2", ["Real-estate capital gains present"])
-            If reasons is empty the filing is eligible for ITR-1.
-        """
-        reasons: List[str] = []
-
-        # 1. Real-estate capital gains
-        if filing.capital_gains_real_estate and (
-            filing.capital_gains_real_estate.properties
-        ):
-            reasons.append("Real-estate capital gains present")
-
-        # 2. Foreign capital gains
-        if filing.capital_gains_foreign:
-            reasons.append("Foreign capital gains present")
-
-        # 3. Movable / deemed capital gains
-        if filing.capital_gains_movable:
-            reasons.append("Movable capital gains present")
-        if filing.capital_gains_deemed:
-            reasons.append("Deemed capital gains present")
-
-        # 4. Sec 112 securities (bonds, unlisted/non-STT stocks/MF/RSUs)
-        sec112_reason = _has_sec112_securities(filing)
-        if sec112_reason:
-            reasons.append(sec112_reason)
-
-        # 5. LTCG u/s 112A > ₹1,25,000
-        ltcg_112a = _compute_ltcg_112a(filing)
-        if ltcg_112a > _LTCG_112A_MAX_ITR1:
-            reasons.append(
-                f"LTCG u/s 112A ({ltcg_112a:,}) exceeds ₹1,25,000 limit"
-            )
-
-        #6. Multiple house properties
-        if len(filing.house_property) > 1:
-            reasons.append(
-                f"Multiple house properties ({len(filing.house_property)})"
-            )
-
-        # 7. Agricultural income > ₹5,000
-        agri = _get_agricultural_income(filing)
-        if agri > _AGRICULTURAL_INCOME_MAX_ITR1:
-            reasons.append(
-                f"Agricultural income ({agri:,}) exceeds ₹5,000"
-            )
-
-        # 8. Foreign income
-        if filing.foreign_income:
-            reasons.append("Foreign income present")
-
-        # NOTE: Rule 9 (Total income > ₹50 lakh) is checked *after* building
-        # ITR1, using the actual computed TotalIncome. See build_itr().
-
-        itr_type = "ITR2" if reasons else "ITR1"
-        return itr_type, reasons
-
-
     # ── Shared tax computation ───────────────────────────────────────────────
 
     @staticmethod
@@ -426,7 +336,72 @@ class ItrBuildingOrchestrator:
         )
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+    # ── ITR-type determination ────────────────────────────────────────────────
+
+    @staticmethod
+    def determine_itr_type(filing: FilingModel) -> tuple[str, List[str]]:
+        """
+        Determine ITR type from FilingModel data.
+
+        Returns:
+            (itr_type, reasons) – e.g. ("ITR2", ["Real-estate capital gains present"])
+            If reasons is empty the filing is eligible for ITR-1.
+        """
+        reasons: List[str] = []
+
+        # 1. Real-estate capital gains
+        if getattr(filing, "capital_gains_real_estate", None) and (
+            getattr(filing.capital_gains_real_estate, "properties", None)
+        ):
+            reasons.append("Real-estate capital gains present")
+
+        # 2. Foreign capital gains
+        if getattr(filing, "capital_gains_foreign", None):
+            reasons.append("Foreign capital gains present")
+
+        # 3. Movable / deemed capital gains
+        if getattr(filing, "capital_gains_movable", None):
+            reasons.append("Movable capital gains present")
+        if getattr(filing, "capital_gains_deemed", None):
+            reasons.append("Deemed capital gains present")
+
+        # 4. Sec 112 securities (bonds, unlisted/non-STT stocks/MF/RSUs)
+        sec112_reason = _has_sec112_securities(filing)
+        if sec112_reason:
+            reasons.append(sec112_reason)
+
+        # 5. LTCG u/s 112A > ₹1,25,000
+        ltcg_112a = _compute_ltcg_112a(filing)
+        if ltcg_112a > _LTCG_112A_MAX_ITR1:
+            reasons.append(
+                f"LTCG u/s 112A ({ltcg_112a:,}) exceeds ₹1,25,000 limit"
+            )
+
+        #6. Multiple house properties
+        if len(filing.house_property) > 1:
+            reasons.append(
+                f"Multiple house properties ({len(filing.house_property)})"
+            )
+
+        # 7. Agricultural income > ₹5,000
+        agri = _get_agricultural_income(filing)
+        if agri > _AGRICULTURAL_INCOME_MAX_ITR1:
+            reasons.append(
+                f"Agricultural income ({agri:,}) exceeds ₹5,000"
+            )
+
+        # 8. Foreign income
+        if filing.foreign_income:
+            reasons.append("Foreign income present")
+
+        # NOTE: Rule 9 (Total income > ₹50 lakh) is checked *after* building
+        # ITR1, using the actual computed TotalIncome. See build_itr().
+
+        itr_type = "ITR2" if reasons else "ITR1"
+        return itr_type, reasons
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _has_sec112_securities(filing: FilingModel) -> str | None:
     """Check for Sec 112 items (bonds, unlisted/non-STT) that require ITR2."""
@@ -531,6 +506,3 @@ def _get_agricultural_income(filing: FilingModel) -> int:
         if "agri" in label:
             total += int(getattr(inc, "amount", 0) or 0)
     return total
-
-
-

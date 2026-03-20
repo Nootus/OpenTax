@@ -5,7 +5,7 @@ This includes sections 80C, 80D, 80E, 80G, 80GGA, 80GGC, etc.
 import logging
 from typing import Any
 
-from domain.filing.itr.itr1.models.itr1_model import (
+from filing.itr.itr1.models.itr1_model import (
     DeductUndChapVIATypeModel,
     UsrDeductUndChapVIATypeModel,
     AddressDetailModel,
@@ -40,7 +40,7 @@ from domain.filing.itr.itr1.models.itr1_model import (
     Sec80DParentsSrCtznHIDtlsModel,
     Sec80DSelfFamSrCtznHealthModel,
 )
-from domain.filing.models.filing_model import FilingModel
+from filing.models.filing_model import FilingModel
 
 logger = logging.getLogger(__name__)
 

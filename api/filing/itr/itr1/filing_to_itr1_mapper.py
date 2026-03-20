@@ -5,7 +5,7 @@ Building/transformation logic moved to Itr1BuildingService.
 import logging
 from typing import Optional
 
-from domain.filing.itr.auto_mapper import AutoMapper
+from filing.itr.auto_mapper import AutoMapper
 
 logger = logging.getLogger(__name__)
 

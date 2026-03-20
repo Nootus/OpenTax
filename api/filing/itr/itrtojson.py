@@ -1,9 +1,8 @@
 from __future__ import annotations
 from typing import Any, Dict, Tuple, Union
 
-from domain.filing.itr.auto_mapper import AutoMapper
-from domain.filing.itr.itr1.models.itr1_model import ITR1
-from domain.filing.itr.itr2.models.itr2_model import ITR2
+from filing.itr.auto_mapper import AutoMapper
+from filing.itr.itr1.models.itr1_model import ITR1
 
 
 class ItrJsonMapper:
@@ -23,9 +22,6 @@ class ItrJsonMapper:
     # --------------------------------------------------
     # Rules (ITR1 <-> JSON core is STRUCTURAL, same shape)
     # --------------------------------------------------
-    # NOTE:
-    # Since JSON structure == ITR1 structure,
-    # we do NOT need field-by-field rules here.
     RULES: list[str] = []
 
     _mapper: AutoMapper = AutoMapper(
@@ -74,21 +70,17 @@ class ItrJsonMapper:
         }
 
     # --------------------------------------------------
-    # ITR1 | ITR2 -> JSON  (+ form_name, form_code)
+    # ITR1 -> JSON  (+ form_name, form_code)
     # --------------------------------------------------
     @classmethod
-    def itr_to_json(cls, itr: Union[ITR1, ITR2, None]) -> Tuple[Dict[str, Any], str, str]:
+    def itr_to_json(cls, itr: Union[ITR1, None]) -> Tuple[Dict[str, Any], str, str]:
         """
-        Convert ITR1 or ITR2 model to JSON payload.
+        Convert ITR1 model to JSON payload.
 
         Returns:
             (json_dict, form_name, form_code)
-            e.g. ({"ITR": {"ITR2": {...}}}, "ITR-2", "2")
+            e.g. ({"ITR": {"ITR1": {...}}}, "ITR-1", "1")
         """
-        if isinstance(itr, ITR2):
-            dump_fn = getattr(itr, "model_dump", None)
-            itr_dict = dump_fn(by_alias=True, exclude_none=True, mode="json") if callable(dump_fn) else getattr(itr, "dict")(by_alias=True, exclude_none=True)
-            return {"ITR": {"ITR2": itr_dict}}, "ITR-2", "2"
         # Default: treat as ITR1 (construct empty shell if None)
         itr1 = itr if isinstance(itr, ITR1) else ITR1.model_construct()
         return cls.itr1_to_json(itr1), "ITR-1", "1"

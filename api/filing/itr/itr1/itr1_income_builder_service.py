@@ -6,7 +6,7 @@ import logging
 from datetime import date
 from typing import Any, Optional
 
-from domain.filing.itr.itr1.models.itr1_model import (
+from filing.itr.itr1.models.itr1_model import (
     AllwncExemptUs10Model,
     HousePropertyIncomePartModel,
     ITR1IncomePartModel,
@@ -14,11 +14,10 @@ from domain.filing.itr.itr1.models.itr1_model import (
     OthersIncModel,
     SalaryIncomePartModel,
 )
-from domain.filing.models.filing_model import FilingModel
-from domain.filing.tax_calculation.models.tax_regime_breakdown import IncomeBreakdown
-from domain.core.database.sqlalchemy_db import get_async_db
-from domain.core.master_data.master_data_service import MasterDataService
-from domain.filing.itr.itr1.itr1_deduction_builder_service import Itr1ComputationContext
+from filing.models.filing_model import FilingModel
+from filing.tax_calculation.models.tax_regime_breakdown import IncomeBreakdown
+from filing.utils.master_data_service import MasterDataService
+from filing.itr.itr1.itr1_deduction_builder_service import Itr1ComputationContext
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,7 @@ class Itr1IncomeBuilderService:
     """Service for building ITR1 income sections from FilingModel."""
     itr1: Optional[ITR1IncomePartModel] = None
     def __init__(self) -> None:
-        self.db = get_async_db()
+        pass
 
     async def build_income(self, filing: FilingModel, context: Itr1ComputationContext, regime: str = "old") -> ITR1IncomePartModel:
         """Build income part by combining salary, house property, and other sources → GrossTotIncome."""
@@ -56,13 +55,9 @@ class Itr1IncomeBuilderService:
 
     async def build_salary_income(self, filing: FilingModel, context: Itr1ComputationContext, regime: str = "old") -> SalaryIncomePartModel:
         """Build salary income part: delegates to sub-methods for each section."""
-        salary_components = await self.db.fetch_all(
-            """
-            SELECT c.component_id, c.component_name, c.component_code
-            FROM salary_section_171_component c
-            WHERE c.component_type = 2 AND c.is_active = 1
-            """
-        )
+        # In OpenTax, salary components are not fetched from DB.
+        # The component_id on each item is sufficient for exempt allowance detection.
+        salary_components: list[Any] = []
 
         section_171_salary = await self._build_section_171_salary(filing)
         section_172_perquisites = await self._build_section_172_perquisites(filing)
@@ -320,7 +315,7 @@ class Itr1IncomeBuilderService:
         
         excel_options = [
             o["value"] for o in other_income_options 
-            if o.get("code") in ["SAV", "IFD", "TAX", "FAP", "10(11)(iP)", "10(11)(iiP)", "10(12)(iP)", "10(12)(iiP)", "OTH"]
+            if o.get("code") in ["SAV", "IFD", "PFINT", "TAX", "PPF", "FAP", "10(11)(iP)", "10(11)(iiP)", "10(12)(iP)", "10(12)(iiP)", "NOT89A", "OTHNOT89A", "OTH"]
         ]
         oth_option = next((o for o in other_income_options if o.get("code") == "OTH"), None)
         oth_type_id = int(oth_option["value"]) if oth_option else None
