@@ -7,6 +7,7 @@ import DeductionsTab from '@/filing/components/DeductionsTab';
 import TaxPaidTab from '@/filing/components/TaxPaidTab';
 import SummaryTab from '@/filing/components/SummaryTab';
 import { useFilingContext } from '@/filing/context/FilingContext';
+import { calculateTax } from '@/filing/api/filing-api';
 import { ayToFy } from '@/utils/tax-year';
 import { TEST_FILING } from '@/filing/test-data/fill-test-data';
 
@@ -21,6 +22,23 @@ const TABS = [
 export default function Home() {
   const { filing, updateFiling } = useFilingContext();
   const [activeTab, setActiveTab] = useState<string>('summary');
+
+  const handleFillTest = async () => {
+    const merged = { ...filing, ...TEST_FILING };
+    updateFiling(merged);
+    setActiveTab('summary');
+    try {
+      const result = await calculateTax(merged);
+      updateFiling({
+        taxComputation: result.taxComputation,
+        chapterVIADeductions: result.chapterVIADeductions,
+        userValidationErrors: result.userValidationErrors,
+        taxIntrest: result.taxIntrest,
+      });
+    } catch {
+      // silently ignore — user can retry Compute Tax manually
+    }
+  };
 
   const assessmentYear = filing.assessmentYear || '2026-27';
   const financialYear = ayToFy(assessmentYear);
@@ -57,7 +75,7 @@ export default function Home() {
             </div>
             {/* Dev: Fill Test Data */}
             <button
-              onClick={() => updateFiling(TEST_FILING)}
+              onClick={handleFillTest}
               title="Fill form with sample test data"
               className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-50 border border-amber-300 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-colors"
             >
