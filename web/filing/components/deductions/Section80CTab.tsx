@@ -25,7 +25,11 @@ const formatCurrency = (amount: number) =>
 export default function Section80CTab() {
   const { filing, updateSection } = useFilingContext();
 
-  const [entries, setEntries] = useState<Deduction80CModel[]>(() => filing.section80C ?? []);
+  const [entries, setEntries] = useState<Deduction80CModel[]>(() =>
+    (filing.section80C ?? []).map((e, i) =>
+      e.deductionId != null ? e : { ...e, deductionId: -(Date.now() + i) }
+    )
+  );
   const [isExpanded, setIsExpanded] = useState(true);
   const [editingEntryId, setEditingEntryId] = useState<number | null | undefined>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null | undefined>(null);

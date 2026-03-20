@@ -38,7 +38,11 @@ const INITIAL_ENTRY: Deduction80EModel = {
 export default function Section80ETab() {
   const { filing, updateSection } = useFilingContext();
 
-  const [entries, setEntries] = useState<Deduction80EModel[]>(() => filing.section80E ?? []);
+  const [entries, setEntries] = useState<Deduction80EModel[]>(() =>
+    (filing.section80E ?? []).map((e, i) =>
+      e.deductionId != null ? e : { ...e, deductionId: -(Date.now() + i) }
+    )
+  );
   const [isExpanded, setIsExpanded] = useState(true);
   const [editingEntryId, setEditingEntryId] = useState<number | null | undefined>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null | undefined>(null);

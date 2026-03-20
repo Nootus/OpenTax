@@ -42,7 +42,9 @@ export default function Section80GGATab() {
   const { filing, updateSection } = useFilingContext();
 
   const [entries, setEntries] = useState<Deduction80GGAModel[]>(() =>
-    filing.section80Gga ? [...filing.section80Gga] : []
+    (filing.section80Gga ?? []).map((e, i) =>
+      e.deductionId != null ? e : { ...e, deductionId: -(Date.now() + i) }
+    )
   );
   const [isExpanded, setIsExpanded] = useState(true);
   const [editingId, setEditingId] = useState<number | null | undefined>(null);

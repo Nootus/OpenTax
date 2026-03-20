@@ -38,7 +38,9 @@ export default function Section80GGCTab() {
   const { filing, updateSection } = useFilingContext();
 
   const [entries, setEntries] = useState<Deduction80GGCModel[]>(() =>
-    filing.section80Ggc ? [...filing.section80Ggc] : []
+    (filing.section80Ggc ?? []).map((e, i) =>
+      e.deductionId != null ? e : { ...e, deductionId: -(Date.now() + i) }
+    )
   );
   const [isExpanded, setIsExpanded] = useState(true);
   const [editingId, setEditingId] = useState<number | null | undefined>(null);

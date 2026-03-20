@@ -47,7 +47,7 @@ export default function Section80EETab() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const savedRef = useRef<Deduction80EEModel | null>(null);
 
-  const hasEntry = !!filing.section80Ee?.deductionId;
+  const hasEntry = !!filing.section80Ee;
   const totalAmount = formData.interestOnLoan || 0;
 
   useEffect(() => {

@@ -2,8 +2,8 @@ import logging
 
 from fastapi import APIRouter
 
-from filing.itr.itr1.models.itr1_model import ITR1
 from filing.itr.itr_building_orchestrator import ItrBuildingOrchestrator
+from filing.itr.validations.models.validation import ValidationResponse
 from filing.models.filing_model import FilingModel
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class FilingController:
             "/get_itr1",
             self.get_itr1,
             methods=["POST"],
-            response_model=ITR1,
+            response_model=ValidationResponse,
         )
 
     async def calculate_tax(self, filing_model: FilingModel) -> FilingModel:
@@ -39,9 +39,15 @@ class FilingController:
         result = await orchestrator.build_itr(filing_model)
         return result.filingSummary
 
-    async def get_itr1(self, filing_model: FilingModel) -> ITR1:
+    async def get_itr1(self, filing_model: FilingModel) -> ValidationResponse:
         """Build the complete ITR-1 JSON from the filing data."""
         logger.info("get_itr1 called for filing_id=%s", filing_model.filing_id)
         orchestrator = ItrBuildingOrchestrator()
         result = await orchestrator.build_itr(filing_model)
-        return result.itr1
+        errors = result.filingSummary.user_validation_errors or []
+        return ValidationResponse(
+            success=len(errors) == 0,
+            validation_errors=errors,
+            total_errors=len(errors),
+            itr_summary=result.itr1,
+        )
