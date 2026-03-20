@@ -917,6 +917,7 @@
 							"$ref": "#/definitions/nonEmptyString"
 						}
 					]
+
 				}
 			},
 			"required": [
@@ -1089,7 +1090,7 @@
 					"type": "integer",
 					"maximum": 99999999999999,
 					"minimum": 0,
-					"exclusiveMinimum": false
+                    "exclusiveMinimum": false
 				},
 				"StandardDeduction": {
 					"type": "integer",
@@ -1157,10 +1158,10 @@
 				},
 				"GrossTotIncomeIncLTCG112A": {
 					"description": "Gross Total Income including LTCG u/s 112A",
-					"type": "integer",
-					"maximum": 99999999999999,
-					"default": 0
-				},
+					 "type": "integer",
+					 "maximum": 99999999999999,
+					 "default": 0
+				 },
 				"UsrDeductUndChapVIA": {
 					"$ref": "#/definitions/UsrDeductUndChapVIAType"
 				},
@@ -1702,8 +1703,8 @@
 						"properties": {
 							"DonationDate": {
 								"description": "Date of Donation in YYYY-MM-DD format",
-								"type": "string",
-								"pattern": "([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))"
+					            "type": "string",
+					            "pattern": "([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))"
 							},
 							"DonationAmtCash": {
 								"type": "integer",
@@ -1718,18 +1719,18 @@
 								"exclusiveMinimum": false
 							},
 							"TransactionRefNum": {
-								"type": "string",
+                                "type": "string",
 								"maxLength": 50
-							},
-							"IFSCCode": {
-								"maxLength": 11,
-								"pattern": "[A-Z]{4}[0][A-Z0-9]{6}",
-								"allOf": [
-									{
-										"$ref": "#/definitions/nonEmptyString"
-									}
-								]
-							},
+                            },
+                            "IFSCCode": {
+                                "maxLength": 11,
+                                "pattern": "[A-Z]{4}[0][A-Z0-9]{6}",
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/nonEmptyString"
+                                    }
+                                ]
+                            },
 							"DonationAmt": {
 								"type": "integer",
 								"maximum": 99999999999999,
@@ -2671,74 +2672,74 @@
 			]
 		},
 		"ScheduleEA10_13A": {
-			"type": "object",
-			"additionalProperties": false,
-			"properties": {
-				"Placeofwork": {
-					"type": "string",
-					"description": "1: Metro, 2: Non-Metro",
-					"enum": [
-						"1",
-						"2"
-					]
-				},
-				"ActlHRARecv": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"ActlRentPaid": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"DtlsSalUsSec171": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"BasicSalary": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"DearnessAllwnc": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"ActlRentPaid10Per": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"Sal40Or50Per": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"EligbleExmpAllwncUs13A": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				}
-			},
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "Placeofwork": {
+                    "type": "string",
+                    "description": "1: Metro, 2: Non-Metro",
+                    "enum": [
+                        "1",
+                        "2"
+                    ]
+                },
+                "ActlHRARecv": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                },
+                "ActlRentPaid": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                },
+                "DtlsSalUsSec171": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                },
+                "BasicSalary": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                },
+                "DearnessAllwnc": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                },
+                "ActlRentPaid10Per": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                },
+                "Sal40Or50Per": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                },
+                "EligbleExmpAllwncUs13A": {
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "default": 0
+                }
+            },
 			"required": [
 				"Placeofwork",
 				"ActlHRARecv",
@@ -2749,7 +2750,7 @@
 				"Sal40Or50Per",
 				"EligbleExmpAllwncUs13A"
 			]
-		},
+        },
 		"TDSonSalaries": {
 			"type": "object",
 			"description": "Salary TDS details",
@@ -2836,6 +2837,7 @@
 							"EmployerOrDeductorOrCollectDetl": {
 								"$ref": "#/definitions/EmployerOrDeductorOrCollectDetl"
 							},
+
 							"AmtTaxCollected": {
 								"type": "integer",
 								"maximum": 99999999999999,
@@ -2927,39 +2929,39 @@
 				"TotalTaxPayments"
 			]
 		},
-		"LTCG112A": {
-			"type": "object",
+        "LTCG112A": {
+            "type": "object",
 			"description": "Long Term capital gains u/s 112A",
-			"additionalProperties": false,
-			"properties": {
-				"TotSaleCnsdrn": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"TotCstAcqisn": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				},
-				"LongCap112A": {
-					"type": "integer",
-					"maximum": 125000,
-					"minimum": 0,
-					"exclusiveMinimum": false,
-					"default": 0
-				}
-			},
-			"required": [
-				"TotSaleCnsdrn",
-				"TotCstAcqisn",
-				"LongCap112A"
-			]
-		},
+            "additionalProperties": false,
+            "properties": {
+                        "TotSaleCnsdrn": {
+                            "type": "integer",
+                            "maximum": 99999999999999,
+                            "minimum": 0,
+                            "exclusiveMinimum": false,
+                            "default": 0
+                        },
+                        "TotCstAcqisn": {
+                            "type": "integer",
+                            "maximum": 99999999999999,
+                            "minimum": 0,
+                            "exclusiveMinimum": false,
+                            "default": 0
+                        },
+                        "LongCap112A": {
+                            "type": "integer",
+                            "maximum": 125000,
+                            "minimum": 0,
+                            "exclusiveMinimum": false,
+                            "default": 0
+                        }
+                    },
+                    "required": [
+                        "TotSaleCnsdrn",
+                        "TotCstAcqisn",
+						"LongCap112A"
+                    ]
+        },
 		"Verification": {
 			"type": "object",
 			"description": "Verification declaration details",
@@ -3443,74 +3445,74 @@
 				},
 				"TDSSection": {
 					"description": "92A:192- Salary-Payment to Government employees other than Indian Government employees; 92B:192- Salary-Payment to employees other than Government employees; 92C:192- Salary-Payment to Indian Government employees; 192A:192A/2AA- TDS on PF withdrawal; 193:193- Interest on Securities; 194:194- Dividends; 94A:194A- Interest other than 'Interest on securities'; 94B:194B- Winning from lottery or crossword puzzle; 94BA:194BA- Winnings from online games; 4BB:194BB- Winning from horse race; 94C:194C- Payments to contractors and sub-contractors; 94D:194D- Insurance commission; 4DA:194DA- Payment in respect of life insurance policy; 94E:194E- Payments to non-resident sportsmen or sports associations; 4EE:194EE- Payments in respect of deposits under National Savings; 4F:194F/94F- Payments on account of repurchase of units by Mutual Fund or Unit Trust of India; 4G:194G/94G- Commission, price, etc. on sale of lottery tickets; 4H:194H/94H- Commission or brokerage; 4-IA:194I(a)/4IA- Rent on hiring of plant and machinery;  4-IB:194I(b)/4IB - Rent on other than plant and machinery; 4IA:194IA/9IA- TDS on Sale of immovable property; 4IB:194IB/9IB- Payment of rent by certain individuals or Hindu undivided; 4IC:194IC- Payment under specified agreement; 94J-A:194J(a)/4JA - Fees for technical services; 94J-B:194J(b)/4JB- Fees for professional  services or royalty etc; 94K:194K- Income payable to a resident assessee in respect of units of a specified mutual fund or of the units of the Unit Trust of India; 4LA:194LA- Payment of compensation on acquisition of certain immovable; 4LB:194LB- Income by way of Interest from Infrastructure Debt fund; 4LC1:194LC/LC1- 194LC (2)(i) and (ia) Income under clause (i) and (ia) of sub-section (2) of section 194LC; 4LC2:194LC/LC2- 194LC (2)(ib) Income under clause (ib) of sub-section (2) of section 194LC; 4LC3:194LC/LC3- 194LC (2)(ic) Income under clause (ic) of sub-section (2) of section 194LC; 4BA1:194LBA(a)/BA1- Certain income in the form of interest from units of a business trust to a resident unit holder; 4BA2: 194LBA(b)/BA2- Certain income in the form of dividend from units of a business trust to a resident unit holder; LBA1:194LBA(a)/BA1- 194LBA(a) income referred to in section 10(23FC)(a) from units of a business trust-NR; LBA2:194LBA(b)/BA2-194LBA(b) Income referred to in section 10(23FC)(b) from units of a business trust-NR; LBA3:194LBA(c)/BA3- 194LBA(c) Income referred to in section 10(23FCA) from units of a business trust-NR; LBB: 194LBB- Income in respect of units of investment fund; 94R:194R- Benefits or perquisites of business or profession; 94S:194S- Payment of consideration for transfer of virtual digital asset by persons other than specified persons; 94B-P:Proviso to section 194B/4BP- Winnings from lotteries and crossword puzzles where consideration is made in kind or cash is not sufficient to meet the tax liability and tax has been paid before such winnings are released; 94R-P: First Proviso to sub-section(1) of section 194R/4RP- Benefits or perquisites of business or profession where such benefit is provided in kind or where part in cash is not sufficient to meet tax liability and tax required to be deducted is paid before such benefit is released; 94S-P:Proviso to sub- section(1) of section 194S/4SP- Payment for transfer of virtual digital asset where payment is in kind or in exchange of another virtual digital asset and tax required to be deducted is paid before such payment is released; LBC:194LBC- Income in respect of investment in securitization trust; 4LD:194LD- TDS on interest on bonds / government securities; 94M:194M- Payment of certain sums by certain individuals or HUF; 94N:194N- Payment of certain amounts in cash other than cases covered by first proviso or third proviso; 94N-F: 194N/4NF -First Proviso Payment of certain amounts in cash to non-filers except in case of co-operativesocieties; 94N-C:194N/4NC- Third Proviso Payment of certain amounts in cash to co-operative societies not covered by first proviso; 94N-FT: 194N/NFT- First Proviso read with Third Proviso Payment of certain amount in cash to non-filers being co-operative societies; 94O:194O- Payment of certain sums by e-commerce operator to e-commerce participant.; 94P: 194P- Deduction of tax in case of specified senior citizen; 94Q:194Q- Deduction of tax at source on payment of certain sum for purchase of goods; 195:195- Other sums payable to a non-resident; 96A:196A- Income in respect of units of non-residents; 96B:196B- Payments in respect of units to an offshore fund; 96C:196C- Income from foreign currency bonds or shares of Indian; 96D:196D- Income of foreign institutional investors from securities; 96DA:196D(1A)/6DA- Income of specified fund from securities; 94BA-P: 194BA(2)/BAP-Sub-section (2) of section 194BA Net Winnings from online games where the net winnings are made in kind or cash is not sufficient to meet the tax liability and tax has been paid before such net winnings are released; ",
-					"enum": [
-						"92A",
-						"92B",
-						"92C",
-						"192A",
-						"193",
-						"194",
-						"94A",
-						"94B",
-						"94BA",
-						"4BB",
-						"94C",
-						"94D",
-						"4DA",
-						"94E",
-						"4EE",
-						"4F",
-						"4G",
-						"4H",
-						"4-IA",
-						"4-IB",
-						"4IA",
-						"4IB",
-						"4IC",
-						"94J-A",
-						"94J-B",
-						"94K",
-						"4LA",
-						"4LB",
-						"4LC1",
-						"4LC2",
-						"4LC3",
-						"4BA1",
-						"4BA2",
-						"LBA1",
-						"LBA2",
-						"LBA3",
-						"LBB",
-						"94R",
-						"94S",
-						"94B-P",
-						"94R-P",
-						"94S-P",
-						"LBC",
-						"4LD",
-						"94M",
-						"94N",
-						"94N-F",
-						"94N-C",
-						"94N-FT",
-						"94O",
-						"94P",
-						"94Q",
-						"195",
-						"96A",
-						"96B",
-						"96C",
-						"96D",
-						"96DA",
-						"94BA-P"
-					],
-					"allOf": [
-						{
-							"$ref": "#/definitions/nonEmptyString"
-						}
-					]
-				},
-				"AmtForTaxDeduct": {
+                    "enum": [
+                        "92A",
+                        "92B",
+                        "92C",
+                        "192A",
+                        "193",
+                        "194",
+                        "94A",
+                        "94B",
+                        "94BA",
+                        "4BB",
+                        "94C",
+                        "94D",
+                        "4DA",
+                        "94E",
+                        "4EE",
+                        "4F",
+                        "4G",
+                        "4H",
+                        "4-IA",
+                        "4-IB",
+                        "4IA",
+                        "4IB",
+                        "4IC",
+                        "94J-A",
+                        "94J-B",
+                        "94K",
+                        "4LA",
+                        "4LB",
+                        "4LC1",
+                        "4LC2",
+                        "4LC3",
+                        "4BA1",
+                        "4BA2",
+                        "LBA1",
+                        "LBA2",
+                        "LBA3",
+                        "LBB",
+                        "94R",
+                        "94S",
+                        "94B-P",
+                        "94R-P",
+                        "94S-P",
+                        "LBC",
+                        "4LD",
+                        "94M",
+                        "94N",
+                        "94N-F",
+                        "94N-C",
+                        "94N-FT",
+                        "94O",
+                        "94P",
+                        "94Q",
+                        "195",
+                        "96A",
+                        "96B",
+                        "96C",
+                        "96D",
+                        "96DA",
+                        "94BA-P"
+                     ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/nonEmptyString"
+                        }
+                    ]
+                },
+			    "AmtForTaxDeduct": {
 					"type": "integer",
 					"maximum": 99999999999999,
 					"minimum": 0,
@@ -3548,7 +3550,7 @@
 					"maximum": 99999999999999,
 					"minimum": 0,
 					"exclusiveMinimum": false
-				},
+				}, 
 				"ClaimOutOfTotTDSOnAmtPaid": {
 					"type": "integer",
 					"maximum": 99999999999999,
@@ -3563,6 +3565,7 @@
 				"TotTDSOnAmtPaid",
 				"ClaimOutOfTotTDSOnAmtPaid",
 				"TDSSection"
+                
 			]
 		},
 		"TDS3Details": {
@@ -3587,73 +3590,73 @@
 				},
 				"TDSSection": {
 					"description": "92A:192- Salary-Payment to Government employees other than Indian Government employees; 92B:192- Salary-Payment to employees other than Government employees; 92C:192- Salary-Payment to Indian Government employees; 192A:192A/2AA- TDS on PF withdrawal; 193:193- Interest on Securities; 194:194- Dividends; 94A:194A- Interest other than 'Interest on securities'; 94B:194B- Winning from lottery or crossword puzzle; 94BA:194BA- Winnings from online games; 4BB:194BB- Winning from horse race; 94C:194C- Payments to contractors and sub-contractors; 94D:194D- Insurance commission; 4DA:194DA- Payment in respect of life insurance policy; 94E:194E- Payments to non-resident sportsmen or sports associations; 4EE:194EE- Payments in respect of deposits under National Savings; 4F:194F/94F- Payments on account of repurchase of units by Mutual Fund or Unit Trust of India; 4G:194G/94G- Commission, price, etc. on sale of lottery tickets; 4H:194H/94H- Commission or brokerage; 4-IA:194I(a)/4IA- Rent on hiring of plant and machinery;  4-IB:194I(b)/4IB - Rent on other than plant and machinery; 4IA:194IA/9IA- TDS on Sale of immovable property; 4IB:194IB/9IB- Payment of rent by certain individuals or Hindu undivided; 4IC:194IC- Payment under specified agreement; 94J-A:194J(a)/4JA - Fees for technical services; 94J-B:194J(b)/4JB- Fees for professional  services or royalty etc; 94K:194K- Income payable to a resident assessee in respect of units of a specified mutual fund or of the units of the Unit Trust of India; 4LA:194LA- Payment of compensation on acquisition of certain immovable; 4LB:194LB- Income by way of Interest from Infrastructure Debt fund; 4LC1:194LC/LC1- 194LC (2)(i) and (ia) Income under clause (i) and (ia) of sub-section (2) of section 194LC; 4LC2:194LC/LC2- 194LC (2)(ib) Income under clause (ib) of sub-section (2) of section 194LC; 4LC3:194LC/LC3- 194LC (2)(ic) Income under clause (ic) of sub-section (2) of section 194LC; 4BA1:194LBA(a)/BA1- Certain income in the form of interest from units of a business trust to a resident unit holder; 4BA2: 194LBA(b)/BA2- Certain income in the form of dividend from units of a business trust to a resident unit holder; LBA1:194LBA(a)/BA1- 194LBA(a) income referred to in section 10(23FC)(a) from units of a business trust-NR; LBA2:194LBA(b)/BA2-194LBA(b) Income referred to in section 10(23FC)(b) from units of a business trust-NR; LBA3:194LBA(c)/BA3- 194LBA(c) Income referred to in section 10(23FCA) from units of a business trust-NR; LBB: 194LBB- Income in respect of units of investment fund; 94R:194R- Benefits or perquisites of business or profession; 94S:194S- Payment of consideration for transfer of virtual digital asset by persons other than specified persons; 94B-P:Proviso to section 194B/4BP- Winnings from lotteries and crossword puzzles where consideration is made in kind or cash is not sufficient to meet the tax liability and tax has been paid before such winnings are released; 94R-P: First Proviso to sub-section(1) of section 194R/4RP- Benefits or perquisites of business or profession where such benefit is provided in kind or where part in cash is not sufficient to meet tax liability and tax required to be deducted is paid before such benefit is released; 94S-P:Proviso to sub- section(1) of section 194S/4SP- Payment for transfer of virtual digital asset where payment is in kind or in exchange of another virtual digital asset and tax required to be deducted is paid before such payment is released; LBC:194LBC- Income in respect of investment in securitization trust; 4LD:194LD- TDS on interest on bonds / government securities; 94M:194M- Payment of certain sums by certain individuals or HUF; 94N:194N- Payment of certain amounts in cash other than cases covered by first proviso or third proviso; 94N-F: 194N/4NF -First Proviso Payment of certain amounts in cash to non-filers except in case of co-operativesocieties; 94N-C:194N/4NC- Third Proviso Payment of certain amounts in cash to co-operative societies not covered by first proviso; 94N-FT: 194N/NFT- First Proviso read with Third Proviso Payment of certain amount in cash to non-filers being co-operative societies; 94O:194O- Payment of certain sums by e-commerce operator to e-commerce participant.; 94P: 194P- Deduction of tax in case of specified senior citizen; 94Q:194Q- Deduction of tax at source on payment of certain sum for purchase of goods; 195:195- Other sums payable to a non-resident; 96A:196A- Income in respect of units of non-residents; 96B:196B- Payments in respect of units to an offshore fund; 96C:196C- Income from foreign currency bonds or shares of Indian; 96D:196D- Income of foreign institutional investors from securities; 96DA:196D(1A)/6DA- Income of specified fund from securities; 94BA-P: 194BA(2)/BAP-Sub-section (2) of section 194BA Net Winnings from online games where the net winnings are made in kind or cash is not sufficient to meet the tax liability and tax has been paid before such net winnings are released; ",
-					"enum": [
-						"92A",
-						"92B",
-						"92C",
-						"192A",
-						"193",
-						"194",
-						"94A",
-						"94B",
-						"94BA",
-						"4BB",
-						"94C",
-						"94D",
-						"4DA",
-						"94E",
-						"4EE",
-						"4F",
-						"4G",
-						"4H",
-						"4-IA",
-						"4-IB",
-						"4IA",
-						"4IB",
-						"4IC",
-						"94J-A",
-						"94J-B",
-						"94K",
-						"4LA",
-						"4LB",
-						"4LC1",
-						"4LC2",
-						"4LC3",
-						"4BA1",
-						"4BA2",
-						"LBA1",
-						"LBA2",
-						"LBA3",
-						"LBB",
-						"94R",
-						"94S",
-						"94B-P",
-						"94R-P",
-						"94S-P",
-						"LBC",
-						"4LD",
-						"94M",
-						"94N",
-						"94N-F",
-						"94N-C",
-						"94N-FT",
-						"94O",
-						"94P",
-						"94Q",
-						"195",
-						"96A",
-						"96B",
-						"96C",
-						"96D",
-						"96DA",
-						"94BA-P"
-					],
-					"allOf": [
-						{
-							"$ref": "#/definitions/nonEmptyString"
-						}
-					]
-				},
+                    "enum": [
+                        "92A",
+                        "92B",
+                        "92C",
+                        "192A",
+                        "193",
+                        "194",
+                        "94A",
+                        "94B",
+                        "94BA",
+                        "4BB",
+                        "94C",
+                        "94D",
+                        "4DA",
+                        "94E",
+                        "4EE",
+                        "4F",
+                        "4G",
+                        "4H",
+                        "4-IA",
+                        "4-IB",
+                        "4IA",
+                        "4IB",
+                        "4IC",
+                        "94J-A",
+                        "94J-B",
+                        "94K",
+                        "4LA",
+                        "4LB",
+                        "4LC1",
+                        "4LC2",
+                        "4LC3",
+                        "4BA1",
+                        "4BA2",
+                        "LBA1",
+                        "LBA2",
+                        "LBA3",
+                        "LBB",
+                        "94R",
+                        "94S",
+                        "94B-P",
+                        "94R-P",
+                        "94S-P",
+                        "LBC",
+                        "4LD",
+                        "94M",
+                        "94N",
+                        "94N-F",
+                        "94N-C",
+                        "94N-FT",
+                        "94O",
+                        "94P",
+                        "94Q",
+                        "195",
+                        "96A",
+                        "96B",
+                        "96C",
+                        "96D",
+                        "96DA",
+                        "94BA-P"
+                     ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/nonEmptyString"
+                        }
+                    ]
+                },
 				"NameOfTenant": {
 					"maxLength": 125,
 					"minLength": 1,
@@ -3708,6 +3711,8 @@
 				"TDSDeducted",
 				"TDSClaimed",
 				"TDSSection"
+                
+				
 			]
 		},
 		"TaxPayment": {
@@ -4166,16 +4171,16 @@
 				},
 				"UseForRefund": {
 					"enum": [
-						"true",
-						"false"
+					  "true",
+					  "false"
 					],
 					"allOf": [
-						{
-							"$ref": "#/definitions/nonEmptyString"
-						}
+					  {
+						"$ref": "#/definitions/nonEmptyString"
+					  }
 					],
 					"default": "false"
-				}
+				  }
 			},
 			"required": [
 				"IFSCCode",
@@ -4780,17 +4785,17 @@
 					]
 				},
 				"OthAmount": {
-					"type": "integer",
-					"maximum": 99999999999999,
-					"minimum": 0,
-					"exclusiveMinimum": false
-				}
-			},
-			"required": [
-				"NatureDesc",
-				"OthAmount"
-			]
-		},
+                    "type": "integer",
+                    "maximum": 99999999999999,
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                }
+            },
+            "required": [
+                "NatureDesc",
+                "OthAmount"
+            ]
+        },
 		"nonEmptyString": {
 			"type": "string",
 			"pattern": "|(\\s*([\\w\\d_=!@#$%\\^*\\(\\){}\\[\\]\\|\\\\:;',\\.\\?/~`\\-\\+<>&\"][\\s\\w\\d_=!@#$%\\^*\\(\\){}\\[\\]\\|\\\\:;',\\.\\?/~`\\-\\+<>&\"]*)\\s*)"

@@ -184,11 +184,11 @@ class TaxesPaidModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    AdvanceTax: conint(ge=0, le=99999999999999)
-    TDS: conint(ge=0, le=99999999999999)
-    TCS: conint(ge=0, le=99999999999999)
-    SelfAssessmentTax: conint(ge=0, le=99999999999999)
-    TotalTaxesPaid: conint(ge=0, le=99999999999999)
+    AdvanceTax: conint(ge=0, le=99999999999999) = 0
+    TDS: conint(ge=0, le=99999999999999) = 0
+    TCS: conint(ge=0, le=99999999999999) = 0
+    SelfAssessmentTax: conint(ge=0, le=99999999999999) = 0
+    TotalTaxesPaid: conint(ge=0, le=99999999999999) = 0
 
 
 class AccountType(Enum):
@@ -204,29 +204,29 @@ class DeductUndChapVIATypeModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    Section80C: conint(ge=0, le=150000)
-    Section80CCC: conint(ge=0, le=150000)
+    Section80C: conint(ge=0, le=150000) = 0
+    Section80CCC: conint(ge=0, le=150000) = 0
     Section80CCDEmployeeOrSE: conint(ge=0, le=150000) = Field(
-        ..., description='For Employee/SelfEmployed'
+        default=0, description='For Employee/SelfEmployed'
     )
-    Section80CCD1B: conint(ge=0, le=50000)
-    Section80CCDEmployer: conint(ge=0, le=99999999999999)
-    Section80D: conint(ge=0, le=100000)
-    Section80DD: conint(ge=0, le=125000)
-    Section80DDB: conint(ge=0, le=100000)
-    Section80E: conint(ge=0, le=99999999999999)
-    Section80EE: conint(ge=0, le=50000)
-    Section80EEA: conint(ge=0, le=150000)
-    Section80EEB: conint(ge=0, le=150000)
-    Section80G: conint(ge=0, le=99999999999999)
-    Section80GG: conint(ge=0, le=60000)
-    Section80GGA: conint(ge=0, le=99999999999999)
-    Section80GGC: conint(ge=0, le=99999999999999)
-    Section80U: conint(ge=0, le=125000)
-    Section80TTA: conint(ge=0, le=10000)
-    Section80TTB: conint(ge=0, le=50000)
-    AnyOthSec80CCH: conint(ge=0, le=288000)
-    TotalChapVIADeductions: conint(ge=0, le=99999999999999)
+    Section80CCD1B: conint(ge=0, le=50000) = 0
+    Section80CCDEmployer: conint(ge=0, le=99999999999999) = 0
+    Section80D: conint(ge=0, le=100000) = 0
+    Section80DD: conint(ge=0, le=125000) = 0
+    Section80DDB: conint(ge=0, le=100000) = 0
+    Section80E: conint(ge=0, le=99999999999999) = 0
+    Section80EE: conint(ge=0, le=50000) = 0
+    Section80EEA: conint(ge=0, le=150000) = 0
+    Section80EEB: conint(ge=0, le=150000) = 0
+    Section80G: conint(ge=0, le=99999999999999) = 0
+    Section80GG: conint(ge=0, le=60000) = 0
+    Section80GGA: conint(ge=0, le=99999999999999) = 0
+    Section80GGC: conint(ge=0, le=99999999999999) = 0
+    Section80U: conint(ge=0, le=125000) = 0
+    Section80TTA: conint(ge=0, le=10000) = 0
+    Section80TTB: conint(ge=0, le=50000) = 0
+    AnyOthSec80CCH: conint(ge=0, le=288000) = 0
+    TotalChapVIADeductions: conint(ge=0, le=99999999999999) = 0
 
 
 class NOT89ACountrycode(Enum):
@@ -282,25 +282,25 @@ class CreationInfoModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    SWVersionNo: NonEmptyString
-    SWCreatedBy: NonEmptyString
-    JSONCreatedBy: NonEmptyString
+    SWVersionNo: NonEmptyString = "R7"
+    SWCreatedBy: NonEmptyString = "SW90002526"
+    JSONCreatedBy: NonEmptyString = "SW90002526"
     JSONCreationDate: constr(
         pattern=r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))'
     ) = Field(..., description='JSONCreationDate in YYYY-MM-DD format')
-    IntermediaryCity: NonEmptyString
-    Digest: NonEmptyString
+    IntermediaryCity: NonEmptyString = "Delhi"
+    Digest: NonEmptyString = "TB9CCDnaxqAZje2xvfUGosU8zaWlL7axHLR2GM8ktv8="
 
 
 class FormITR1Model(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    FormName: NonEmptyString
-    Description: NonEmptyString
-    AssessmentYear: NonEmptyString
-    SchemaVer: NonEmptyString
-    FormVer: NonEmptyString
+    FormName: NonEmptyString = "ITR-1"
+    Description: NonEmptyString = "For Indls having Income from Salary, Pension, family pension and Interest"
+    AssessmentYear: NonEmptyString = "2026"
+    SchemaVer: NonEmptyString = "Ver1.0"
+    FormVer: NonEmptyString = "Ver1.0"
 
 
 class Applicable1398AModel(BaseModel):
@@ -379,11 +379,11 @@ class FilingStatusModel(BaseModel):
         extra='forbid',
     )
     ReturnFileSec: ReturnFileSecEnum = Field(
-        ...,
+        ReturnFileSecEnum.integer_11,
         alias='ReturnFileSec',
         description='11 : 139(1)-On or before due date, 12 : 139(4)-After due date, 13 : 142(1), 14 : 148,  16 : 153C, 17 : 139(5)-Revised , 18 : 139(9), 20 : 119(2)(b)-After condonation of delay, 21 : 139(8A)-Updated Return',
     )
-    OptOutNewTaxRegime: NonEmptyString
+    OptOutNewTaxRegime: NonEmptyString = "N"
     SeventhProvisio139: NonEmptyString | None = None
     IncrExpAggAmt2LkTrvFrgnCntryFlg: NonEmptyString | None = None
     AmtSeventhProvisio139ii: conint(ge=200000, le=99999999999999) | None = None
@@ -403,7 +403,7 @@ class FilingStatusModel(BaseModel):
     NoticeDateUnderSec: (
         constr(pattern=r'([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))') | None
     ) = Field(None, description='Enter Date of Notice or Order in YYYY-MM-DD format')
-    ItrFilingDueDate: NonEmptyString
+    ItrFilingDueDate: NonEmptyString = "2025-07-31"
 
 
 class ITR1TaxComputationModel(BaseModel):
@@ -428,8 +428,8 @@ class TaxPaidModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    TaxesPaid: TaxesPaidModel = Field(..., alias='TaxesPaid')
-    BalTaxPayable: conint(ge=0, le=99999999999999)
+    TaxesPaid: TaxesPaidModel = Field(default_factory=TaxesPaidModel, alias='TaxesPaid')
+    BalTaxPayable: conint(ge=0, le=99999999999999) = 0
 
 
 class Schedule80GGCDetailModel(BaseModel):
@@ -621,7 +621,7 @@ class AssesseeNameModel(BaseModel):
     FirstName: NonEmptyString | None = None
     MiddleName: NonEmptyString | None = None
     SurNameOrOrgName: NonEmptyString = Field(
-        ..., description='Enter Last or Sur name for Individual name here'
+        "NA", description='Enter Last or Sur name for Individual name here'
     )
 
 
@@ -707,39 +707,39 @@ class UsrDeductUndChapVIATypeModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    Section80C: conint(ge=0, le=99999999999999)
-    Section80CCC: conint(ge=0, le=99999999999999)
+    Section80C: conint(ge=0, le=99999999999999) = 0
+    Section80CCC: conint(ge=0, le=99999999999999) = 0
     Section80CCDEmployeeOrSE: conint(ge=0, le=99999999999999) = Field(
-        ..., description='For Employee/SelfEmployed'
+        default=0, description='For Employee/SelfEmployed'
     )
-    Section80CCD1B: conint(ge=0, le=99999999999999)
-    Section80CCDEmployer: conint(ge=0, le=99999999999999)
+    Section80CCD1B: conint(ge=0, le=99999999999999) = 0
+    Section80CCDEmployer: conint(ge=0, le=99999999999999) = 0
     PRANNum: constr(min_length=1, max_length=125) | None = None
-    Section80D: conint(ge=0, le=99999999999999)
-    Section80DD: conint(ge=0, le=99999999999999)
+    Section80D: conint(ge=0, le=99999999999999) = 0
+    Section80DD: conint(ge=0, le=99999999999999) = 0
     Section80DDBUsrType: NonEmptyString | None = Field(
-        None,
+        default=None,
         description='1 : Self or dependent ; 2 : Self or Dependent - Senior Citizen',
     )
     NameOfSpecDisease80DDB: NonEmptyString | None = Field(
-        None,
+        default=None,
         description='a : Dementia; b : Dystonia Musculorum Deformans; c : Motor Neuron Disease; d : Ataxia; e : Chorea; f : Hemiballismus; g : Aphasia; h: Parkinsons Disease; i : Malignant Cancers; j : Full Blown Acquired Immuno-Deficiency Syndrome (AIDS); k:Chronic Renal failure; l:Hematological disorders; m: Hemophilia; n:Thalassaemia',
     )
-    Section80DDB: conint(ge=0, le=99999999999999)
-    Section80E: conint(ge=0, le=99999999999999)
-    Section80EE: conint(ge=0, le=99999999999999)
+    Section80DDB: conint(ge=0, le=99999999999999) = 0
+    Section80E: conint(ge=0, le=99999999999999) = 0
+    Section80EE: conint(ge=0, le=99999999999999) = 0
     Section80EEA: conint(ge=0, le=99999999999999) | None = None
     Section80EEB: conint(ge=0, le=99999999999999) | None = None
-    Section80G: conint(ge=0, le=99999999999999)
-    Section80GG: conint(ge=0, le=99999999999999)
+    Section80G: conint(ge=0, le=99999999999999) = 0
+    Section80GG: conint(ge=0, le=99999999999999) = 0
     Form10BAAckNum: constr(max_length=15) | None = None
-    Section80GGA: conint(ge=0, le=99999999999999)
-    Section80GGC: conint(ge=0, le=99999999999999)
-    Section80U: conint(ge=0, le=99999999999999)
-    Section80TTA: conint(ge=0, le=99999999999999)
-    Section80TTB: conint(ge=0, le=99999999999999)
-    AnyOthSec80CCH: conint(ge=0, le=99999999999999)
-    TotalChapVIADeductions: conint(ge=0, le=99999999999999)
+    Section80GGA: conint(ge=0, le=99999999999999) = 0
+    Section80GGC: conint(ge=0, le=99999999999999) = 0
+    Section80U: conint(ge=0, le=99999999999999) = 0
+    Section80TTA: conint(ge=0, le=99999999999999) = 0
+    Section80TTB: conint(ge=0, le=99999999999999) = 0
+    AnyOthSec80CCH: conint(ge=0, le=99999999999999) = 0
+    TotalChapVIADeductions: conint(ge=0, le=99999999999999) = 0
 
 
 class AllwncExemptUs10DtlsType(BaseModel):
@@ -892,49 +892,49 @@ class ITR1IncomeDeductionsModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    GrossSalary: conint(ge=0, le=99999999999999)
+    GrossSalary: conint(ge=0, le=99999999999999) = 0
     Salary: conint(ge=0, le=99999999999999) | None = None
     PerquisitesValue: conint(ge=0, le=99999999999999) | None = None
     ProfitsInSalary: conint(ge=0, le=99999999999999) | None = None
-    IncomeNotified89A: conint(ge=0, le=99999999999999)
+    IncomeNotified89A: conint(ge=0, le=99999999999999) = 0
     IncomeNotified89AType: list[NOT89AType] | None = None
     IncomeNotifiedOther89A: conint(ge=0, le=99999999999999) | None = None
     AllwncExemptUs10: AllwncExemptUs10Model | None = Field(None, alias='AllwncExemptUs10')
     Increliefus89A: conint(ge=0, le=99999999999999) | None = None
-    NetSalary: conint(ge=0, le=99999999999999)
-    DeductionUs16: conint(ge=0, le=99999999999999)
+    NetSalary: conint(ge=0, le=99999999999999) = 0
+    DeductionUs16: conint(ge=0, le=99999999999999) = 0
     DeductionUs16ia: conint(ge=0, le=75000) | None = None
     EntertainmentAlw16ii: conint(ge=0, le=5000) | None = None
     ProfessionalTaxUs16iii: conint(ge=0, le=5000) | None = None
-    IncomeFromSal: conint(ge=0, le=99999999999999)
+    IncomeFromSal: conint(ge=0, le=99999999999999) = 0
     TypeOfHP: NonEmptyString | None = Field(
         None,
         description='House Property income Type - S:Self Occupied; L:Let Out; D:Deemed let out',
     )
     GrossRentReceived: conint(ge=0, le=99999999999999) | None = None
     TaxPaidlocalAuth: conint(ge=0, le=99999999999999) | None = None
-    AnnualValue: conint(ge=0, le=99999999999999)
+    AnnualValue: conint(ge=0, le=99999999999999) = 0
     StandardDeduction: conint(ge=0, le=99999999999999) = Field(
-        ..., description='This field refers to Part-B B2 iv - 30% of Annual Value'
+        0, description='This field refers to Part-B B2 iv - 30% of Annual Value'
     )
     InterestPayable: conint(ge=0, le=99999999999999) | None = None
     ArrearsUnrealizedRentRcvd: conint(ge=0, le=99999999999999) | None = None
     TotalIncomeOfHP: conint(ge=-200000) = Field(
-        ..., description='House Property income'
+        0, description='House Property income'
     )
-    IncomeOthSrc: conint(ge=0, le=99999999999999)
+    IncomeOthSrc: conint(ge=0, le=99999999999999) = 0
     OthersInc: OthersIncModel | None = Field(None, alias='OthersInc')
     DeductionUs57iia: conint(ge=0, le=25000) | None = None
     Increliefus89AOS: conint(ge=0, le=99999999999999) | None = None
     GrossTotIncome: conint(le=99999999999999) = Field(
-        ..., description='Gross Total Income without LTCG u/s 112A'
+        0, description='Gross Total Income without LTCG u/s 112A'
     )
     GrossTotIncomeIncLTCG112A: conint(le=99999999999999) = Field(
-        ..., description='Gross Total Income including LTCG u/s 112A'
+        0, description='Gross Total Income including LTCG u/s 112A'
     )
-    UsrDeductUndChapVIA: UsrDeductUndChapVIATypeModel
-    DeductUndChapVIA: DeductUndChapVIATypeModel
-    TotalIncome: conint(ge=-99999999999999, le=99999999999999)  # validated >= 0 in TaxValidationService
+    UsrDeductUndChapVIA: UsrDeductUndChapVIATypeModel = Field(default_factory=UsrDeductUndChapVIATypeModel)
+    DeductUndChapVIA: DeductUndChapVIATypeModel = Field(default_factory=DeductUndChapVIATypeModel)
+    TotalIncome: conint(ge=-99999999999999, le=99999999999999) = 0  # validated >= 0 in TaxValidationService
     ExemptIncAgriOthUs10: ExemptIncAgriOthUs10Model | None = Field(
         None, alias='ExemptIncAgriOthUs10'
     )
@@ -1147,23 +1147,23 @@ class AddressModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    ResidenceNo: NonEmptyString
+    ResidenceNo: NonEmptyString = "NA"
     ResidenceName: NonEmptyString | None = None
     RoadOrStreet: NonEmptyString | None = None
-    LocalityOrArea: NonEmptyString
-    CityOrTownOrDistrict: NonEmptyString
+    LocalityOrArea: NonEmptyString = "NA"
+    CityOrTownOrDistrict: NonEmptyString = "Delhi"
     StateCode: NonEmptyString = Field(
-        ...,
+        "36",
         description='01-Andaman and Nicobar islands; 02-Andhra Pradesh; 03-Arunachal Pradesh; 04-Assam; 05-Bihar; 06-Chandigarh; 07-Dadra Nagar and Haveli; 08-Daman and Diu; 09- Delhi; 10- Goa; 11-Gujarat; 12- Haryana; 13- Himachal Pradesh; 14-Jammu and Kashmir; 15- Karnataka; 16- Kerala; 17- Lakshadweep; 18-Madhya Pradesh; 19-Maharashtra; 20-Manipur; 21-meghalaya; 22-Mizoram; 23-Nagaland; 24- Odisha; 25- Puducherry; 26- Punjab; 27-Rajasthan; 28- Sikkim; 29-Tamil Nadu; 30- Tripura; 31-Uttar Pradesh; 32- West Bengal; 33- Chhattisgarh; 34- Uttarakhand; 35- Jharkhand; 36- Telangana; 37- Ladakh; 99-Foreign',
     )
     CountryCode: NonEmptyString = Field(
-        ..., 	
+        "91",
         alias='CountryCode')
     PinCode: int | None = None
     ZipCode: NonEmptyString | None = None
-    CountryCodeMobile: int
-    MobileNo: int
-    EmailAddress: NonEmptyString
+    CountryCodeMobile: int = 91
+    MobileNo: int = 0
+    EmailAddress: NonEmptyString = "na@na.com"
 
 
 class DoneeWithPanModel(BaseModel):
@@ -1233,15 +1233,15 @@ class PersonalInfoModel(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
-    AssesseeName: AssesseeNameModel = Field(..., alias='AssesseeName')
-    PAN: NonEmptyString
-    Address: AddressModel = Field(..., alias='Address')
+    AssesseeName: AssesseeNameModel = Field(default_factory=AssesseeNameModel, alias='AssesseeName')
+    PAN: NonEmptyString = "NA"
+    Address: AddressModel = Field(default_factory=AddressModel, alias='Address')
     DOB: str = Field(
-        ...,
+        "",
         description='Date of Birth of the Assessee format YYYY-MM-DD; maximum date allowed 2025-03-31',
     )
     EmployerCategory: EmployerCategoryEnum = Field(
-        ...,
+        EmployerCategoryEnum.NA,
         alias='EmployerCategory',
         description='CGOV:Central Government, SGOV:State Government, PSU:Public Sector Unit, PE:Pensioners - Central Government, PESG:Pensioners - State Government, PEPS:Pensioners - Public sector undertaking, PEO:Pensioners - Others, OTH:Others, NA:Not Applicable',
     )
@@ -1355,39 +1355,37 @@ class ITR1(BaseModel):
         extra='forbid',
         populate_by_name=True,
     )
-    CreationInfo: CreationInfoModel = Field(..., alias='CreationInfo')
-    Form_ITR1: FormITR1Model
+    CreationInfo: CreationInfoModel = Field(default_factory=CreationInfoModel.model_construct)
+    Form_ITR1: FormITR1Model = Field(default_factory=FormITR1Model)
     PartA_139_8A: PartA1398AModel | None = None
-    PartB_ATI: PartBATIModel | None = Field(None, alias='PartB-ATI')
-    PersonalInfo: PersonalInfoModel = Field(..., alias='PersonalInfo')
-    FilingStatus: FilingStatusModel = Field(..., alias='FilingStatus')
-    ITR1_IncomeDeductions: ITR1IncomeDeductionsModel
+    PartB_ATI: PartBATIModel | None = Field(default=None, alias='PartB-ATI')
+    PersonalInfo: PersonalInfoModel = Field(default_factory=PersonalInfoModel, alias='PersonalInfo')
+    FilingStatus: FilingStatusModel = Field(default_factory=FilingStatusModel, alias='FilingStatus')
+    ITR1_IncomeDeductions: ITR1IncomeDeductionsModel = Field(default_factory=ITR1IncomeDeductionsModel)
     ITR1_TaxComputation: ITR1TaxComputationModel | None = None
-    TaxPaid: TaxPaidModel = Field(..., alias='TaxPaid')
-    Refund: RefundModel = Field(..., alias='Refund')
-    Schedule80G: Schedule80GModel | None = Field(None, alias='Schedule80G')
-    Schedule80GGA: Schedule80GGAModel | None = Field(None, alias='Schedule80GGA')
-    Schedule80GGC: Schedule80GGCModel | None = Field(None, alias='Schedule80GGC')
-    Schedule80D: Schedule80DModel | None = Field(None, alias='Schedule80D')
-    Schedule80DD: Schedule80DDModel | None = Field(None, alias='Schedule80DD')
-    Schedule80U: Schedule80UModel | None = Field(None, alias='Schedule80U')
-    Schedule80E: Schedule80EModel | None = Field(None, alias='Schedule80E')
-    Schedule80EE: Schedule80EEModel | None = Field(None, alias='Schedule80EE')
-    Schedule80EEA: Schedule80EEAModel | None = Field(None, alias='Schedule80EEA')
-    Schedule80EEB: Schedule80EEBModel | None = Field(None, alias='Schedule80EEB')
-    Schedule80C: Schedule80CModel | None = Field(None, alias='Schedule80C')
-    ScheduleUs24B: ScheduleUs24BModel | None = Field(None, alias='ScheduleUs24B')
+    TaxPaid: TaxPaidModel = Field(default_factory=TaxPaidModel, alias='TaxPaid')
+    Refund: RefundModel = Field(default_factory=RefundModel.model_construct)
+    Schedule80G: Schedule80GModel | None = None
+    Schedule80GGA: Schedule80GGAModel | None = None
+    Schedule80GGC: Schedule80GGCModel | None = None
+    Schedule80D: Schedule80DModel | None = None
+    Schedule80DD: Schedule80DDModel | None = None
+    Schedule80U: Schedule80UModel | None = None
+    Schedule80E: Schedule80EModel | None = None
+    Schedule80EE: Schedule80EEModel | None = None
+    Schedule80EEA: Schedule80EEAModel | None = None
+    Schedule80EEB: Schedule80EEBModel | None = None
+    Schedule80C: Schedule80CModel | None = None
+    ScheduleUs24B: ScheduleUs24BModel | None = None
     ScheduleEA10_13A: ScheduleEA1013AModel | None = None
-    TDSonSalaries: TDSonSalariesModel | None = Field(None, alias='TDSonSalaries')
-    TDSonOthThanSals: TDSonOthThanSalsModel | None = Field(None, alias='TDSonOthThanSals')
-    ScheduleTDS3Dtls: ScheduleTDS3DtlsModel | None = Field(None, alias='ScheduleTDS3Dtls')
-    ScheduleTCS: ScheduleTCSModel | None = Field(None, alias='ScheduleTCS')
-    TaxPayments: TaxPaymentsModel | None = Field(None, alias='TaxPayments')
-    LTCG112A: LTCG112AModel | None = Field(None, alias='LTCG112A')
-    Verification: VerificationModel = Field(..., alias='Verification')
-    TaxReturnPreparer: TaxReturnPreparerModel | None = Field(
-        None, alias='TaxReturnPreparer'
-    )
+    TDSonSalaries: TDSonSalariesModel | None = None
+    TDSonOthThanSals: TDSonOthThanSalsModel | None = None
+    ScheduleTDS3Dtls: ScheduleTDS3DtlsModel | None = None
+    ScheduleTCS: ScheduleTCSModel | None = None
+    TaxPayments: TaxPaymentsModel | None = None
+    LTCG112A: LTCG112AModel | None = None
+    Verification: VerificationModel = Field(default_factory=VerificationModel.model_construct)
+    TaxReturnPreparer: TaxReturnPreparerModel | None = None
 
 
 class ITR(BaseModel):

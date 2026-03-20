@@ -3,9 +3,11 @@ ITR1 Deduction Building Service - Handles all Chapter VIA deduction building log
 This includes sections 80C, 80D, 80E, 80G, 80GGA, 80GGC, etc.
 """
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from domain.filing.itr.itr1.models.itr1_model import (
+    DeductUndChapVIATypeModel,
+    UsrDeductUndChapVIATypeModel,
     AddressDetailModel,
     Don100PercentApprReqdModel,
     Don100PercentModel,
@@ -14,13 +16,29 @@ from domain.filing.itr.itr1.models.itr1_model import (
     DonationDtlsSciRsrchRuralDevItem,
     DoneeWithPanModel,
     ITR1DeductionsPartModel,
+    LoanTknFromEnum,
     RelevantClauseUndrDedClaimedEnum,
     Schedule80CDtlModel,
     Schedule80CModel,
+    Schedule80DDModel,
+    Schedule80DModel,
+    Schedule80EDtl,
+    Schedule80EModel,
+    Schedule80EEBDtl,
+    Schedule80EEBModel,
+    Schedule80EEDtl,
+    Schedule80EEModel,
     Schedule80GGAModel,
     Schedule80GGCDetailModel,
     Schedule80GGCModel,
     Schedule80GModel,
+    Schedule80UModel,
+    Sch80DInsDtlsModel,
+    Sec80DSelfFamHIDtlsModel,
+    Sec80DSelfFamSrCtznHIDtlsModel,
+    Sec80DParentsHIDtlsModel,
+    Sec80DParentsSrCtznHIDtlsModel,
+    Sec80DSelfFamSrCtznHealthModel,
 )
 from domain.filing.models.filing_model import FilingModel
 
@@ -51,8 +69,8 @@ class Itr1DeductionBuilderService:
     _SECTION_80D_SELF_AND_FAMILY_SENIOR_MAX_ALLOWED = 50000
     _SECTION_80D_PARENTS_SENIOR_MAX_ALLOWED = 50000
     _SECTION_80D_PREVENTIVE_CAP = 5000
-    _SECTION_80TTA_MAX_ALLOWED =1000
-    _SECTION_80TTB_MAX_ALLOWED = 1000
+    _SECTION_80TTA_MAX_ALLOWED =50000
+    _SECTION_80TTB_MAX_ALLOWED = 50000
     _SECTION_80CCH_MAX_ALLOWED = 288000
     _SECTION_80GG_MAX_ALLOWED = 60000
     _SECTION_80DDB_MAX_ALLOWED = 40000
@@ -70,243 +88,206 @@ class Itr1DeductionBuilderService:
     ) -> tuple[ITR1DeductionsPartModel, dict[str, Any]]:
         """Build deductions part: Chapter VIA (UsrDeductUndChapVIA, DeductUndChapVIA) and TotalIncome.
         
-        Each section method handles regime check and returns {user_claimed, allowed, schedule, ...}
+        Each section method handles regime check and returns (user_claimed, allowed, schedule).
         """
-        UsrDeductUndChapVIA: dict[str, Any] = {
-            "Section80C": 0,
-            "Section80CCC": 0,
-            "Section80CCDEmployeeOrSE": 0,
-            "Section80CCD1B": 0,
-            "Section80CCDEmployer": 0,
-            "PRANNum": None,
-            "Section80DD": 0,
-            "Section80E": 0,
-            "Section80EE": 0,
-            "Section80EEB": 0,
-            "Section80GGC": 0,
-            "Section80GGA": 0,
-            "Section80G": 0,
-            "Section80GG": 0,
-            "Section80U": 0,
-            "Section80D": 0,
-            "Section80TTA": 0,
-            "Section80TTB": 0,
-            "AnyOthSec80CCH": 0,
-            "Form10BAAckNum": "",
-            "Section80DDB": 0,
-            "TotalChapVIADeductions": 0,
-        }
+        usr = UsrDeductUndChapVIATypeModel()
+        ded = DeductUndChapVIATypeModel()
 
-        DeductUndChapVIA: Dict[str, Any] = {
-            "Section80C": 0,
-            "Section80CCC": 0,
-            "Section80CCDEmployeeOrSE": 0,
-            "Section80CCD1B": 0,
-            "Section80CCDEmployer": 0,
-            "Section80GGA": 0,
-            "Section80GGC": 0,
-            "Section80DDB": 0,
-            "Section80DD": 0,
-            "Section80E": 0,
-            "Section80EE": 0,
-            "Section80EEB": 0,
-            "Section80GG": 0,
-            "Section80U": 0,
-            "Section80D": 0,
-            "Section80G": 0,
-            "Section80TTA": 0,
-            "Section80TTB": 0,
-            "AnyOthSec80CCH": 0,
-            "Section80EEA": 0,
-            "TotalChapVIADeductions": 0,
-        }
-        
         # Apply each section - each method checks regime and calculates user_claimed/allowed
         regime = regime or "old"
-        result_80c = self._apply_section_80c(filing, gross_tot_income, regime)
-        UsrDeductUndChapVIA["Section80C"] = result_80c["user_claimed"]
-        DeductUndChapVIA["Section80C"] = result_80c["allowed"]
-        
-        result_80ccc = self._apply_section_80ccc(filing, gross_tot_income, result_80c["allowed"], regime)
-        UsrDeductUndChapVIA["Section80CCC"] = result_80ccc["user_claimed"]
-        UsrDeductUndChapVIA["PRANNum"] = result_80ccc.get("pran_num") or None
-        DeductUndChapVIA["Section80CCC"] = result_80ccc["allowed"]
-        
-        result_80ccd1 = self._apply_section_80ccd1(
-            filing, gross_tot_income, result_80c["allowed"], result_80ccc["allowed"], regime
-        )
-        UsrDeductUndChapVIA["Section80CCDEmployeeOrSE"] = result_80ccd1["user_claimed"]
-        DeductUndChapVIA["Section80CCDEmployeeOrSE"] = result_80ccd1["allowed"]
-        
-        result_80ccd1b = self._apply_section_80ccd1b(filing, gross_tot_income, regime)
-        UsrDeductUndChapVIA["Section80CCD1B"] = result_80ccd1b["user_claimed"]
-        DeductUndChapVIA["Section80CCD1B"] = result_80ccd1b["allowed"]
-        
-        result_80ccd2 = self._apply_section_80ccd2(filing, gross_tot_income, regime)
-        UsrDeductUndChapVIA["Section80CCDEmployer"] = result_80ccd2["user_claimed"]
-        DeductUndChapVIA["Section80CCDEmployer"] = result_80ccd2["allowed"]
-        
-        result_80d = self._apply_section_80d(filing, regime)
-        UsrDeductUndChapVIA["Section80D"] = result_80d["user_claimed"]
-        DeductUndChapVIA["Section80D"] = result_80d["allowed"]
-        
-        result_80dd = self._apply_section_80dd(filing, gross_tot_income, regime)
-        UsrDeductUndChapVIA["Section80DD"] = result_80dd["user_claimed"]
-        DeductUndChapVIA["Section80DD"] = result_80dd["allowed"]
-        
-        result_80e = self._apply_section_80e(filing, regime)
-        UsrDeductUndChapVIA["Section80E"] = result_80e["user_claimed"]
-        DeductUndChapVIA["Section80E"] = result_80e["allowed"]
-        
-        result_80ee = self._apply_section_80ee(filing, regime)
-        UsrDeductUndChapVIA["Section80EE"] = result_80ee["user_claimed"]
-        DeductUndChapVIA["Section80EE"] = result_80ee["allowed"]
-        
-        result_80eeb = self._apply_section_80eeb(filing, regime)
-        UsrDeductUndChapVIA["Section80EEB"] = result_80eeb["user_claimed"]
-        DeductUndChapVIA["Section80EEB"] = result_80eeb["allowed"]
-        
-        result_80u = self._apply_section_80u(filing, regime)
-        UsrDeductUndChapVIA["Section80U"] = result_80u["user_claimed"]
-        DeductUndChapVIA["Section80U"] = result_80u["allowed"]
-        
-        result_80gga = self._apply_section_80gga(filing, context, regime)
-        UsrDeductUndChapVIA["Section80GGA"] = result_80gga["user_claimed"]
-        DeductUndChapVIA["Section80GGA"] = result_80gga["allowed"]
-        
-        result_80ggc = self._apply_section_80ggc(filing, regime)
-        UsrDeductUndChapVIA["Section80GGC"] = result_80ggc["user_claimed"]
-        DeductUndChapVIA["Section80GGC"] = result_80ggc["allowed"]
-        
-        result_80ddb = self._apply_section_80ddb(filing, regime)
-        UsrDeductUndChapVIA["Section80DDB"] = result_80ddb["user_claimed"]
-        DeductUndChapVIA["Section80DDB"] = result_80ddb["allowed"]
-        
-        result_other = self._apply_other_deductions(filing, regime)
-        UsrDeductUndChapVIA["Section80TTA"] = result_other["Section80TTA"]["user_claimed"]
-        UsrDeductUndChapVIA["Section80TTB"] = result_other["Section80TTB"]["user_claimed"]
-        UsrDeductUndChapVIA["AnyOthSec80CCH"] = result_other["Section80CCH"]["user_claimed"]
-        UsrDeductUndChapVIA["Section80GG"] = result_other["Section80GG"]["user_claimed"]
-        UsrDeductUndChapVIA["Form10BAAckNum"] = result_other.get("Form10BAAckNum", "")
-        DeductUndChapVIA["Section80TTA"] = result_other["Section80TTA"]["allowed"]
-        DeductUndChapVIA["Section80TTB"] = result_other["Section80TTB"]["allowed"]
-        DeductUndChapVIA["AnyOthSec80CCH"] = result_other["Section80CCH"]["allowed"]
-        DeductUndChapVIA["Section80GG"] = result_other["Section80GG"]["allowed"]
-        
+        usr_80c, ded_80c, sched_80c = self._apply_section_80c(filing, gross_tot_income, regime)
+        usr.Section80C = usr_80c
+        ded.Section80C = ded_80c
+
+        usr_80ccc, ded_80ccc, pran_num = self._apply_section_80ccc(filing, gross_tot_income, ded_80c, regime)
+        usr.Section80CCC = usr_80ccc
+        usr.PRANNum = pran_num or None
+        ded.Section80CCC = ded_80ccc
+
+        usr_80ccd1, ded_80ccd1, _ = self._apply_section_80ccd1(filing, gross_tot_income, ded_80c, ded_80ccc, regime)
+        usr.Section80CCDEmployeeOrSE = usr_80ccd1
+        ded.Section80CCDEmployeeOrSE = ded_80ccd1
+
+        usr_80ccd1b, ded_80ccd1b, _ = self._apply_section_80ccd1b(filing, gross_tot_income, regime)
+        usr.Section80CCD1B = usr_80ccd1b
+        ded.Section80CCD1B = ded_80ccd1b
+
+        usr_80ccd2, ded_80ccd2, _ = self._apply_section_80ccd2(filing, gross_tot_income, regime)
+        usr.Section80CCDEmployer = usr_80ccd2
+        ded.Section80CCDEmployer = ded_80ccd2
+
+        usr_80d, ded_80d, sched_80d = self._apply_section_80d(filing, regime)
+        usr.Section80D = usr_80d
+        ded.Section80D = ded_80d
+
+        usr_80dd, ded_80dd, sched_80dd = self._apply_section_80dd(filing, gross_tot_income, regime)
+        usr.Section80DD = usr_80dd
+        ded.Section80DD = ded_80dd
+
+        usr_80e, ded_80e, sched_80e = self._apply_section_80e(filing, regime)
+        usr.Section80E = usr_80e
+        ded.Section80E = ded_80e
+
+        usr_80ee, ded_80ee, sched_80ee = self._apply_section_80ee(filing, regime)
+        usr.Section80EE = usr_80ee
+        ded.Section80EE = ded_80ee
+
+        usr_80eeb, ded_80eeb, sched_80eeb = self._apply_section_80eeb(filing, regime)
+        usr.Section80EEB = usr_80eeb
+        ded.Section80EEB = ded_80eeb
+
+        usr_80u, ded_80u, sched_80u = self._apply_section_80u(filing, regime)
+        usr.Section80U = usr_80u
+        ded.Section80U = ded_80u
+
+        usr_80gga, ded_80gga, sched_80gga = self._apply_section_80gga(filing, context, regime)
+        usr.Section80GGA = usr_80gga
+        ded.Section80GGA = ded_80gga
+
+        usr_80ggc, ded_80ggc, sched_80ggc = self._apply_section_80ggc(filing, regime)
+        usr.Section80GGC = usr_80ggc
+        ded.Section80GGC = ded_80ggc
+
+        usr_80ddb, ded_80ddb, usr_80ddb_type, usr_80ddb_disease = self._apply_section_80ddb(filing, regime)
+        usr.Section80DDB = usr_80ddb
+        usr.Section80DDBUsrType = usr_80ddb_type or None
+        usr.NameOfSpecDisease80DDB = usr_80ddb_disease or None
+        ded.Section80DDB = ded_80ddb
+
+        (
+            usr_80tta, ded_80tta,
+            usr_80ttb, ded_80ttb,
+            usr_80cch, ded_80cch,
+            usr_80gg, ded_80gg,
+            form10ba_ack_num,
+        ) = self._apply_other_deductions(filing, regime)
+        usr.Section80TTA = usr_80tta
+        usr.Section80TTB = usr_80ttb
+        usr.AnyOthSec80CCH = usr_80cch
+        usr.Section80GG = usr_80gg
+        usr.Form10BAAckNum = form10ba_ack_num or None
+        ded.Section80TTA = ded_80tta
+        ded.Section80TTB = ded_80ttb
+        ded.AnyOthSec80CCH = ded_80cch
+        ded.Section80GG = ded_80gg
+
         # Calculate 80G last (depends on total_income without 80G)
         context.total_deductions_without_80g = sum([
-            DeductUndChapVIA["Section80C"],
-            DeductUndChapVIA["Section80CCC"],
-            DeductUndChapVIA["Section80CCDEmployeeOrSE"],
-            DeductUndChapVIA["Section80CCD1B"],
-            DeductUndChapVIA["Section80CCDEmployer"],
-            DeductUndChapVIA["Section80GGA"],
-            DeductUndChapVIA["Section80GGC"],
-            DeductUndChapVIA["Section80DD"],
-            DeductUndChapVIA["Section80E"],
-            DeductUndChapVIA["Section80EEB"],
-            DeductUndChapVIA["Section80TTA"],
-            DeductUndChapVIA["Section80TTB"],
-            DeductUndChapVIA["AnyOthSec80CCH"],
-            DeductUndChapVIA["Section80GG"],
+            getattr(ded, 'Section80C', 0) or 0,
+            getattr(ded, 'Section80CCC', 0) or 0,
+            getattr(ded, 'Section80CCDEmployeeOrSE', 0) or 0,
+            getattr(ded, 'Section80CCD1B', 0) or 0,
+            getattr(ded, 'Section80CCDEmployer', 0) or 0,
+            getattr(ded, 'Section80D', 0) or 0,
+            getattr(ded, 'Section80DD', 0) or 0,
+            getattr(ded, 'Section80DDB', 0) or 0,
+            getattr(ded, 'Section80E', 0) or 0,
+            getattr(ded, 'Section80EE', 0) or 0,
+            getattr(ded, 'Section80EEB', 0) or 0,
+            getattr(ded, 'Section80GGA', 0) or 0,
+            getattr(ded, 'Section80GGC', 0) or 0,
+            getattr(ded, 'Section80GG', 0) or 0,
+            getattr(ded, 'Section80TTA', 0) or 0,
+            getattr(ded, 'Section80TTB', 0) or 0,
+            getattr(ded, 'AnyOthSec80CCH', 0) or 0,
+            getattr(ded, 'Section80U', 0) or 0,
         ])
-        
-        result_80g = self._apply_section_80g(filing, context, regime)
-        UsrDeductUndChapVIA["Section80G"] = result_80g["user_claimed"]
-        DeductUndChapVIA["Section80G"] = result_80g["allowed"]
+
+        usr_80g, ded_80g, sched_80g = self._apply_section_80g(filing, context, regime)
+        usr.Section80G = usr_80g
+        ded.Section80G = ded_80g
 
         # Calculate totals
-        UsrDeductUndChapVIA["TotalChapVIADeductions"] = sum([
-            UsrDeductUndChapVIA["Section80C"],
-            UsrDeductUndChapVIA["Section80CCC"],
-            UsrDeductUndChapVIA["Section80CCDEmployeeOrSE"],
-            UsrDeductUndChapVIA["Section80CCD1B"],
-            UsrDeductUndChapVIA["Section80CCDEmployer"],
-            UsrDeductUndChapVIA["Section80D"],
-            UsrDeductUndChapVIA["Section80DD"],
-            UsrDeductUndChapVIA["Section80E"],
-            UsrDeductUndChapVIA["Section80EE"],
-            UsrDeductUndChapVIA["Section80EEB"],
-            UsrDeductUndChapVIA["Section80G"],
-            UsrDeductUndChapVIA["Section80GG"],
-            UsrDeductUndChapVIA["Section80GGA"],
-            UsrDeductUndChapVIA["Section80GGC"],
-            UsrDeductUndChapVIA["Section80U"],
-            UsrDeductUndChapVIA["Section80TTA"],
-            UsrDeductUndChapVIA["Section80TTB"],
-            UsrDeductUndChapVIA["AnyOthSec80CCH"],
+        usr.TotalChapVIADeductions = sum([
+            getattr(usr, 'Section80C', 0) or 0,
+            getattr(usr, 'Section80CCC', 0) or 0,
+            getattr(usr, 'Section80CCDEmployeeOrSE', 0) or 0,
+            getattr(usr, 'Section80CCD1B', 0) or 0,
+            getattr(usr, 'Section80CCDEmployer', 0) or 0,
+            getattr(usr, 'Section80D', 0) or 0,
+            getattr(usr, 'Section80DD', 0) or 0,
+            getattr(usr, 'Section80DDB', 0) or 0,
+            getattr(usr, 'Section80E', 0) or 0,
+            getattr(usr, 'Section80EE', 0) or 0,
+            getattr(usr, 'Section80EEB', 0) or 0,
+            getattr(usr, 'Section80G', 0) or 0,
+            getattr(usr, 'Section80GG', 0) or 0,
+            getattr(usr, 'Section80GGA', 0) or 0,
+            getattr(usr, 'Section80GGC', 0) or 0,
+            getattr(usr, 'Section80U', 0) or 0,
+            getattr(usr, 'Section80TTA', 0) or 0,
+            getattr(usr, 'Section80TTB', 0) or 0,
+            getattr(usr, 'AnyOthSec80CCH', 0) or 0,
         ])
-        
-        DeductUndChapVIA["TotalChapVIADeductions"] = context.total_deductions_without_80g + DeductUndChapVIA["Section80G"]
-        
-        total_income = max(0, int(gross_tot_income - DeductUndChapVIA["TotalChapVIADeductions"]))
-        
-        schedules = {
-                "Schedule80G": result_80g.get("schedule"),
-                "Schedule80GGA": result_80gga.get("schedule"),
-                "Schedule80GGC": result_80ggc.get("schedule"),
-                "Schedule80D": result_80d.get("schedule"),
-                "Schedule80DD": result_80dd.get("schedule"),
-                "Schedule80U": result_80u.get("schedule"),
-                "Schedule80E": result_80e.get("schedule"),
-                "Schedule80EE": result_80ee.get("schedule"),
-                "Schedule80EEB": result_80eeb.get("schedule"),
-                
-                "Schedule80C": result_80c.get("schedule"),
-               
-            }
-        
-        deductions_part = ITR1DeductionsPartModel.model_validate({
-            "UsrDeductUndChapVIA": UsrDeductUndChapVIA,
-            "DeductUndChapVIA": DeductUndChapVIA,
-            "TotalIncome": total_income,
-        })
 
-        return deductions_part, schedules
+        ded.TotalChapVIADeductions = context.total_deductions_without_80g + (getattr(ded, 'Section80G', 0) or 0)
+
+        total_income = max(0, int(gross_tot_income - (getattr(ded, 'TotalChapVIADeductions', 0) or 0)))
+
+        schedules = {
+            "Schedule80G": sched_80g,
+            "Schedule80GGA": sched_80gga,
+            "Schedule80GGC": sched_80ggc,
+            "Schedule80D": sched_80d,
+            "Schedule80DD": sched_80dd,
+            "Schedule80U": sched_80u,
+            "Schedule80E": sched_80e,
+            "Schedule80EE": sched_80ee,
+            "Schedule80EEB": sched_80eeb,
+            "Schedule80C": sched_80c,
+        }
+
+        deductions_part = ITR1DeductionsPartModel(
+            UsrDeductUndChapVIA=usr,
+            DeductUndChapVIA=ded,
+            TotalIncome=total_income,
+        )
+
+        return deductions_part, schedules   
 
     # --- Section-wise application methods ---
     
     def _apply_section_80c(
         self, filing: FilingModel, gross_tot_income: float, regime: str
-    ) -> Dict[str, Any]:
+    ) -> tuple[int, int, Any]:
         """Section 80C: LIC, PPF, ELSS, etc."""
         user_claimed = int(sum(section_80c.amount or 0 for section_80c in filing.section_80c or []))
         if regime.upper() == "NEW":
             filing.chapterVIADeductions.section_80c.claimed = user_claimed
             filing.chapterVIADeductions.section_80c.allowed = 0
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80c(filing)
         total_income = max(0, int(gross_tot_income))
         pool_150k = min(self._SECTION_80C_80CCC_MAX_ALLOWED, total_income)
         allowed = min(user_claimed, pool_150k)
-        
+
         filing.chapterVIADeductions.section_80c.allowed = allowed
         filing.chapterVIADeductions.section_80c.max_allowed = self._SECTION_80C_80CCC_MAX_ALLOWED
-        
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+
+        return user_claimed, allowed, schedule
     
     def _apply_section_80ccc(
         self, filing: FilingModel, gross_tot_income: float, section_80c_allowed: int, regime: str
-    ) -> Dict[str, Any]:
-        """Section 80CCC: Pension schemes."""
+    ) -> tuple[int, int, str | None]:
+        """Section 80CCC: Pension schemes. Returns (user_claimed, allowed, pran_num)."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccc or []))
         pran_num = filing.section_80ccc[0].pran_number if filing.section_80ccc else ""
         if regime.upper() == "NEW" or not filing.section_80ccc:
             filing.chapterVIADeductions.section_80ccc.claimed = user_claimed
             filing.chapterVIADeductions.section_80ccc.allowed = 0
-            return {"user_claimed": user_claimed, "allowed": 0, "pran_num": pran_num}
+            return user_claimed, 0, pran_num
 
         total_income = max(0, int(gross_tot_income))
         pool_150k = min(self._SECTION_80C_80CCC_MAX_ALLOWED, total_income)
         remaining = max(0, pool_150k - section_80c_allowed)
         allowed = min(user_claimed, remaining)
-        
+
         filing.chapterVIADeductions.section_80ccc.claimed = user_claimed
         filing.chapterVIADeductions.section_80ccc.allowed = allowed
         filing.chapterVIADeductions.section_80ccc.max_allowed = min(self._SECTION_80C_80CCC_MAX_ALLOWED, int(gross_tot_income))
-        
-        return {"user_claimed": user_claimed, "allowed": allowed, "pran_num": pran_num}
+
+        return user_claimed, allowed, pran_num
     
     def _apply_section_80ccd1(
         self,
@@ -315,74 +296,82 @@ class Itr1DeductionBuilderService:
         section_80c_allowed: int,
         section_80ccc_allowed: int,
         regime: str,
-    ) -> Dict[str, Any]:
+    ) -> tuple[int, int, None]:
         """Section 80CCD(1): NPS contributions by employee/self-employed."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccd1 or []))
         if regime.upper() == "NEW" or not filing.section_80ccd1:
             filing.chapterVIADeductions.section_80ccd1.claimed = user_claimed
             filing.chapterVIADeductions.section_80ccd1.allowed = 0
-            return {"user_claimed": user_claimed, "allowed": 0}
-        
+            return user_claimed, 0, None
+
         total_income = max(0, int(gross_tot_income))
         pool_150k = min(self._SECTION_80C_80CCC_MAX_ALLOWED, total_income)
         remaining = max(0, pool_150k - section_80c_allowed - section_80ccc_allowed)
         allowed = min(user_claimed, remaining)
-        
+
         filing.chapterVIADeductions.section_80ccd1.claimed = user_claimed
         filing.chapterVIADeductions.section_80ccd1.allowed = allowed
         filing.chapterVIADeductions.section_80ccd1.max_allowed = (
             min(self._SECTION_80C_80CCC_MAX_ALLOWED, int(gross_tot_income)) - section_80c_allowed - section_80ccc_allowed
         )
-        
-        return {"user_claimed": user_claimed, "allowed": allowed}
+
+        return user_claimed, allowed, None
     
     def _apply_section_80ccd1b(
         self, filing: FilingModel, gross_tot_income: float, regime: str
-    ) -> Dict[str, Any]:
+    ) -> tuple[int, int, None]:
         """Section 80CCD(1B): Additional NPS contribution (over and above 80C limit)."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccd1b or []))
         if regime.upper() == "NEW" or not filing.section_80ccd1b:
             filing.chapterVIADeductions.section_80ccd1b.claimed = user_claimed
             filing.chapterVIADeductions.section_80ccd1b.allowed = 0
-            return {"user_claimed": user_claimed, "allowed": 0}
+            return user_claimed, 0, None
         total_income = max(0, int(gross_tot_income))
         allowed = int(min(user_claimed, self._SECTION_80CCD1B_MAX_ALLOWED, total_income))
-        
+
         filing.chapterVIADeductions.section_80ccd1b.claimed = user_claimed
         filing.chapterVIADeductions.section_80ccd1b.allowed = allowed
         filing.chapterVIADeductions.section_80ccd1b.max_allowed = min(self._SECTION_80CCD1B_MAX_ALLOWED, int(gross_tot_income))
-        
-        return {"user_claimed": user_claimed, "allowed": allowed}
+
+        return user_claimed, allowed, None
     
     def _apply_section_80ccd2(
         self, filing: FilingModel, gross_tot_income: float, regime: str
-    ) -> Dict[str, Any]:
+    ) -> tuple[int, int, None]:
         """Section 80CCD(2): Employer NPS contribution."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccd2 or []))
         if regime.upper() == "NEW" or not filing.section_80ccd2:
             filing.chapterVIADeductions.section_80ccd2.claimed = user_claimed
             filing.chapterVIADeductions.section_80ccd2.allowed = 0
-            return {"user_claimed": user_claimed, "allowed": 0}
+            return user_claimed, 0, None
 
         total_income = max(0, int(gross_tot_income))
         allowed = int(min(user_claimed, total_income))
-        
+
         filing.chapterVIADeductions.section_80ccd2.claimed = user_claimed
         filing.chapterVIADeductions.section_80ccd2.allowed = allowed
-        
-        return {"user_claimed": user_claimed, "allowed": round(allowed)}
+
+        return user_claimed, round(allowed), None
     
-    def _apply_section_80d(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
+    def _apply_section_80d(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80D: Health insurance premium, preventive checkup, medical expenditure."""
-        section_80d_details = self.build_section_80d(filing)
-        # UserClaimedTotal  = raw sum of (premium + preventive + medical) entered
-        # AllowedTotal       = capped deduction: premium + preventive [+ medical only for senior with no insurance]
-        user_claimed = section_80d_details.get("UserClaimedTotal", 0)
-        allowed_amount = section_80d_details.get("AllowedTotal", 0)
+        schedule = self.build_section_80d(filing)
+        # user_claimed: raw sum of all entries before capping
+        s80d_data = filing.section_80d
+        user_claimed = int(
+            sum(float(hi.health_insurance_premium or 0) for hi in (s80d_data.health_insurance if s80d_data else []) or [])
+            + sum(float(pc.checkup_amount or 0) for pc in (s80d_data.preventive_checkup if s80d_data else []) or [])
+            + sum(float(me.expenditure_amount or 0) for me in (s80d_data.medical_expenditure if s80d_data else []) or [])
+        )
+        allowed_amount = 0
+        self_senior_flag = "S"
+        parents_senior_flag = "P"
+        if schedule is not None:
+            health = schedule.Sec80DSelfFamSrCtznHealth
+            allowed_amount = int(getattr(health, 'EligibleAmountOfDedn', 0) or 0)
+            self_senior_flag = getattr(health, 'SeniorCitizenFlag', "S") or "S"
+            parents_senior_flag = getattr(health, 'ParentsSeniorCitizenFlag', "P") or "P"
         # Dynamic max: sum of whichever caps actually apply per bucket
-        s80d = section_80d_details.get("section_80d", {})
-        self_senior_flag = s80d.get("SeniorCitizenFlag", "S")
-        parents_senior_flag = s80d.get("ParentsSeniorCitizenFlag", "P")
         self_max = (
             self._SECTION_80D_SELF_AND_FAMILY_SENIOR_MAX_ALLOWED if self_senior_flag == "Y"
             else (self._SECTION_80D_SELF_AND_FAMILY_NOT_SENIOR_MAX_ALLOWED if self_senior_flag == "N" else 0)
@@ -395,83 +384,85 @@ class Itr1DeductionBuilderService:
         if regime.upper() == "NEW" or not filing.section_80d:
             filing.chapterVIADeductions.section_80d.claimed = user_claimed
             filing.chapterVIADeductions.section_80d.allowed = 0
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         filing.chapterVIADeductions.section_80d.claimed = user_claimed
         filing.chapterVIADeductions.section_80d.allowed = allowed_amount
         filing.chapterVIADeductions.section_80d.max_allowed = max_allowed
-        return {"user_claimed": user_claimed, "allowed": allowed_amount, "schedule": s80d}
+        return user_claimed, allowed_amount, schedule
     
     def _apply_section_80dd(
         self, filing: FilingModel, gross_tot_income: float, regime: str
-    ) -> Dict[str, Any]:
+    ) -> tuple[int, int, Any]:
         """Section 80DD: Medical treatment of dependent with disability."""
         schedule = self.build_schedule_80dd(filing)
         user_claimed = int(getattr(filing.section_80dd, "expenditure_incurred", 0) or 0)
         if regime.upper() == "NEW" or not filing.section_80dd or schedule is None:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
-        user_claimed = schedule.get("DeductionAmount", 0)
-        nature_of_disability = schedule.get("NatureOfDisability", "1")
+        user_claimed = int(getattr(schedule, 'DeductionAmount', 0))
+        nature_of_disability = getattr(schedule, 'NatureOfDisability', "1") or "1"
         total_income = max(0, int(gross_tot_income))
-        
+
         if nature_of_disability == "1":
             allowed = min(user_claimed, 75000, total_income)
         else:
             allowed = min(user_claimed, 125000, total_income)
-        
+
         filing.chapterVIADeductions.section_80dd.claimed = user_claimed
         filing.chapterVIADeductions.section_80dd.allowed = allowed
         filing.chapterVIADeductions.section_80dd.max_allowed = user_claimed
-        
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+
+        return user_claimed, allowed, schedule
     
-    def _apply_section_80e(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
+    def _apply_section_80e(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80E: Interest on education loan."""
-        user_claimed = int(sum(item.itr_interest_80e or 0 for item in filing.section_80e or []))
+        user_claimed = int(sum(getattr(item, 'interest_on_loan', 0) or 0 for item in filing.section_80e or []))
         if regime.upper() == "NEW" or not filing.section_80e:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80e(filing)
-        allowed = schedule.get("TotalInterest80E", 0)
+        allowed = int(getattr(schedule, 'TotalInterest80E', 0))
 
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+        return user_claimed, allowed, schedule
     
-    def _apply_section_80ee(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
+    def _apply_section_80ee(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80EE: Interest on home loan."""
-        user_claimed = int(getattr(filing.section_80ee, "itr_interest_80e", 0) or 0)
+        user_claimed = int(getattr(filing.section_80ee, "interest_on_loan", 0) or 0)
         if regime.upper() == "NEW" or not filing.section_80ee:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80ee(filing)
-        allowed = schedule.get("TotalInterest80EE", 0)
+        allowed = int(getattr(schedule, 'TotalInterest80EE', 0))
 
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+        return user_claimed, allowed, schedule
     
-    def _apply_section_80eeb(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
+    def _apply_section_80eeb(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80EEB: Interest on electric vehicle loan."""
-        user_claimed = int(getattr(filing.section_80eeb, "itr_interest_80e", 0) or 0)
+        user_claimed = int(getattr(filing.section_80eeb, "interest_on_loan", 0) or 0)
         if regime.upper() == "NEW" or not filing.section_80eeb:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80eeb(filing)
-        allowed = schedule.get("TotalInterest80EEB", 0)
+        allowed = int(getattr(schedule, 'TotalInterest80EEB', 0))
 
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+        return user_claimed, allowed, schedule
     
-    def _apply_section_80u(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
+    def _apply_section_80u(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80U: Person with disability."""
         user_claimed = int(getattr(filing.section_80u, "expenditure_incurred", 0) or 0)
         if regime.upper() == "NEW" or not filing.section_80u:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80u(filing)
-        allowed = schedule.get("DeductionAmount", 0)
-
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+        user_claimed = allowed = int(getattr(schedule, 'DeductionAmount', 0))
+        filing.chapterVIADeductions.section_80u.claimed = user_claimed
+        filing.chapterVIADeductions.section_80u.allowed = allowed
+        filing.chapterVIADeductions.section_80u.max_allowed = user_claimed
+        return user_claimed, allowed, schedule
     def _apply_section_80gga(
         self, filing: FilingModel, context: Itr1ComputationContext, regime: str
-    ) -> Dict[str, Any]:
+    ) -> tuple[int, int, Any]:
         """Section 80GGA: Donations for scientific research."""
         user_claimed = int(
             sum(
@@ -480,21 +471,25 @@ class Itr1DeductionBuilderService:
             )
         )
         if regime.upper() == "NEW":
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80gga(filing, context)
         allowed = int(getattr(schedule, "TotalEligibleDonationAmt80GGA", 0))
 
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
-    def _apply_section_80ddb(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
-        """Section 80DDB: Medical treatment of dependent with disability."""
+        return user_claimed, allowed, schedule
+
+    def _apply_section_80ddb(self, filing: FilingModel, regime: str) -> tuple[int, int, str, str]:
+        """Section 80DDB: Medical treatment of dependent with disability. Returns (user_claimed, allowed, usr_type, disease)."""
         user_claimed = int(getattr(filing.section_80ddb, "expenditure_incurred", 0) or 0)
         if regime.upper() == "NEW" or not filing.section_80ddb:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, "", ""
         schedule = self.build_section_80ddb(filing)
         allowed = schedule.get("Section80DDB_calc", 0)
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
-    def _apply_section_80ggc(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
+        usr_type = schedule.get("Section80DDBUsrType", "")
+        disease = schedule.get("NameOfSpecDisease80DDB", "")
+        return user_claimed, allowed, usr_type, disease
+
+    def _apply_section_80ggc(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80GGC: Contribution to political party."""
         user_claimed = int(
             sum(
@@ -503,16 +498,16 @@ class Itr1DeductionBuilderService:
             )
         )
         if regime.upper() == "NEW" or not filing.section_80ggc:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80ggc(filing)
         allowed = int(getattr(schedule, "TotalEligibleDonationAmt80GGC", 0))
 
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+        return user_claimed, allowed, schedule
     
     def _apply_section_80g(
         self, filing: FilingModel, context: Itr1ComputationContext, regime: str
-    ) -> Dict[str, Any]:
+    ) -> tuple[int, int, Any]:
         """Section 80G: Donations."""
         user_claimed = int(
             sum(
@@ -521,50 +516,35 @@ class Itr1DeductionBuilderService:
             )
         )
         if regime.upper() == "NEW" or not filing.section_80g:
-            return {"user_claimed": user_claimed, "allowed": 0, "schedule": None}
+            return user_claimed, 0, None
 
         schedule = self.build_schedule_80g(filing)
-        allowed = int(schedule.TotalEligibleDonationsUs80G)
+        allowed = int(getattr(schedule, 'TotalEligibleDonationsUs80G', 0) or 0)
 
-        return {"user_claimed": user_claimed, "allowed": allowed, "schedule": schedule}
+        return user_claimed, allowed, schedule
     
-    def _apply_other_deductions(self, filing: FilingModel, regime: str) -> Dict[str, Any]:
-        """Other deductions: 80TTA, 80TTB, 80CCH, 80GG."""
+    def _apply_other_deductions(
+        self, filing: FilingModel, regime: str
+    ) -> tuple[int, int, int, int, int, int, int, int, str]:
+        """Other deductions: 80TTA, 80TTB, 80CCH, 80GG.
+        Returns (usr_80tta, ded_80tta, usr_80ttb, ded_80ttb, usr_80cch, ded_80cch, usr_80gg, ded_80gg, form10ba_ack_num).
+        """
         result = self.build_other_deductions(filing) if filing.other_deductions else {}
-        user_claimed = {
-            "Section80TTA": result.get("Section80TTA", 0),
-            "Section80TTB": result.get("Section80TTB", 0),
-            "Section80CCH": result.get("AnyOthSec80CCH", 0),
-            "Section80GG": result.get("Section80GG", 0),
-        }
+        usr_80tta = result.get("Section80TTA", 0)
+        usr_80ttb = result.get("Section80TTB", 0)
+        usr_80cch = result.get("AnyOthSec80CCH", 0)
+        usr_80gg = result.get("Section80GG", 0)
+        form10ba_ack_num = result.get("Form10BAAckNum", "")
         if regime.upper() == "NEW" or not filing.other_deductions:
-            return {
-                "Section80TTA": {"user_claimed": user_claimed["Section80TTA"], "allowed": 0},
-                "Section80TTB": {"user_claimed": user_claimed["Section80TTB"], "allowed": 0},
-                "Section80CCH": {"user_claimed": user_claimed["Section80CCH"], "allowed": 0},
-                "Section80GG": {"user_claimed": user_claimed["Section80GG"], "allowed": 0},
-                "Form10BAAckNum": result.get("Form10BAAckNum", ""),
-            }
+            return usr_80tta, 0, usr_80ttb, 0, usr_80cch, 0, usr_80gg, 0, form10ba_ack_num
 
-        return {
-            "Section80TTA": {
-                "user_claimed": user_claimed["Section80TTA"],
-                "allowed": result.get("Section80TTA_calc", 0),
-            },
-            "Section80TTB": {
-                "user_claimed": user_claimed["Section80TTB"],
-                "allowed": result.get("Section80TTB_calc", 0),
-            },
-            "Section80CCH": {
-                "user_claimed": user_claimed["Section80CCH"],
-                "allowed": result.get("AnyOthSec80CCH_calc", 0),
-            },
-            "Section80GG": {
-                "user_claimed": user_claimed["Section80GG"],
-                "allowed": result.get("Section80GG_calc", 0),
-            },
-            "Form10BAAckNum": result.get("Form10BAAckNum", ""),
-        }
+        return (
+            usr_80tta, result.get("Section80TTA_calc", 0),
+            usr_80ttb, result.get("Section80TTB_calc", 0),
+            usr_80cch, result.get("AnyOthSec80CCH_calc", 0),
+            usr_80gg, result.get("Section80GG_calc", 0),
+            form10ba_ack_num,
+        )
    
     # --- Existing schedule builders (called by section methods above) ---
 
@@ -589,38 +569,42 @@ class Itr1DeductionBuilderService:
 
         return Schedule80CModel(Schedule80CDtls=Schedule80CDtls, TotalAmt=total_amt_80c)
 
-    def build_schedule_80u(self, filing: FilingModel) -> dict[str, Any]:
+    @staticmethod
+    def _map_loan_tkn_from(raw: str | None) -> LoanTknFromEnum:
+        """Map raw loan-taken-from string to LoanTknFromEnum. Defaults to I (Institution)."""
+        v = (raw or "").strip().upper()
+        if v in ("B", "BANK"):
+            return LoanTknFromEnum.B
+        return LoanTknFromEnum.I
+
+    def build_schedule_80u(self, filing: FilingModel) -> Schedule80UModel | None:
         """Build Schedule 80U."""
-        total_amt_80u: int = 0
-        if filing.regime == "NEW":
-            return {}
-        else:
-            Schedule80U: dict[str, Any] = {}
-            if filing.section_80u:
-                total_amt_80u += int(filing.section_80u.expenditure_incurred or 0)
+        if filing.regime == "NEW" or not filing.section_80u:
+            return None
+        nature = "1" if filing.section_80u.disability_type == "Disabled" else "2"
+        deduction_amount = 75000 if nature == "1" else 125000
+        return Schedule80UModel(
+            NatureOfDisability=nature,
+            TypeOfDisability="1",
+            DeductionAmount=deduction_amount,
+            Form10IAAckNum=getattr(filing.section_80u, 'itr_form10ia_ack_num', None),
+            UDIDNum=getattr(filing.section_80u, 'itr_udid_num', None),
+        )
 
-                Schedule80U = {
-                    "NatureOfDisability": "1" if filing.section_80u.disability_type == "Disabled" else "2",
-                    "TypeOfDisability": "1",
-                    "DeductionAmount": 75000,
-                    "Form10IAAckNum": "123456789012345",
-                }
-            return Schedule80U
-
-    def build_schedule_80dd(self, filing: FilingModel) -> dict[str, Any] | None:
+    def build_schedule_80dd(self, filing: FilingModel) -> Schedule80DDModel | None:
         """Build Schedule 80DD. Returns None when not applicable (NEW regime or no section_80dd)."""
         if filing.regime == "NEW" or not filing.section_80dd:
             return None
-        return {
-            "NatureOfDisability": filing.section_80dd.itr_nature_of_disability,
-            "TypeOfDisability": filing.section_80dd.itr_type_of_disability,
-            "DeductionAmount": filing.section_80dd.itr_deduction_amount,
-            "DependentType": filing.section_80dd.itr_dependent_type,
-            "DependentPan": filing.section_80dd.itr_dependent_pan,
-            "DependentAadhaar": filing.section_80dd.udid_no,
-            "Form10IAAckNum": filing.section_80dd.itr_form10ia_ack_num,
-            "UDIDNum": filing.section_80dd.itr_udid_num,
-        }
+        return Schedule80DDModel(
+            NatureOfDisability=getattr(filing.section_80dd, 'itr_nature_of_disability', None) or "1",
+            TypeOfDisability=getattr(filing.section_80dd, 'itr_type_of_disability', None) or "1",
+            DeductionAmount=int(getattr(filing.section_80dd, 'itr_deduction_amount', 0) or 0),
+            DependentType=getattr(filing.section_80dd, 'itr_dependent_type', None) or "1",
+            DependentPan=getattr(filing.section_80dd, 'itr_dependent_pan', None),
+            DependentAadhaar=filing.section_80dd.udid_no,
+            Form10IAAckNum=getattr(filing.section_80dd, 'itr_form10ia_ack_num', None),
+            UDIDNum=getattr(filing.section_80dd, 'itr_udid_num', None),
+        )
 
     def build_schedule_80gga(self, filing: FilingModel, context: Itr1ComputationContext) -> Schedule80GGAModel:
         """Build Schedule 80GGA."""
@@ -656,7 +640,7 @@ class Itr1DeductionBuilderService:
                 )
                 schedule_80gga_dtls.append(
                     DonationDtlsSciRsrchRuralDevItem(
-                        RelevantClauseUndrDedClaimed=RelevantClauseUndrDedClaimedEnum(section_80gga.itr_relevant_clause),
+                        RelevantClauseUndrDedClaimed=RelevantClauseUndrDedClaimedEnum(getattr(section_80gga, 'itr_relevant_clause', None)),
                         NameOfDonee=section_80gga.donee_name,
                         AddressDetail=addressDetail,
                         DoneePAN=section_80gga.donee_pan,
@@ -729,73 +713,68 @@ class Itr1DeductionBuilderService:
         )
 
     
-    def build_schedule_80e(self, filing: FilingModel) -> dict[str, Any]:
+    def build_schedule_80e(self, filing: FilingModel) -> Schedule80EModel:
         """Build Schedule 80E."""
-        schedule_80e_dtls: list[dict[str, Any]] = []
-        total_interest_80e: int = 0
         if filing.regime == "NEW":
-            return {"Schedule80EDtls": [], "TotalInterest80E": 0}
-        else:
-            for section_80e in filing.section_80e:
-                total_interest_80e += section_80e.itr_interest_80e
-                schedule_80e_dtls.append(
-                    {
-                        "LoanTknFrom": section_80e.itr_loan_tkn_from,
-                        "BankOrInstnName": section_80e.itr_bank_or_instn_name ,
-                        "LoanAccNoOfBankOrInstnRefNo": section_80e.itr_loan_acc_ref ,
-                        "DateofLoan": section_80e.itr_dateofloan ,
-                        "TotalLoanAmt": section_80e.itr_total_loan_amt ,
-                        "LoanOutstndngAmt": section_80e.itr_loan_outstanding_amt ,
-                        "Interest80E": section_80e.itr_interest_80e ,
-                    }
-                )
+            return Schedule80EModel(Schedule80EDtls=[], TotalInterest80E=0)
+        dtls: list[Schedule80EDtl] = []
+        total: int = 0
+        for s in filing.section_80e or []:
+            interest = int(getattr(s, 'interest_on_loan', 0) or 0)
+            total += interest
+            dtls.append(Schedule80EDtl(
+                LoanTknFrom=self._map_loan_tkn_from(getattr(s, 'itr_loan_tkn_from', None)),
+                BankOrInstnName=getattr(s, 'itr_bank_or_instn_name', None) or "NA",
+                LoanAccNoOfBankOrInstnRefNo=str(getattr(s, 'itr_loan_acc_ref', None) or ""),
+                DateofLoan=getattr(s, 'itr_dateofloan', None),
+                TotalLoanAmt=int(getattr(s, 'itr_total_loan_amt', 0) or 0),
+                LoanOutstndngAmt=int(getattr(s, 'itr_loan_outstanding_amt', 0) or 0),
+                Interest80E=interest,
+            ))
+        return Schedule80EModel(Schedule80EDtls=dtls, TotalInterest80E=total)
 
-        return {"Schedule80EDtls": schedule_80e_dtls, "TotalInterest80E": total_interest_80e}
-
-    def build_schedule_80ee(self, filing: FilingModel) -> dict[str, Any]:
+    def build_schedule_80ee(self, filing: FilingModel) -> Schedule80EEModel:
         """Build Schedule 80EE."""
-        schedule_80ee_dtls: list[dict[str, Any]] = []
-        total_interest_80ee: int = 0
+        dtls: list[Schedule80EEDtl] = []
+        total: int = 0
         # Do not check filing.regime here; _apply_section_80ee already returns None for NEW regime
         section_80ee = filing.section_80ee
         if section_80ee is not None:
-            total_interest_80ee = section_80ee.itr_interest_80e
-            schedule_80ee_dtls.append(
-                {
-                    "LoanTknFrom": section_80ee.itr_loan_tkn_from,
-                    "BankOrInstnName": section_80ee.itr_bank_or_instn_name,
-                    "LoanAccNoOfBankOrInstnRefNo": section_80ee.itr_loan_acc_ref,
-                    "DateofLoan": section_80ee.itr_dateofloan,
-                    "TotalLoanAmt": section_80ee.itr_total_loan_amt,
-                    "LoanOutstndngAmt": section_80ee.itr_loan_outstanding_amt,
-                    "Interest80EE": section_80ee.itr_interest_80e,
-                }
-            )
-        return {"Schedule80EEDtls": schedule_80ee_dtls, "TotalInterest80EE": total_interest_80ee}
-    def build_schedule_80eeb(self, filing: FilingModel) -> dict[str, Any]:
+            interest = int(getattr(section_80ee, 'interest_on_loan', 0) or 0)
+            total = interest
+            dtls.append(Schedule80EEDtl(
+                LoanTknFrom=self._map_loan_tkn_from(getattr(section_80ee, 'itr_loan_tkn_from', None)),
+                BankOrInstnName=getattr(section_80ee, 'itr_bank_or_instn_name', None) or "NA",
+                LoanAccNoOfBankOrInstnRefNo=str(getattr(section_80ee, 'itr_loan_acc_ref', None) or ""),
+                DateofLoan=getattr(section_80ee, 'itr_dateofloan', None),
+                TotalLoanAmt=int(getattr(section_80ee, 'itr_total_loan_amt', 0) or 0),
+                LoanOutstndngAmt=int(getattr(section_80ee, 'itr_loan_outstanding_amt', 0) or 0),
+                Interest80EE=interest,
+            ))
+        return Schedule80EEModel(Schedule80EEDtls=dtls, TotalInterest80EE=total)
+    def build_schedule_80eeb(self, filing: FilingModel) -> Schedule80EEBModel:
         """Build Schedule 80EEB."""
-        schedule_80eeb_dtls: list[dict[str, Any]] = []
-        total_interest_80eeb: int = 0
         if filing.regime == "NEW":
-            return {"Schedule80EEBDtls": [], "TotalInterest80EEB": 0}
+            return Schedule80EEBModel(Schedule80EEBDtls=[], TotalInterest80EEB=0)
+        dtls: list[Schedule80EEBDtl] = []
+        total: int = 0
         section_80eeb = filing.section_80eeb
         if section_80eeb is not None:
-            total_interest_80eeb = section_80eeb.itr_interest_80e
-            schedule_80eeb_dtls.append(
-                {
-                    "LoanTknFrom": section_80eeb.itr_loan_tkn_from,
-                    "BankOrInstnName": section_80eeb.itr_bank_or_instn_name,
-                    "LoanAccNoOfBankOrInstnRefNo": section_80eeb.itr_loan_acc_ref,
-                    "DateofLoan": section_80eeb.itr_dateofloan,
-                    "TotalLoanAmt": section_80eeb.itr_total_loan_amt,
-                    "LoanOutstndngAmt": section_80eeb.itr_loan_outstanding_amt,
-                    "VehicleRegNo": section_80eeb.itr_vehicle_reg_no,
-                    "Interest80EEB": section_80eeb.itr_interest_80e,
-                }
-            )
-        return {"Schedule80EEBDtls": schedule_80eeb_dtls, "TotalInterest80EEB": total_interest_80eeb}
+            interest = int(getattr(section_80eeb, 'interest_on_loan', 0) or 0)
+            total = interest
+            dtls.append(Schedule80EEBDtl(
+                LoanTknFrom=self._map_loan_tkn_from(getattr(section_80eeb, 'itr_loan_tkn_from', None)),
+                BankOrInstnName=getattr(section_80eeb, 'itr_bank_or_instn_name', None) or "NA",
+                LoanAccNoOfBankOrInstnRefNo=str(getattr(section_80eeb, 'itr_loan_acc_ref', None) or ""),
+                DateofLoan=getattr(section_80eeb, 'itr_dateofloan', None),
+                TotalLoanAmt=int(getattr(section_80eeb, 'itr_total_loan_amt', 0) or 0),
+                LoanOutstndngAmt=int(getattr(section_80eeb, 'itr_loan_outstanding_amt', 0) or 0),
+                VehicleRegNo=getattr(section_80eeb, 'itr_vehicle_reg_no', None) or "NA",
+                Interest80EEB=interest,
+            ))
+        return Schedule80EEBModel(Schedule80EEBDtls=dtls, TotalInterest80EEB=total)
 
-    def build_section_80d(self, filing: FilingModel) -> dict[str, Any]:
+    def build_section_80d(self, filing: FilingModel) -> Schedule80DModel | None:
         """Build Section 80D: Health insurance, preventive checkup, medical expenditure.
 
         Two independent buckets — self/family and parents — each resolved via:
@@ -810,7 +789,7 @@ class Itr1DeductionBuilderService:
           Medical:    counted only when no insurance premium exists in that bucket
         """
         if not filing.section_80d:
-            return {}
+            return None
 
         _PREV_CAP = self._SECTION_80D_PREVENTIVE_CAP
         _SELF_TAKEN_FOR = {"Self", "Self & Family"}
@@ -820,24 +799,24 @@ class Itr1DeductionBuilderService:
         self_preventive: float = 0
         self_medical: float = 0
         self_senior: bool = False
-        self_ins_non_sr: list[dict[str, Any]] = []
-        self_ins_sr: list[dict[str, Any]] = []
+        self_ins_non_sr: list[Sch80DInsDtlsModel] = []
+        self_ins_sr: list[Sch80DInsDtlsModel] = []
 
         parent_premium: float = 0
         parent_preventive: float = 0
         parent_medical: float = 0
         parent_senior: bool = False
-        parent_ins_non_sr: list[dict[str, Any]] = []
-        parent_ins_sr: list[dict[str, Any]] = []
+        parent_ins_non_sr: list[Sch80DInsDtlsModel] = []
+        parent_ins_sr: list[Sch80DInsDtlsModel] = []
 
         # ── Health Insurance ─────────────────────────────────────────────────────
         for hi in (filing.section_80d.health_insurance or []):
             amt = float(hi.health_insurance_premium or 0)
-            ins_row: dict[str, Any] = {
-                "InsurerName": hi.itr_insurer_name or "",
-                "PolicyNo": hi.itr_policy_no or "",
-                "HealthInsAmt": hi.itr_health_ins_amt,
-            }
+            ins_row = Sch80DInsDtlsModel(
+                InsurerName=hi.itr_insurer_name or "",
+                PolicyNo=hi.itr_policy_no or "",
+                HealthInsAmt=hi.itr_health_ins_amt,
+            )
             if hi.taken_for in _SELF_TAKEN_FOR:
                 self_premium += amt
                 if hi.includes_senior_citizen:
@@ -928,60 +907,52 @@ class Itr1DeductionBuilderService:
         else:
             parents_flag = "N"
 
-        # ── Build output dict matching Sec80DSelfFamSrCtznHealthModel ─────────────
-        section_80d: dict[str, Any] = {
-            "SeniorCitizenFlag": senior_flag,
+        # ── Build typed Sec80DSelfFamSrCtznHealthModel ────────────────────────────
+        health = Sec80DSelfFamSrCtznHealthModel(
+            SeniorCitizenFlag=senior_flag,
             # Non-senior self/family sub-bucket (only when not senior)
-            "SelfAndFamily": (self_deduction if not self_senior else None),
-            "HealthInsPremSlfFam": (int(self_premium) if not self_senior else None),
-            "Sec80DSelfFamHIDtls": (
-                {"Sch80DInsDtls": self_ins_non_sr, "TotalPayments": int(self_premium)}
+            SelfAndFamily=(self_deduction if not self_senior else None),
+            HealthInsPremSlfFam=(int(self_premium) if not self_senior else None),
+            Sec80DSelfFamHIDtls=(
+                Sec80DSelfFamHIDtlsModel(Sch80DInsDtls=self_ins_non_sr, TotalPayments=int(self_premium))
                 if not self_senior and self_ins_non_sr
                 else None
             ),
-            "PrevHlthChckUpSlfFam": (int(self_preventive) if not self_senior else None),
+            PrevHlthChckUpSlfFam=(int(self_preventive) if not self_senior else None),
             # Senior self/family sub-bucket (only when senior)
-            "SelfAndFamilySeniorCitizen": (self_deduction if self_senior else None),
-            "HlthInsPremSlfFamSrCtzn": (int(self_premium) if self_senior else None),
-            "Sec80DSelfFamSrCtznHIDtls": (
-                {"Sch80DInsDtls": self_ins_sr, "TotalPayments": int(self_premium)}
+            SelfAndFamilySeniorCitizen=(self_deduction if self_senior else None),
+            HlthInsPremSlfFamSrCtzn=(int(self_premium) if self_senior else None),
+            Sec80DSelfFamSrCtznHIDtls=(
+                Sec80DSelfFamSrCtznHIDtlsModel(Sch80DInsDtls=self_ins_sr, TotalPayments=int(self_premium))
                 if self_senior and self_ins_sr
                 else None
             ),
-            "PrevHlthChckUpSlfFamSrCtzn": (int(self_preventive) if self_senior else None),
-            "MedicalExpSlfFamSrCtzn": (int(self_medical) if self_senior else None),
+            PrevHlthChckUpSlfFamSrCtzn=(int(self_preventive) if self_senior else None),
+            MedicalExpSlfFamSrCtzn=(int(self_medical) if self_senior else None),
             # Parents
-            "ParentsSeniorCitizenFlag": parents_flag,
+            ParentsSeniorCitizenFlag=parents_flag,
             # Non-senior parents sub-bucket
-            "Parents": (parent_deduction if not parent_senior else None),
-            "HlthInsPremParents": (int(parent_premium) if not parent_senior else None),
-            "Sec80DParentsHIDtls": (
-                {"Sch80DInsDtls": parent_ins_non_sr, "TotalPayments": int(parent_premium)}
+            Parents=(parent_deduction if not parent_senior else None),
+            HlthInsPremParents=(int(parent_premium) if not parent_senior else None),
+            Sec80DParentsHIDtls=(
+                Sec80DParentsHIDtlsModel(Sch80DInsDtls=parent_ins_non_sr, TotalPayments=int(parent_premium))
                 if not parent_senior and parent_ins_non_sr
                 else None
             ),
-            "PrevHlthChckUpParents": (int(parent_preventive) if not parent_senior else None),
+            PrevHlthChckUpParents=(int(parent_preventive) if not parent_senior else None),
             # Senior parents sub-bucket
-            "ParentsSeniorCitizen": (parent_deduction if parent_senior else None),
-            "HlthInsPremParentsSrCtzn": (int(parent_premium) if parent_senior else None),
-            "Sec80DParentsSrCtznHIDtls": (
-                {"Sch80DInsDtls": parent_ins_sr, "TotalPayments": int(parent_premium)}
+            ParentsSeniorCitizen=(parent_deduction if parent_senior else None),
+            HlthInsPremParentsSrCtzn=(int(parent_premium) if parent_senior else None),
+            Sec80DParentsSrCtznHIDtls=(
+                Sec80DParentsSrCtznHIDtlsModel(Sch80DInsDtls=parent_ins_sr, TotalPayments=int(parent_premium))
                 if parent_senior and parent_ins_sr
                 else None
             ),
-            "PrevHlthChckUpParentsSrCtzn": (int(parent_preventive) if parent_senior else None),
-            "MedicalExpParentsSrCtzn": (int(parent_medical) if parent_senior else None),
-            "EligibleAmountOfDedn": total_deduction,
-        }
-        raw_total = int(
-            self_premium + self_preventive + self_medical
-            + parent_premium + parent_preventive + parent_medical
+            PrevHlthChckUpParentsSrCtzn=(int(parent_preventive) if parent_senior else None),
+            MedicalExpParentsSrCtzn=(int(parent_medical) if parent_senior else None),
+            EligibleAmountOfDedn=total_deduction,
         )
-        return {
-            "section_80d": {"Sec80DSelfFamSrCtznHealth": section_80d},
-            "UserClaimedTotal": raw_total,
-            "AllowedTotal": total_deduction,  # capped: premium+preventive[+medical for senior]
-        }
+        return Schedule80DModel(Sec80DSelfFamSrCtznHealth=health)
 
     def build_other_deductions(self, filing: FilingModel) -> dict[str, Any]:
         """Build other deductions (80TTA, 80TTB, 80CCH, 80GG)."""

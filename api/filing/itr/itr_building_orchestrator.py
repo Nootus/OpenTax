@@ -83,8 +83,8 @@ class ItrBuildingOrchestrator:
             )
             itr2_svc = Itr2BuildingService()
             inc = await itr2_svc.build_itr(filing)
-            self._compute_tax_for_regime(filing, inc.gross_income, inc.new_regime_deductions, inc.income_breakdown, "new")
-            self._compute_tax_for_regime(filing, inc.gross_income, inc.old_regime_deductions, inc.income_breakdown, "old")
+            self._compute_tax_for_regime(filing, inc.new_gross_income, inc.new_regime_deductions, inc.new_income_breakdown, "new")
+            self._compute_tax_for_regime(filing, inc.old_gross_income, inc.old_regime_deductions, inc.old_income_breakdown, "old")
             result = await itr2_svc.finalize_from_precomputed_tax(filing)
             return FilingBuildItrReturnModel(
                 itr2=result.itr2,
@@ -93,23 +93,24 @@ class ItrBuildingOrchestrator:
             )
 
         # ── Phase 1: Build ITR1 income sections for both regimes (no tax) ──
+        
         itr1_svc = Itr1BuildingService()
         inc = await itr1_svc.build_itr(filing)
         logger.info(
             "Filing %s ITR1 income built — GrossTotIncome=%s",
-            filing.filing_id, f"{inc.gross_income:,}",
+            filing.filing_id, f"{inc.new_gross_income:,}",
         )
-
+       
         # ── Check gross income against ₹50-lakh ceiling ────────────────────
-        if inc.gross_income > _TOTAL_INCOME_MAX_ITR1:
+        if inc.new_gross_income > _TOTAL_INCOME_MAX_ITR1:
             logger.info(
                 "Filing %s GrossTotIncome=%s exceeds ₹50 lakh — upgrading to ITR2",
-                filing.filing_id, f"{inc.gross_income:,}",
+                filing.filing_id, f"{inc.new_gross_income:,}",
             )
             itr2_svc = Itr2BuildingService()
             inc2 = await itr2_svc.build_itr(filing)
-            self._compute_tax_for_regime(filing, inc2.gross_income, inc2.new_regime_deductions, inc2.income_breakdown, "new")
-            self._compute_tax_for_regime(filing, inc2.gross_income, inc2.old_regime_deductions, inc2.income_breakdown, "old")
+            self._compute_tax_for_regime(filing, inc2.new_gross_income, inc2.new_regime_deductions, inc2.new_income_breakdown, "new")
+            self._compute_tax_for_regime(filing, inc2.old_gross_income, inc2.old_regime_deductions, inc2.old_income_breakdown, "old")
             result = await itr2_svc.finalize_from_precomputed_tax(filing)
             
             return FilingBuildItrReturnModel(
@@ -120,8 +121,8 @@ class ItrBuildingOrchestrator:
 
         # ── Phase 2: GrossTotIncome ≤ ₹50 lakh → compute tax, finalize ITR1
         logger.info("Filing %s computing tax and finalising ITR1", filing.filing_id)
-        self._compute_tax_for_regime(filing, inc.gross_income, inc.new_regime_deductions, inc.income_breakdown, "new")
-        self._compute_tax_for_regime(filing, inc.gross_income, inc.old_regime_deductions, inc.income_breakdown, "old")
+        self._compute_tax_for_regime(filing, inc.new_gross_income, inc.new_regime_deductions, inc.new_income_breakdown, "new")
+        self._compute_tax_for_regime(filing, inc.old_gross_income, inc.old_regime_deductions, inc.old_income_breakdown, "old")
         itr1_result = await itr1_svc.finalize_with_precomputed_tax(filing)
         return FilingBuildItrReturnModel(
             itr1=itr1_result.itr1,

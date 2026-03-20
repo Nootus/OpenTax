@@ -4,9 +4,16 @@ This includes Salary, House Property, and Other Sources income.
 """
 import logging
 from datetime import date
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
-from domain.filing.itr.itr1.models.itr1_model import HousePropertyIncomePartModel, ITR1IncomePartModel, OtherSourcesIncomePartModel, SalaryIncomePartModel
+from domain.filing.itr.itr1.models.itr1_model import (
+    AllwncExemptUs10Model,
+    HousePropertyIncomePartModel,
+    ITR1IncomePartModel,
+    OtherSourcesIncomePartModel,
+    OthersIncModel,
+    SalaryIncomePartModel,
+)
 from domain.filing.models.filing_model import FilingModel
 from domain.filing.tax_calculation.models.tax_regime_breakdown import IncomeBreakdown
 from domain.core.database.sqlalchemy_db import get_async_db
@@ -38,24 +45,17 @@ class Itr1IncomeBuilderService:
             gross_total=gross_tot_income,
         )
 
-        merged: Dict[str, Any] = {
-            **salary_part.model_dump(by_alias=True),
-            **hp_part.model_dump(by_alias=True),
-            **other_part.model_dump(by_alias=True),
-            "Increliefus89A": 0,
-            "Increliefus89AOS": 0,
-            "GrossTotIncome": gross_tot_income,
-        }
-        return ITR1IncomePartModel.model_validate(merged)
+        return ITR1IncomePartModel(
+            **salary_part.model_dump(),
+            **hp_part.model_dump(),
+            **other_part.model_dump(),
+            Increliefus89A=0,
+            Increliefus89AOS=0,
+            GrossTotIncome=gross_tot_income,
+        )
 
-    async def build_salary_income(self, filing: FilingModel,context: Itr1ComputationContext, regime: str = "old") -> SalaryIncomePartModel:
-        """Build salary income part: delegates to sub-methods for each section.
-        
-        Args:
-            filing: FilingModel containing salary data
-            regime: Tax regime ('old' or 'new') - affects standard deduction limit
-        """
-        # Fetch salary components once
+    async def build_salary_income(self, filing: FilingModel, context: Itr1ComputationContext, regime: str = "old") -> SalaryIncomePartModel:
+        """Build salary income part: delegates to sub-methods for each section."""
         salary_components = await self.db.fetch_all(
             """
             SELECT c.component_id, c.component_name, c.component_code
@@ -63,41 +63,35 @@ class Itr1IncomeBuilderService:
             WHERE c.component_type = 2 AND c.is_active = 1
             """
         )
-        
-        # Build each section
+
         section_171_salary = await self._build_section_171_salary(filing)
         section_172_perquisites = await self._build_section_172_perquisites(filing)
         section_173_profits = await self._build_section_173_profits_in_lieu(filing)
         section_89a_foreign = self._build_section_89a_foreign_income(filing)
-        exempt_allowances = await self._build_allowances_exempt_us10(filing, salary_components, regime)
-        deductions_us16 = self._build_deductions_us16(filing, regime)
-        
-        # Combine into gross salary
+        allowance_dtls, total_exempt_allowances = await self._build_allowances_exempt_us10(filing, salary_components, regime)
+        ded_16ia, ent_16ii, prof_16iii, total_ded_16 = self._build_deductions_us16(filing, regime)
+
         gross_salary = section_171_salary + section_172_perquisites + section_173_profits + section_89a_foreign
-        
         context.gross_salary = gross_salary
-        # Calculate net salary (gross - exempt allowances)
-        total_exempt_allowances = exempt_allowances["TotalAllwncExemptUs10"] 
         net_salary = gross_salary - total_exempt_allowances
-        
-        # Calculate income from salary (net - deductions)
-        total_deductions_us16 = deductions_us16["TotalDeductionUs16"]
-        income_from_sal = net_salary - total_deductions_us16
-        
-        # Assemble final model
-        return SalaryIncomePartModel.model_validate({
-            "GrossSalary": gross_salary,
-            "Salary": section_171_salary,
-            "PerquisitesValue": section_172_perquisites,
-            "ProfitsInSalary": section_173_profits,
-            "AllwncExemptUs10": exempt_allowances,
-            "DeductionUs16": total_deductions_us16,
-            "DeductionUs16ia": deductions_us16["DeductionUs16ia"],
-            "EntertainmentAlw16ii": deductions_us16["EntertainmentAlw16ii"],
-            "ProfessionalTaxUs16iii": deductions_us16["ProfessionalTaxUs16iii"],
-            "NetSalary": net_salary,
-            "IncomeFromSal": income_from_sal,
-        })
+        income_from_sal = net_salary - total_ded_16
+
+        return SalaryIncomePartModel(
+            GrossSalary=gross_salary,
+            Salary=section_171_salary,
+            PerquisitesValue=section_172_perquisites,
+            ProfitsInSalary=section_173_profits,
+            AllwncExemptUs10=AllwncExemptUs10Model(
+                AllwncExemptUs10Dtls=allowance_dtls,
+                TotalAllwncExemptUs10=total_exempt_allowances,
+            ),
+            DeductionUs16=total_ded_16,
+            DeductionUs16ia=ded_16ia,
+            EntertainmentAlw16ii=ent_16ii,
+            ProfessionalTaxUs16iii=prof_16iii,
+            NetSalary=net_salary,
+            IncomeFromSal=income_from_sal,
+        )
 
     async def _build_section_171_salary(self, filing: FilingModel) -> int:
         """Build Section 17(1) - Salary Income."""
@@ -132,16 +126,10 @@ class Itr1IncomeBuilderService:
         return 0
 
     async def _build_allowances_exempt_us10(
-        self, filing: FilingModel, salary_components: list[Dict[str, Any]], regime: str = "old"
-    ) -> Dict[str, Any]:
-        """Build Section II - Less: Allowances to the extent exempt u/s 10.
-        
-        Args:
-            filing: FilingModel containing salary data
-            salary_components: List of salary component definitions
-            regime: Tax regime ('old' or 'new') - component_id 11 is excluded in new regime
-        """
-        AllwncExemptUs10Dtls: list[dict[str, Any]] = []
+        self, filing: FilingModel, salary_components: list[Any], regime: str = "old"
+    ) -> tuple[list[Any], int]:
+        """Build Section II - Less: Allowances to the extent exempt u/s 10."""
+        AllwncExemptUs10Dtls: list[Any] = []
         TotalAllwncExemptUs10 = 0.0
        
         for sal in filing.salary or []:
@@ -155,9 +143,10 @@ class Itr1IncomeBuilderService:
                     if comp_id in [10, 11, 12, 13, 14, 21, 22, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]:
                         if float(item.exemption_amount or 0.0) > float(item.amount):
                             TotalAllwncExemptUs10 += float(item.amount or 0.0)
-                        else:
+                        elif item.exemption_amount is not None:
                             TotalAllwncExemptUs10 += float(item.exemption_amount or 0.0)
-                        
+                        else:
+                            TotalAllwncExemptUs10 += float(item.amount or 0.0)
                         current_component = next(
                             (c for c in salary_components if c["component_id"] == item.component_id), None
                         )
@@ -165,23 +154,13 @@ class Itr1IncomeBuilderService:
                             AllwncExemptUs10Dtls.append({
                                 "SalNatureDesc": current_component.get("component_code", ""),
                                 "SalOthNatOfInc": current_component.get("component_name") if current_component.get("component_code") != "OTH" else None,
-                                "SalOthAmount": min(float(item.exemption_amount or 0.0), float(item.amount or 0.0)),
+                                "SalOthAmount": min(float(item.exemption_amount if item.exemption_amount is not None else item.amount or 0.0), float(item.amount or 0.0)),
                             })
 
-        return {
-            "AllwncExemptUs10Dtls": AllwncExemptUs10Dtls,
-            "TotalAllwncExemptUs10": int(TotalAllwncExemptUs10),
-        }
+        return AllwncExemptUs10Dtls, int(TotalAllwncExemptUs10)
 
-    def _build_deductions_us16(self, filing: FilingModel, regime: str = "old") -> Dict[str, Any]:
-        """Build Section IV - Deductions u/s 16 (Standard Deduction, Entertainment Allowance, Professional Tax).
-        
-        Args:
-            filing: FilingModel containing salary deduction data
-            regime: Tax regime ('old' or 'new')
-                - old regime: Standard deduction ₹50,000
-                - new regime: Standard deduction ₹75,000
-        """
+    def _build_deductions_us16(self, filing: FilingModel, regime: str = "old") -> tuple[int, int, int, int]:
+        """Build Section IV - Deductions u/s 16. Returns (DeductionUs16ia, EntertainmentAlw16ii, ProfessionalTaxUs16iii, TotalDeductionUs16)."""
         # Determine standard deduction limit based on regime
         entertainment_allowance_total = 0.0
         professional_tax_total = 0.0
@@ -225,26 +204,21 @@ class Itr1IncomeBuilderService:
         
         total_deductions = standard_deduction + entertainment_allowance_total + (0 if regime.lower() == "new" else professional_tax_total)
 
-        return {
-            "DeductionUs16ia": int(standard_deduction),
-            "EntertainmentAlw16ii": int(entertainment_allowance_total),
-            "ProfessionalTaxUs16iii": int(professional_tax_total),
-            "TotalDeductionUs16": int(total_deductions),
-        }
+        return int(standard_deduction), int(entertainment_allowance_total), int(professional_tax_total), int(total_deductions)
 
     async def build_house_property_income(self, filing: FilingModel) -> HousePropertyIncomePartModel:
         """Build house property income part: delegates to sub-methods for each section."""
         if not filing.house_property:
-            return HousePropertyIncomePartModel.model_validate({
-                "TypeOfHP": None,
-                "GrossRentReceived": 0,
-                "TaxPaidlocalAuth": 0,
-                "AnnualValue": 0,
-                "StandardDeduction": 0,
-                "InterestPayable": 0,
-                "ArrearsUnrealizedRentRcvd": 0,
-                "TotalIncomeOfHP": 0,
-            })
+            return HousePropertyIncomePartModel(
+                TypeOfHP=None,
+                GrossRentReceived=0,
+                TaxPaidlocalAuth=0,
+                AnnualValue=0,
+                StandardDeduction=0,
+                InterestPayable=0,
+                ArrearsUnrealizedRentRcvd=0,
+                TotalIncomeOfHP=0,
+            )
         
         # Build each row/section
         type_of_hp = self._build_type_of_house_property(filing)
@@ -258,32 +232,24 @@ class Itr1IncomeBuilderService:
             annual_value, standard_deduction_hp, interest_payable, arrears_unrealized_rent_rcvd
         )
 
-        return HousePropertyIncomePartModel.model_validate({
-            "TypeOfHP": type_of_hp,
-            "GrossRentReceived": int(gross_rent_received),
-            "TaxPaidlocalAuth": int(tax_paid_local_auth),
-            "AnnualValue": int(annual_value),
-            "StandardDeduction": int(standard_deduction_hp),
-            "InterestPayable": int(interest_payable),
-            "ArrearsUnrealizedRentRcvd": int(arrears_unrealized_rent_rcvd),
-            "TotalIncomeOfHP": int(total_income_of_hp),
-        })
+        return HousePropertyIncomePartModel(
+            TypeOfHP=type_of_hp,
+            GrossRentReceived=int(gross_rent_received),
+            TaxPaidlocalAuth=int(tax_paid_local_auth),
+            AnnualValue=int(annual_value),
+            StandardDeduction=int(standard_deduction_hp),
+            InterestPayable=int(interest_payable),
+            ArrearsUnrealizedRentRcvd=int(arrears_unrealized_rent_rcvd),
+            TotalIncomeOfHP=int(total_income_of_hp),
+        )
 
     def _build_type_of_house_property(self, filing: FilingModel) -> Optional[str]:
         """Determine Type of House Property: L=Let Out, D=Deemed Let Out, S=Self Occupied."""
-        priority_order = ["Y", "D", "N"]
-        property_types = [
-            hp.property.property_type 
-            for hp in filing.house_property 
-            if hp.property.property_type in priority_order
-        ]
-        
-        if property_types:
-            property_type = min(property_types, key=lambda x: priority_order.index(x))
-            return "L" if property_type == "Y" else "D" if property_type == "D" else "S"
-        else:
-            property_type = filing.house_property[0].property.property_type if filing.house_property else None
-            return "L" if property_type == "Y" else "D" if property_type == "D" else "S"
+        if not filing.house_property:
+            return None
+        property_type = filing.house_property[0].property.property_type
+        return property_type
+    
 
     def _build_gross_rent_received(self, filing: FilingModel) -> float:
         """Build Row i - Gross rent received/receivable/lettable value during the year."""
@@ -309,8 +275,8 @@ class Itr1IncomeBuilderService:
 
     def _build_interest_payable_on_borrowed_capital(self, filing: FilingModel) -> float:
         """Build Row v - Interest payable on borrowed capital."""
-        schedule_24 = self.build_scheduleUs24B(filing)
-        return schedule_24.get("TotalInterestUs24B", 0) if schedule_24 else 0
+        _, total = self.build_scheduleUs24B(filing)
+        return total
 
     def _build_arrears_unrealized_rent(self, filing: FilingModel) -> float:
         """Build Row vi - Arrears/Unrealised Rent received during the year Less 30%."""
@@ -333,37 +299,23 @@ class Itr1IncomeBuilderService:
 
     async def build_other_sources_income(self, filing: FilingModel) -> OtherSourcesIncomePartModel:
         """Build other sources income: delegates to sub-methods for each section."""
-        # Fetch master data once
         other_income_options = await MasterDataService().fetch_interest_types()
-        
-        # Build each section
-        interest_income_details = await self._build_interest_income_details(filing, other_income_options)
-        dividend_income_details = self._build_dividend_income_with_quarterly_breakup(filing)
-        section_89a_details = self._build_section_89a_foreign_retirement_income(filing)
-        
-        # Combine all sections
-        others_inc_dtls_oth_src = interest_income_details["details"]
-        others_inc_dtls_oth_src.append(dividend_income_details["detail"])
-        others_inc_dtls_oth_src.append(section_89a_details["detail"])
-        
-        # Calculate total income
-        total_income_from_other_sources = (
-            interest_income_details["total"] + 
-            dividend_income_details["total"] + 
-            section_89a_details["total"]
+
+        interest_dtls, interest_total = await self._build_interest_income_details(filing, other_income_options)
+        div_detail, div_total = self._build_dividend_income_with_quarterly_breakup(filing)
+        sec89a_detail, sec89a_total, sec89a_type = self._build_section_89a_foreign_retirement_income(filing)
+
+        return OtherSourcesIncomePartModel(
+            OthersInc=OthersIncModel(OthersIncDtlsOthSrc=interest_dtls + [div_detail, sec89a_detail]),
+            IncomeOthSrc=interest_total + div_total + sec89a_total,
+            IncomeNotified89AType=sec89a_type,
         )
-        
-        return OtherSourcesIncomePartModel.model_validate({
-            "OthersInc": {"OthersIncDtlsOthSrc": others_inc_dtls_oth_src},
-            "IncomeOthSrc": total_income_from_other_sources,
-            "IncomeNotified89AType": section_89a_details["income_notified_89a_type"],
-        })
 
     async def _build_interest_income_details(
-        self, filing: FilingModel, other_income_options: list[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, filing: FilingModel, other_income_options: list[Any]
+    ) -> tuple[list[Any], int]:
         """Build interest income details (rows 1-4): Savings, FD, Tax-free, etc."""
-        others_inc_dtls: list[Dict[str, Any]] = []
+        others_inc_dtls: list[Any] = []
         total_interest_income = 0.0
         
         excel_options = [
@@ -374,7 +326,7 @@ class Itr1IncomeBuilderService:
         oth_type_id = int(oth_option["value"]) if oth_option else None
         
         # Aggregate by same option (code + optional OthSrcOthNatOfInc) so we sum amounts
-        aggregated: Dict[tuple[str, Optional[str]], float] = {}
+        aggregated: dict[tuple[str, Optional[str]], float] = {}
         
         for other_income in filing.interest_income or []:
             if str(other_income.interest_type_id) not in excel_options:
@@ -406,14 +358,10 @@ class Itr1IncomeBuilderService:
                     "OthSrcOthAmount": int(amt)
                 })
         
-        return {
-            "details": others_inc_dtls,
-            "total": int(total_interest_income),
-        }
+        return others_inc_dtls, int(total_interest_income)
 
-    def _build_dividend_income_with_quarterly_breakup(self, filing: FilingModel) -> Dict[str, Any]:
+    def _build_dividend_income_with_quarterly_breakup(self, filing: FilingModel) -> tuple[Any, int]:
         """Build dividend income with quarterly date range breakup."""
-        dividend_detail: Dict[str, Any] = {}
         total_dividend_amount = 0
         
         # Initialize quarterly breakup
@@ -463,42 +411,40 @@ class Itr1IncomeBuilderService:
                         elif date(2025, 6, 16) <= div.date_of_receipt <= date(2025, 9, 15):
                             Upto15Of9 += int(div.amount or 0)
         
-        dividend_detail["DividendInc"] = {
-            "DateRange": {
-                "Up16Of12To15Of3": Up16Of12To15Of3,
-                "Up16Of3To31Of3": Up16Of3To31Of3,
-                "Up16Of9To15Of12": Up16Of9To15Of12,
-                "Upto15Of6": Upto15Of6,
-                "Upto15Of9": Upto15Of9
-            }
+        dividend_detail = {
+            "DividendInc": {
+                "DateRange": {
+                    "Up16Of12To15Of3": Up16Of12To15Of3,
+                    "Up16Of3To31Of3": Up16Of3To31Of3,
+                    "Up16Of9To15Of12": Up16Of9To15Of12,
+                    "Upto15Of6": Upto15Of6,
+                    "Upto15Of9": Upto15Of9,
+                }
+            },
+            "OthSrcOthAmount": total_dividend_amount,
+            "OthSrcNatureDesc": "DIV",
         }
-        dividend_detail["OthSrcOthAmount"] = total_dividend_amount
-        dividend_detail["OthSrcNatureDesc"] = "DIV"
-        
-        return {
-            "detail": dividend_detail,
-            "total": total_dividend_amount,
-        }
+        return dividend_detail, total_dividend_amount
 
-    def _build_section_89a_foreign_retirement_income(self, filing: FilingModel) -> Dict[str, Any]:
+    def _build_section_89a_foreign_retirement_income(self, filing: FilingModel) -> tuple[Any, int, list[Any]]:
         """Build Section 89A - Income from retirement benefit account in notified countries (USA, UK, Canada)."""
         section_89a = filing.foreign_income.section_89a if filing.foreign_income else None
-        
-        income_notified_89a_type = []
+
+        income_notified_89a_type: list[Any] = []
         notified_89a_amount = 0
         date_range = {
             "Up16Of12To15Of3": 0,
             "Up16Of3To31Of3": 0,
             "Up16Of9To15Of12": 0,
             "Upto15Of6": 0,
-            "Upto15Of9": 0
+            "Upto15Of9": 0,
         }
         
         if section_89a:
             # Calculate total from three countries
-            notified_89a_amount = (
-                (section_89a.usa_amount or 0) + 
-                (section_89a.uk_amount or 0) + 
+            notified_89a_amount = int(
+                (section_89a.usa_amount or 0) +
+                (section_89a.uk_amount or 0) +
                 (section_89a.canada_amount or 0)
             )
             
@@ -524,17 +470,12 @@ class Itr1IncomeBuilderService:
             "NOT89A": income_notified_89a_type,
             "NOT89AInc": {"DateRange": date_range},
         }
-        
-        return {
-            "detail": section_89a_detail,
-            "total": notified_89a_amount,
-            "income_notified_89a_type": income_notified_89a_type,
-        }
+        return section_89a_detail, notified_89a_amount, income_notified_89a_type
 
-    def build_scheduleUs24B(self, filing: FilingModel) -> Optional[dict[str, Any]]:
+    def build_scheduleUs24B(self, filing: FilingModel) -> tuple[list[Any], int]:
         """Build Schedule Us24B (house property interest details)."""
-        ScheduleUs24BDtls: list[dict[str, Any]] = []
-        total_interest_us24b: int = 0
+        ScheduleUs24BDtls: list[Any] = []
+        total_interest_us24b = 0
 
         for hp in filing.house_property:
             if hp.property_loan:
@@ -549,4 +490,4 @@ class Itr1IncomeBuilderService:
                 })
                 total_interest_us24b += int(hp.property_loan.interest_paid or 0)
 
-        return {"ScheduleUs24BDtls": ScheduleUs24BDtls, "TotalInterestUs24B": total_interest_us24b}
+        return ScheduleUs24BDtls, total_interest_us24b

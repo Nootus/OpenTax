@@ -4,7 +4,6 @@ Delegates to specialized services for income and deductions.
 """
 import logging
 from datetime import datetime
-from decimal import Decimal
 from typing import Any, Dict, Optional, cast
 
 from domain.core.utils.tax_filing_helpers import compute_age
@@ -18,9 +17,11 @@ from domain.filing.itr.itr1.models.itr1_model import (
     CapacityEnum,
     CollectedYrEnum,
     CreationInfoModel,
+    EmployerCategoryEnum,
     EmployerOrDeductorOrCollectDetlModel,
     FilingStatusModel,
     FormITR1Model,
+    ReturnFileSecEnum,
     IntrstPayModel,
     ITR1IncomeDeductionsModel,
     ITR1TaxComputationModel,
@@ -46,12 +47,10 @@ from domain.filing.itr.itr1.models.itr1_model import (
 from domain.filing.models.filing_model import FilingModel
 from domain.filing.itr.models.income_only_result import IncomeOnlyResult
 from domain.filing.tax_calculation.models.tax_regime_breakdown import TaxRegimeBreakdownModel
-from domain.filing.itr.itr1.filing_to_itr1_mapper import FilingToItr1Mapper
 from domain.core.master_data.master_data_service import MasterDataService
 from domain.filing.itr.itr1.itr1_income_builder_service import Itr1IncomeBuilderService
 from domain.filing.itr.itr1.itr1_deduction_builder_service import Itr1DeductionBuilderService, Itr1ComputationContext
 from domain.filing.itr.validations.tax_validation_service import TaxValidationService
-from domain.filing.tax_calculation.tax_calculation_service import TaxCalculationService
 from domain.filing.tax_calculation.interest_234_service import Interest234Service
 
 logger = logging.getLogger(__name__)
@@ -83,23 +82,21 @@ class Itr1BuildingService:
         Stores the mapped dict and built regime objects internally so
         finalize_with_precomputed_tax() can use them without rebuilding.
         """
-        self._mapped_itr1 = await FilingToItr1Mapper.filing_to_itr1(filing)
-
         # Build new regime (no tax)
-        self.itr1 = ITR1.model_validate(self._mapped_itr1)
+        self.itr1 = ITR1()
         await self._build_itr_for_regime(filing, "new")
         self._new_itr1_no_tax = self.itr1
-        gross_income = int(getattr(self.itr1.ITR1_IncomeDeductions, "GrossTotIncome", 0) or 0)
+        new_gross_income = int(getattr(self.itr1.ITR1_IncomeDeductions, "GrossTotIncome", 0) or 0)
         new_deductions = int(
             getattr(
                 getattr(self.itr1.ITR1_IncomeDeductions, "DeductUndChapVIA", None),
                 "TotalChapVIADeductions", 0,
             ) or 0
         )
-        income_breakdown = getattr(self, "_income_breakdown", None)
+        new_income_breakdown = getattr(self, "_income_breakdown", None)
 
         # Build old regime (no tax)
-        self.itr1 = ITR1.model_validate(self._mapped_itr1)
+        self.itr1 = ITR1()
         await self._build_itr_for_regime(filing, "old")
         self._old_itr1_no_tax = self.itr1
         old_deductions = int(
@@ -108,13 +105,18 @@ class Itr1BuildingService:
                 "TotalChapVIADeductions", 0,
             ) or 0
         )
+        old_gross_income = int(getattr(self.itr1.ITR1_IncomeDeductions, "GrossTotIncome", 0) or 0)
+        old_income_breakdown = getattr(self, "_income_breakdown", None)
+
 
         return IncomeOnlyResult(
-            gross_income=gross_income,
+            new_gross_income=new_gross_income,
             new_regime_deductions=new_deductions,
+            old_gross_income=old_gross_income,
             old_regime_deductions=old_deductions,
-            income_breakdown=income_breakdown,
-        )
+            old_income_breakdown=old_income_breakdown,
+            new_income_breakdown=new_income_breakdown
+            )
 
     async def finalize_with_precomputed_tax(self, filing: FilingModel) -> FilingBuildItr1ReturnModel:
         """
@@ -155,7 +157,7 @@ class Itr1BuildingService:
             assert self.itr1 is not None, "_build_itr_for_regime must be called after self.itr1 is set"
             
             # CreationInfo
-            self.itr1.CreationInfo = self.build_creation_info(filing, self.itr1.CreationInfo)
+            self.itr1.CreationInfo = self.build_creation_info(self.itr1.CreationInfo)
             # Form_ITR1
             self.itr1.Form_ITR1 = self.build_form_itr1(filing, self.itr1.Form_ITR1)
             # PersonalInfo (async)
@@ -174,11 +176,9 @@ class Itr1BuildingService:
                 self.itr1.Schedule80GGC = schedules["Schedule80GGC"]
                 self.itr1.Schedule80D = schedules["Schedule80D"]
                 self.itr1.Schedule80U = schedules["Schedule80U"]
-
                 self.itr1.Schedule80E = schedules["Schedule80E"]
                 self.itr1.Schedule80EE = schedules["Schedule80EE"]
-                self.itr1.Schedule80EEB = schedules["Schedule80EEB"]
-              
+                self.itr1.Schedule80EEB = schedules["Schedule80EEB"]              
                 self.itr1.Schedule80C = schedules["Schedule80C"]
                        
                
@@ -195,10 +195,7 @@ class Itr1BuildingService:
 
             # TDS / TCS schedules
             self.itr1.TDSonSalaries, self.itr1.TDSonOthThanSals = self.build_tds(filing)
-            self.itr1.ScheduleTCS = self.build_tcs(filing)        
-            
-            
-            
+            self.itr1.ScheduleTCS = self.build_tcs(filing)  
             
     @staticmethod
     def _dict_or_none(value: Any) -> Optional[Dict[str, Any]]:
@@ -303,89 +300,94 @@ class Itr1BuildingService:
                 if "Schedule80EEBDtls" not in sch80eeb or not isinstance(sch80eeb.get("Schedule80EEBDtls"), list):
                     sch80eeb["Schedule80EEBDtls"] = []
                 self.itr1.Schedule80EEB = Schedule80EEBModel.model_validate(sch80eeb)
-    def build_creation_info(self, filing: FilingModel, creation_info: Any) -> CreationInfoModel:
+    
+    def build_creation_info(self, creation_info: CreationInfoModel) -> CreationInfoModel:
         """Build CreationInfo section: use passed creation_info, add/update JSONCreationDate and IntermediaryCity."""
-        existing = creation_info
-        if existing is not None and hasattr(existing, "model_dump"):
-            existing = existing.model_dump()
-        existing = cast(Dict[str, Any], existing if isinstance(existing, dict) else {})
-        overrides = {
-            "JSONCreationDate": datetime.now().strftime("%Y-%m-%d"),
-            "IntermediaryCity": "Hyderabad",
-        }
-        merged: Dict[str, Any] = {**existing, **overrides}
-        model = CreationInfoModel.model_validate(merged)
-        return model
+        creation_info.JSONCreationDate = datetime.now().strftime("%Y-%m-%d")
+        creation_info.IntermediaryCity = "Hyderabad"
+        return creation_info
 
     def build_filing_status(
         self,
         filing: FilingModel,
-        filing_status: Any,
+        filing_status: FilingStatusModel,
         return_file_sec: int = 11,
         itr_filing_due_date: str | None = None,
     ) -> FilingStatusModel:
         """Build FilingStatus section: use passed filing_status, add/update OptOutNewTaxRegime."""
-
-        def _itr_due_date_from_ay(assessment_year: str | None) -> str:
-            ay = (assessment_year or "").strip()
-            head = ay.split("-")[0].strip() if "-" in ay else ay
-            year = head[:4] if len(head) >= 4 else "2025"
-            if not year.isdigit():
-                year = "2025"
-            return f"{year}-07-31"
 
         is_old_regime = (
             filing.tax_computation is not None and filing.tax_computation.current_regime.regime == "old"
         )
 
         if not itr_filing_due_date:
-            itr_filing_due_date = _itr_due_date_from_ay(getattr(filing, "assessment_year", None))
+            itr_filing_due_date = self._itr_due_date_from_ay(getattr(filing, "assessment_year", None))
 
-        filing_status = FilingStatusModel.model_construct(
-            ReturnFileSec=return_file_sec,
-            ItrFilingDueDate=itr_filing_due_date,
-            OptOutNewTaxRegime="Y" if is_old_regime else "N",
-        )
+        filing_status.ReturnFileSec = ReturnFileSecEnum(return_file_sec)
+        filing_status.ItrFilingDueDate = itr_filing_due_date
+        filing_status.OptOutNewTaxRegime = "Y" if is_old_regime else "N"
         return filing_status
 
-
-    def build_form_itr1(self, filing: FilingModel, form_itr1: Any) -> FormITR1Model:
-        """Build Form_ITR1 section: use passed form_itr1, add/update AssessmentYear (4-digit)."""
-        existing = form_itr1
-        if existing is not None and hasattr(existing, "model_dump"):
-            existing = existing.model_dump()
-        existing = cast(Dict[str, Any], existing if isinstance(existing, dict) else {})
+    
+    def _itr_due_date_from_ay(self, assessment_year: str | None) -> str:
+        ay = (assessment_year or "").strip()
+        head = ay.split("-")[0].strip() if "-" in ay else ay
+        year = head[:4] if len(head) >= 4 else "2025"
+        if not year.isdigit():
+            year = "2025"
+        return f"{year}-07-31"
+    
+    def build_form_itr1(self, filing: FilingModel, form_itr1: FormITR1Model) -> FormITR1Model:
+        """Build Form_ITR1 section: update AssessmentYear (4-digit)."""
         ay = filing.assessment_year or "2026"
         if "-" in ay:
             ay = ay.split("-")[0]
-        ay = ay[:4] if len(ay) >= 4 else "2026"
-        overrides = {"AssessmentYear": ay}
-        merged: Dict[str, Any] = {**existing, **overrides}
-        model = FormITR1Model.model_validate(merged)
-        return model
+        form_itr1.AssessmentYear = ay[:4] if len(ay) >= 4 else "2026"
+        return form_itr1
     
 
-    async def build_personal_info(self, filing: FilingModel, personal_info: Any) -> PersonalInfoModel:
-        """Build PersonalInfo: use passed personal_info, add/update EmployerCategory, DOB, Address from filing."""
-        existing = personal_info
-        if existing is not None and hasattr(existing, "model_dump"):
-            existing = existing.model_dump()
-        existing = cast(Dict[str, Any], existing if isinstance(existing, dict) else {})
+    async def build_personal_info(self, filing: FilingModel, personal_info: PersonalInfoModel) -> PersonalInfoModel:
+        """Build PersonalInfo: set all fields from filing."""
+        person = filing.person
+        if person is not None:
+            if person.first_name:
+                personal_info.AssesseeName.FirstName = person.first_name
+            if person.middle_name:
+                personal_info.AssesseeName.MiddleName = person.middle_name
+            if person.last_name:
+                personal_info.AssesseeName.SurNameOrOrgName = person.last_name
+            if person.pan_number:
+                personal_info.PAN = person.pan_number
+            if person.aadhaar_number:
+                personal_info.AadhaarCardNo = person.aadhaar_number
+            if person.date_of_birth:
+                dob = person.date_of_birth
+                personal_info.DOB = dob.isoformat() if hasattr(dob, "isoformat") else str(dob)
+            if person.email:
+                personal_info.Address.EmailAddress = person.email
+            if person.mobile_number:
+                personal_info.Address.MobileNo = self._to_int(person.mobile_number)
 
-        overrides: Dict[str, Any] = {}
-        # EmployerCategory from salary
         if filing.salary and len(filing.salary) > 0:
             first_salary = filing.salary[0]
             if first_salary.employer and first_salary.employer.employer_type:
                 ec = first_salary.employer.employer_type
                 if ec in ["CGOV", "SGOV", "PSU", "PE", "PESG", "PEPS", "PEO", "OTH", "NA"]:
-                    overrides["EmployerCategory"] = ec
-        # DOB from person
-        if filing.person and filing.person.date_of_birth:
-            dob = filing.person.date_of_birth
-            overrides["DOB"] = dob.isoformat() if hasattr(dob, "isoformat") else str(dob)
-        # Address from person_address (merge into existing Address)
+                    personal_info.EmployerCategory = EmployerCategoryEnum(ec)
+
         if filing.person_address:
+            addr = filing.person_address
+            if addr.flat_door_no:
+                personal_info.Address.ResidenceNo = addr.flat_door_no
+            if addr.premise_name:
+                personal_info.Address.ResidenceName = addr.premise_name
+            if addr.street:
+                personal_info.Address.RoadOrStreet = addr.street
+            if addr.area_locality:
+                personal_info.Address.LocalityOrArea = addr.area_locality
+            if addr.pincode:
+                personal_info.Address.PinCode = self._to_int(addr.pincode)
+
             master_data_service = MasterDataService()
             states_list = await master_data_service.fetch_states()
             countries_list = await master_data_service.fetch_countries()
@@ -393,50 +395,21 @@ class Itr1BuildingService:
             country_label_to_code = {str(r["label"]).strip(): str(r["value"]) for r in (countries_list or [])}
             state_codes = {str(r["value"]) for r in (states_list or [])}
             country_codes = {str(r["value"]) for r in (countries_list or [])}
-            addr = filing.person_address
             city = (addr.city or "").strip() or None
             state_raw = (addr.state or "").strip() or None
             country_raw = (addr.country or "").strip() or None
             state_code = state_label_to_code.get(state_raw) or (state_raw if state_raw in state_codes else None) if state_raw else None
             country_code = country_label_to_code.get(country_raw) or (str(country_raw) if str(country_raw) in country_codes else None) if country_raw else None
-            address_payload: Dict[str, Any] = dict(existing.get("Address") or {})
             if city:
-                address_payload["CityOrTownOrDistrict"] = city
+                personal_info.Address.CityOrTownOrDistrict = city
             if state_code:
-                address_payload["StateCode"] = state_code
+                personal_info.Address.StateCode = state_code
             if country_code is not None:
-                address_payload["CountryCode"] = country_code
-            overrides["Address"] = address_payload
+                personal_info.Address.CountryCode = country_code
 
-        merged = {**existing, **overrides}
-        model = PersonalInfoModel.model_validate(merged)
-        return model
+        return personal_info
 
     
-
-    def  build_tax_computation(self, filing: FilingModel, itr1: ITR1, regime: str) -> ITR1TaxComputationModel:
-        """
-        Build ITR1TaxComputationModel for the selected regime.
-        Computes BOTH regimes and stores them in filing.tax_computation.
-        TotalIncome = GrossTotIncome - TotalChapVIADeductions (from ITR1_IncomeDeductions).
-        """
-        income_ded: ITR1IncomeDeductionsModel = itr1.ITR1_IncomeDeductions
-        income_ded.DeductionUs16ia = 0  # ITR1 doesn't have section 16IA, set to 0 for uniform tax calculation
-        dob = filing.person.date_of_birth if filing.person else None
-        age = compute_age(dob, filing.assessment_year or "2026-27") if dob else 30
-        data: dict[str, Any] = income_ded.model_dump()
-        income = Decimal(cast(int, data.get("GrossTotIncome") or 0))
-        deductions=Decimal(data.get("DeductUndChapVIA", {}).get("TotalChapVIADeductions") or 0)
-       
-        
-        income_breakdown = getattr(self, "_income_breakdown", None)
-        TaxCalculationService().calculate_tax(income, deductions, age, filing, regime, filing.assessment_year or "2026-27", income_breakdown)
-        
-        if filing.tax_computation is not None:
-            return self._to_itr1_tax_computation_model(filing.tax_computation.current_regime, filing)
-        else:
-            return ITR1TaxComputationModel(TotalTaxPayable=0, Rebate87A=0, TaxPayableOnRebate=0, EducationCess=0, GrossTaxLiability=0, Section89=0, NetTaxLiability=0, TotalIntrstPay=0, TotTaxPlusIntrstPay=0, IntrstPay=IntrstPayModel(IntrstPayUs234A=0, IntrstPayUs234B=0, IntrstPayUs234C=0, LateFilingFee234F=0))
-
 
     @staticmethod
     def _to_itr1_tax_computation_model(
@@ -490,50 +463,70 @@ class Itr1BuildingService:
             ),
         )    
 
+  
+   
+    def _map_account_type(self,raw: str | None) -> AccountType:
+        """Map a raw account-type string to the AccountType enum.
+
+        Accepts both short codes (SB, CA, CC, OD, NRO, OTH) and
+        full display names (case-insensitive). Falls back to OTH.
+        """
+        _LABEL_MAP: dict[str, AccountType] = {
+            "SAVINGS": AccountType.SB,
+            "SAVINGS ACCOUNT": AccountType.SB,
+            "CURRENT": AccountType.CA,
+            "CURRENT ACCOUNT": AccountType.CA,
+            "CASH CREDIT": AccountType.CC,
+            "CASH CREDIT ACCOUNT": AccountType.CC,
+            "OVER DRAFT": AccountType.OD,
+            "OVERDRAFT": AccountType.OD,
+            "OVER DRAFT ACCOUNT": AccountType.OD,
+            "NON RESIDENT": AccountType.NRO,
+            "NON RESIDENT ACCOUNT": AccountType.NRO,
+            "NRO": AccountType.NRO,
+            "OTHER": AccountType.OTH,
+            "OTHERS": AccountType.OTH,
+        }
+        if not raw:
+            return AccountType.OTH
+        code = raw.strip().upper()
+        if code in {e.value for e in AccountType}:
+            return AccountType(code)
+        return _LABEL_MAP.get(code, AccountType.OTH)
+
     def build_refund(self, filing: FilingModel) -> RefundModel:
         """Build Refund section: use passed refund if any, set RefundDue and BankAccountDtls from filing."""
         
         model= RefundModel.model_construct()
-        account_type_map = {
-            "savings": AccountType.SB, "saving": AccountType.SB, "sb": AccountType.SB,
-            "current": AccountType.CA, "ca": AccountType.CA,
-            "cash credit": AccountType.CC, "cc": AccountType.CC,
-            "overdraft": AccountType.OD, "od": AccountType.OD,
-            "nro": AccountType.NRO, "other": AccountType.OTH, "oth": AccountType.OTH,
-        }
 
         bank_details: list[BankDetailTypeModel] = []
         if filing.bank_account:
             for acc in filing.bank_account:
-                acc_type = account_type_map.get((acc.account_type or "").lower(), AccountType.SB)
                 bank_details.append(BankDetailTypeModel.model_validate({
-                    "IFSCCode": acc.ifsc_code or "NA",
-                    "BankName": acc.bank_name or "NA",
+                    "IFSCCode": acc.ifsc_code,
+                    "BankName": acc.bank_name ,
                     "BankAccountNo": acc.account_number or "1",
-                    "AccountType": acc_type,    
+                    "AccountType_1": self._map_account_type(acc.account_type),
                     "UseForRefund": "true" if acc.is_primary else "false",
                 }))
+
         if not bank_details:
-            bank_details.append(BankDetailTypeModel.model_validate({
+            bank_details = [BankDetailTypeModel.model_validate({
                 "IFSCCode": "NA",
                 "BankName": "NA",
                 "BankAccountNo": "1",
-                "AccountType": AccountType.SB,
+                "AccountType_1": AccountType.OTH,
                 "UseForRefund": "true",
-            }))
-       
-       
-        model.RefundDue=int(filing.tax_computation.current_regime.refund) if filing.tax_computation and filing.tax_computation.current_regime else 0
-        model.BankAccountDtls=BankAccountDtlsModel(AddtnlBankDetails=bank_details)
-       
+            })]
+
+        model.RefundDue = self._to_int(getattr(filing.tax_computation.current_regime, "refund", None)) if filing.tax_computation and filing.tax_computation.current_regime else 0
+        model.BankAccountDtls = BankAccountDtlsModel(AddtnlBankDetails=bank_details)
+
         return model
 
-    def build_verification(self, filing: FilingModel, verification: Any) -> VerificationModel:
+    def build_verification(self, filing: FilingModel, verification: VerificationModel) -> VerificationModel:
         """Build Verification section: use passed verification if any, set Declaration/Capacity/Place from filing."""
-        existing = verification
-        if existing is not None and hasattr(existing, "model_dump"):
-            existing = existing.model_dump()
-        existing = cast(Dict[str, Any], existing if isinstance(existing, dict) else {})
+        from domain.filing.itr.itr1.models.itr1_model import DeclarationModel
 
         person = filing.person
         if person is not None:
@@ -543,50 +536,71 @@ class Itr1BuildingService:
         else:
             name = father = pan = "NA"
         city = (filing.person_address.city or "").strip() or "Delhi" if filing.person_address else "Delhi"
-        overrides: Dict[str, Any] = {
-            "Declaration": {"AssesseeVerName": name, "FatherName": father, "AssesseeVerPAN": pan},
-            "Capacity": CapacityEnum.S,
-            "Place": city,
-        }
-        merged: Dict[str, Any] = {**existing, **overrides}
-        return VerificationModel.model_validate(merged)
+
+        verification.Declaration = DeclarationModel(
+            AssesseeVerName=name,
+            FatherName=father,
+            AssesseeVerPAN=pan,
+        )
+        verification.Capacity = CapacityEnum.S
+        verification.Place = city
+        return verification
 
     async def build_income_deductions(
         self, filing: FilingModel, income_deductions: ITR1IncomeDeductionsModel, regime: str
     ) -> tuple[ITR1IncomeDeductionsModel, dict[str, Any]]:
         """Build ITR1_IncomeDeductions by combining income and deductions parts using specialized services."""
-        existing: Dict[str, Any] = (
-            income_deductions.model_dump(by_alias=True)
-            if hasattr(income_deductions, "model_dump")
-            else cast(Dict[str, Any], income_deductions)
-        )
         context = Itr1ComputationContext()
-        # Delegate to specialized income builder service
+
         income_service = Itr1IncomeBuilderService()
         income_part = await income_service.build_income(filing, context, regime)
-
         self._income_breakdown = income_service.income_breakdown
 
-        # Delegate to specialized deduction builder service
-        context.gross_salary = cast(int, getattr(income_part, "GrossSalary", 0))
+        context.gross_salary = self._to_int(getattr(income_part, "GrossSalary", None)) if income_part else 0
         deduction_service = Itr1DeductionBuilderService()
-        income_part_dict = cast(Dict[str, Any], income_part) if isinstance(income_part, dict) else income_part
-        gross_tot_income = cast(int, income_part_dict.get("GrossTotIncome", 0) if isinstance(income_part_dict, dict) else getattr(income_part_dict, "GrossTotIncome", 0))
         deductions_part, schedules = deduction_service.build_deductions(
             filing,
-            gross_tot_income,
+            self._to_int(getattr(income_part, "GrossTotIncome", None)) if income_part else 0,
             regime,
             context,
         )
 
-        merged: Dict[str, Any] = {
-            **existing,
-            **income_part.model_dump(by_alias=True),
-            **deductions_part.model_dump(by_alias=True),
-            "GrossTotIncomeIncLTCG112A": 0,
-        }
-        # Return model + schedules so caller can set itr1.Schedule80E etc.
-        return ITR1IncomeDeductionsModel.model_validate(merged), schedules
+        # Copy income fields directly onto income_deductions
+        income_deductions.GrossSalary = self._to_int(getattr(income_part, "GrossSalary", None))
+        income_deductions.Salary = self._to_int(getattr(income_part, "Salary", None))
+        income_deductions.PerquisitesValue = self._to_int(getattr(income_part, "PerquisitesValue", None))
+        income_deductions.ProfitsInSalary = self._to_int(getattr(income_part, "ProfitsInSalary", None))
+        income_deductions.IncomeNotified89AType = income_part.IncomeNotified89AType
+        income_deductions.AllwncExemptUs10 = income_part.AllwncExemptUs10
+        income_deductions.Increliefus89A = self._to_int(getattr(income_part, "Increliefus89A", None))
+        income_deductions.Increliefus89AOS = self._to_int(getattr(income_part, "Increliefus89AOS", None))
+        income_deductions.NetSalary = self._to_int(getattr(income_part, "NetSalary", None))
+        income_deductions.DeductionUs16 = self._to_int(getattr(income_part, "DeductionUs16", None))
+        income_deductions.DeductionUs16ia = self._to_int(getattr(income_part, "DeductionUs16ia", None))
+        income_deductions.EntertainmentAlw16ii = self._to_int(getattr(income_part, "EntertainmentAlw16ii", None))
+        income_deductions.ProfessionalTaxUs16iii = self._to_int(getattr(income_part, "ProfessionalTaxUs16iii", None))
+        income_deductions.IncomeFromSal = self._to_int(getattr(income_part, "IncomeFromSal", None))
+        income_deductions.TypeOfHP = income_part.TypeOfHP
+        income_deductions.GrossRentReceived = self._to_int(getattr(income_part, "GrossRentReceived", None))
+        income_deductions.TaxPaidlocalAuth = self._to_int(getattr(income_part, "TaxPaidlocalAuth", None))
+        income_deductions.AnnualValue = self._to_int(getattr(income_part, "AnnualValue", None))
+        income_deductions.StandardDeduction = self._to_int(getattr(income_part, "StandardDeduction", None))
+        income_deductions.InterestPayable = self._to_int(getattr(income_part, "InterestPayable", None))
+        income_deductions.ArrearsUnrealizedRentRcvd = self._to_int(getattr(income_part, "ArrearsUnrealizedRentRcvd", None))
+        income_deductions.TotalIncomeOfHP = self._to_int(getattr(income_part, "TotalIncomeOfHP", None))
+        income_deductions.OthersInc = income_part.OthersInc
+        income_deductions.IncomeOthSrc = self._to_int(getattr(income_part, "IncomeOthSrc", None))
+        income_deductions.GrossTotIncome = self._to_int(getattr(income_part, "GrossTotIncome", None))
+
+        # Copy deductions fields directly onto income_deductions
+        income_deductions.UsrDeductUndChapVIA = deductions_part.UsrDeductUndChapVIA
+        income_deductions.DeductUndChapVIA = deductions_part.DeductUndChapVIA
+        income_deductions.TotalIncome = self._to_int(getattr(deductions_part, "TotalIncome", None))
+
+        # Reset LTCG (updated by build_ltcg_112a in _build_itr_for_regime)
+        income_deductions.GrossTotIncomeIncLTCG112A = 0
+
+        return income_deductions, schedules
     
     def build_tax_paid(self, filing: FilingModel) -> TaxPaidModel:
         if filing.tax_computation is None:
@@ -897,11 +911,8 @@ class Itr1BuildingService:
             return "non listed" not in val and "unlisted" not in val
         
     def build_tax_payments(self, filing: FilingModel, tax_payments: TaxPaymentsModel | None) -> TaxPaymentsModel:
-        existing = tax_payments
-        if existing is not None and hasattr(existing, "model_dump"):
-            existing = existing.model_dump()
-        if existing is None or not isinstance(existing, dict):
-            existing = {}
+        if tax_payments is None:
+            tax_payments = TaxPaymentsModel.model_construct()
         tax_payments_dtls: list[TaxPaymentModel] = []
         total_tax_payments: int = 0
         default_date = self._default_fy_start_date_str(getattr(filing, "assessment_year", None))
@@ -925,11 +936,9 @@ class Itr1BuildingService:
                     Amt=amt,
                 )
             )
-        merged: Dict[str, Any] = {
-            **existing,
-            **{"TaxPayment": tax_payments_dtls if tax_payments_dtls else None, "TotalTaxPayments": total_tax_payments},
-        }
-        return TaxPaymentsModel.model_validate(merged)
+        tax_payments.TaxPayment = tax_payments_dtls if tax_payments_dtls else None
+        tax_payments.TotalTaxPayments = total_tax_payments
+        return tax_payments
   
     def _merge_section(self, payload: Dict[str, Any], section_name: str, section_value: Dict[str, Any]) -> None:
         """Merge section value into payload."""

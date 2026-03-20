@@ -1,6 +1,6 @@
 docs
 # dependencies
-web/node_modules
+node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -15,6 +15,3 @@ web/node_modules
 # next.js
 /.next/
 /out/
-
-web/.next
-web/out
