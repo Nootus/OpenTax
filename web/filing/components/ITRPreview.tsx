@@ -66,10 +66,28 @@ export default function ITRPreview({ onClose }: ITRPreviewProps) {
   const address = filing.personAddress
   const name = [person?.firstName, person?.middleName, person?.lastName].filter(Boolean).join(' ') || '—'
 
+  // ── Income helpers ──
+  const getGrossSalary = (sal: any) =>
+    (sal.salarySection171?.reduce((t: number, c: any) => t + (Number(c.amount) || 0), 0) ?? 0) +
+    (sal.salarySection172?.reduce((t: number, c: any) => t + (Number(c.amount) || 0), 0) ?? 0) +
+    (sal.salarySection173?.reduce((t: number, c: any) => t + (Number(c.amount) || 0), 0) ?? 0)
+  const getStdDeduction = (sal: any) => Number(sal.salaryDeduction16?.standardDeduction) || 0
+  const getProfTax = (sal: any) => Number(sal.salaryDeduction16?.professionalTax) || 0
+  const getNetSalary = (sal: any) => getGrossSalary(sal) - getStdDeduction(sal) - getProfTax(sal)
+
+  const getNetHP = (prop: any) => {
+    const rent = Number(prop.property?.annualRentReceived) || 0
+    const tax = Number(prop.property?.municipalTaxesPaid) || 0
+    const interest = Number(prop.propertyLoan?.interestPaid) || 0
+    const nav = rent - tax
+    const stdDed = Math.round(nav * 0.30)
+    return nav - stdDed - interest
+  }
+
   // ── Income Calculations ──
-  const salaryIncome = filing.salary?.reduce((s, e) => s + ((e as any).grossSalary || (e as any).netSalary || 0), 0) ?? 0
-  const housePropertyIncome = filing.houseProperty?.reduce((s, p) => s + ((p as any).annualValueAfterDeduction || 0), 0) ?? 0
-  const interestIncome = filing.interestIncome?.reduce((s, i) => s + ((i as any).interestAmount || 0), 0) ?? 0
+  const salaryIncome = filing.salary?.reduce((s, e) => s + getNetSalary(e), 0) ?? 0
+  const housePropertyIncome = filing.houseProperty?.reduce((s, p) => s + getNetHP(p), 0) ?? 0
+  const interestIncome = filing.interestIncome?.reduce((s, i) => s + (Number(i.amount) || 0), 0) ?? 0
   const dividendIncome = (filing.dividendIncome as any)?.totalDividendAmount || 0
   const grossTotalIncome = salaryIncome + housePropertyIncome + interestIncome + dividendIncome
 
@@ -210,10 +228,10 @@ export default function ITRPreview({ onClose }: ITRPreviewProps) {
             <>
               {filing.salary.map((sal: any, idx: number) => (
                 <div key={idx}>
-                  {filing.salary!.length > 1 && <div className="px-3 py-1 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-100">Employer {idx + 1}: {sal.employerName || '—'}</div>}
-                  <Row label="Gross Salary" value={sal.grossSalary || 0} indent />
-                  <Row label="Standard Deduction u/s 16(ia)" value={sal.deductionUs16ia || 0} indent />
-                  <Row label="Professional Tax u/s 16(iii)" value={sal.professionalTaxUs16iii || 0} indent />
+                  {filing.salary!.length > 1 && <div className="px-3 py-1 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-100">Employer {idx + 1}: {sal.employer?.employerName || '—'}</div>}
+                  <Row label="Gross Salary" value={getGrossSalary(sal)} indent />
+                  <Row label="Standard Deduction u/s 16(ia)" value={getStdDeduction(sal)} indent />
+                  <Row label="Professional Tax u/s 16(iii)" value={getProfTax(sal)} indent />
                 </div>
               ))}
               <Row label="Total Income from Salary" value={salaryIncome} bold highlight />
@@ -228,11 +246,11 @@ export default function ITRPreview({ onClose }: ITRPreviewProps) {
             <>
               {filing.houseProperty.map((prop: any, idx: number) => (
                 <div key={idx}>
-                  {filing.houseProperty!.length > 1 && <div className="px-3 py-1 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-100">Property {idx + 1}: {lookupLabel(PROPERTY_TYPES, prop.propertyType)}</div>}
-                  <Row label="Gross Rent Received" value={prop.grossRentReceived || 0} indent />
-                  <Row label="Tax Paid to Local Authority" value={prop.taxPaidToLocalAuthority || 0} indent />
-                  <Row label="Interest on Housing Loan" value={prop.interestOnLoan || 0} indent />
-                  <Row label="Net Income from Property" value={prop.annualValueAfterDeduction || 0} indent bold />
+                  {filing.houseProperty!.length > 1 && <div className="px-3 py-1 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-100">Property {idx + 1}: {lookupLabel(PROPERTY_TYPES, prop.property?.propertyType)}</div>}
+                  <Row label="Gross Rent Received" value={Number(prop.property?.annualRentReceived) || 0} indent />
+                  <Row label="Tax Paid to Local Authority" value={Number(prop.property?.municipalTaxesPaid) || 0} indent />
+                  <Row label="Interest on Housing Loan" value={Number(prop.propertyLoan?.interestPaid) || 0} indent />
+                  <Row label="Net Income from Property" value={getNetHP(prop)} indent bold />
                 </div>
               ))}
               <Row label="Total Income from House Property" value={housePropertyIncome} bold highlight />
@@ -247,7 +265,7 @@ export default function ITRPreview({ onClose }: ITRPreviewProps) {
             <>
               <div className="px-3 py-1 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-100">Interest Income</div>
               {filing.interestIncome.map((int: any, idx: number) => (
-                <Row key={idx} label={int.description || `Interest ${idx + 1}`} value={int.interestAmount || 0} indent />
+                <Row key={idx} label={int.description || int.interestTypeName || `Interest ${idx + 1}`} value={Number(int.amount) || 0} indent />
               ))}
               <Row label="Total Interest Income" value={interestIncome} bold />
             </>

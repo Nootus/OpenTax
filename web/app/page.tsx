@@ -9,6 +9,7 @@ import TaxPaidTab from '@/filing/components/TaxPaidTab';
 import SummaryTab from '@/filing/components/SummaryTab';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import { ayToFy } from '@/utils/tax-year';
+import { TEST_FILING } from '@/filing/test-data/fill-test-data';
 
 const TABS = [
   { id: 'summary', label: 'Summary' },
@@ -19,7 +20,7 @@ const TABS = [
 ] as const;
 
 export default function Home() {
-  const { filing } = useFilingContext();
+  const { filing, updateFiling } = useFilingContext();
   const [activeTab, setActiveTab] = useState<string>('summary');
 
   const assessmentYear = filing.assessmentYear || '2026-27';
@@ -68,6 +69,15 @@ export default function Home() {
                 <p className="text-sm font-semibold text-blue-600">ITR-1</p>
               </div>
             </div>
+            {/* Dev: Fill Test Data */}
+            <button
+              onClick={() => updateFiling(TEST_FILING)}
+              title="Fill form with sample test data"
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-50 border border-amber-300 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-colors"
+            >
+              <span>🧪</span>
+              <span className="hidden sm:inline">Fill Test Data</span>
+            </button>
           </div>
         </div>
 
