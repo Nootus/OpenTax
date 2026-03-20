@@ -8,8 +8,10 @@ import {
   CreditCardIcon,
   BanknotesIcon,
   ScaleIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
+import ITRPreview from '@/domain/filing/components/ITRPreview';
 import { useFilingContext } from '@/domain/filing/context/FilingContext';
 
 const fc = (amount: number) => '₹' + Math.round(amount).toLocaleString('en-IN');
@@ -83,6 +85,7 @@ function computeRegimeTax(grossIncome: number, totalDeductions: number, totalTax
 export default function SummaryTab() {
   const { filing, resetFiling } = useFilingContext();
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [showITRPreview, setShowITRPreview] = useState(false);
 
   // ── Income totals ──
   const salaryIncome = filing.salary?.reduce((s, e) => s + ((e as any).grossSalary || (e as any).netSalary || 0), 0) ?? 0;
@@ -269,6 +272,13 @@ export default function SummaryTab() {
       {/* Action Buttons */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-wrap items-center justify-center gap-3">
         <button
+          onClick={() => setShowITRPreview(true)}
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+        >
+          <DocumentTextIcon className="w-4 h-4" />
+          View ITR-1
+        </button>
+        <button
           onClick={() => setConfirmResetOpen(true)}
           className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 transition-colors"
         >
@@ -276,6 +286,13 @@ export default function SummaryTab() {
           Reset Filing
         </button>
       </div>
+
+      {/* ITR-1 Preview Overlay */}
+      {showITRPreview && (
+        <div className="fixed inset-0 z-50 bg-white overflow-auto">
+          <ITRPreview onClose={() => setShowITRPreview(false)} />
+        </div>
+      )}
 
       <ConfirmModal
         open={confirmResetOpen}

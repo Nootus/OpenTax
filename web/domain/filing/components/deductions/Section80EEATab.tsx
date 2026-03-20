@@ -78,7 +78,11 @@ export default function Section80EEATab() {
     if (!formData.lenderType?.trim()) e.lenderType = 'Lender type is required';
     if (!formData.lenderName?.trim()) e.lenderName = 'Lender name is required';
     if (!formData.loanAccountNumber?.trim()) e.loanAccountNumber = 'Loan account number is required';
-    if (!formData.loanSanctionDate) e.loanSanctionDate = 'Loan sanction date is required';
+    if (!formData.loanSanctionDate) {
+      e.loanSanctionDate = 'Loan sanction date is required';
+    } else if (new Date(formData.loanSanctionDate) > new Date()) {
+      e.loanSanctionDate = 'Loan sanction date cannot be a future date';
+    }
     if (!formData.totalLoanAmount || formData.totalLoanAmount <= 0) e.totalLoanAmount = 'Total loan amount must be > 0';
     if (!formData.loanOutstanding || formData.loanOutstanding <= 0) e.loanOutstanding = 'Loan outstanding must be > 0';
     if (!formData.interestOnLoan || formData.interestOnLoan <= 0) e.interestOnLoan = 'Interest amount must be > 0';
