@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { CalculatorIcon } from '@heroicons/react/24/outline';
-import PersonalDetailsTab from '@/domain/filing/components/PersonalDetailsTab';
-import IncomeTab from '@/domain/filing/components/IncomeTab';
-import DeductionsTab from '@/domain/filing/components/DeductionsTab';
-import TaxPaidTab from '@/domain/filing/components/TaxPaidTab';
-import SummaryTab from '@/domain/filing/components/SummaryTab';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import { ayToFy } from '@/domain/utils/tax-year';
+import PersonalDetailsTab from '@/filing/components/PersonalDetailsTab';
+import IncomeTab from '@/filing/components/IncomeTab';
+import DeductionsTab from '@/filing/components/DeductionsTab';
+import TaxPaidTab from '@/filing/components/TaxPaidTab';
+import SummaryTab from '@/filing/components/SummaryTab';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import { ayToFy } from '@/utils/tax-year';
 
 const TABS = [
   { id: 'summary', label: 'Summary' },

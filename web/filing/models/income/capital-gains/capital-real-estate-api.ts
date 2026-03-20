@@ -11,9 +11,9 @@
  *   DELETE /api/real-estate-capital-gains/filing/{filing_id}            - Delete all properties for a filing
  */
 
-import { apiClient, ApiResponse } from '@/domain/filing/core/api/client'
-import type { CgRealEstateProperty } from '@/domain/filing/widgets/income/capital-gains/capital-real-estate/models/cg-real-estate-property-model'
-import type { CgRealEstateSummary } from '@/domain/filing/widgets/income/capital-gains/capital-real-estate/models/cg-real-estate-summary-model'
+import { apiClient, ApiResponse } from '@/filing/core/api/client'
+import type { CgRealEstateProperty } from '@/filing/widgets/income/capital-gains/capital-real-estate/models/cg-real-estate-property-model'
+import type { CgRealEstateSummary } from '@/filing/widgets/income/capital-gains/capital-real-estate/models/cg-real-estate-summary-model'
 
 // ==================== API Functions ====================
 

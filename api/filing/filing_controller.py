@@ -1,7 +1,12 @@
+import logging
+
 from fastapi import APIRouter
 
 from filing.itr.itr1.models.itr1_model import ITR1
+from filing.itr.itr_building_orchestrator import ItrBuildingOrchestrator
 from filing.models.filing_model import FilingModel
+
+logger = logging.getLogger(__name__)
 
 
 class FilingController:
@@ -27,17 +32,16 @@ class FilingController:
             response_model=ITR1,
         )
 
+    async def calculate_tax(self, filing_model: FilingModel) -> FilingModel:
+        """Calculate tax for both regimes and return the filing with tax_computation populated."""
+        logger.info("calculate_tax called for filing_id=%s", filing_model.filing_id)
+        orchestrator = ItrBuildingOrchestrator()
+        result = await orchestrator.build_itr(filing_model)
+        return result.filingSummary
 
-    def calculate_tax(self, filing_model: FilingModel) -> FilingModel:
-        """Calculate tax based on the provided filing model."""
-        # Placeholder for tax calculation logic
-        # In a real implementation, this would involve complex calculations
-        # based on the filing_model data and tax rules.
-        return filing_model
-    
-    def get_itr1(self, filing_model: FilingModel) -> ITR1:
-        """Get ITR1 based on the provided filing model."""
-        # Placeholder for ITR1 retrieval logic
-        # In a real implementation, this would involve fetching ITR1 data
-        # based on the filing_model data.
-        return filing_model
+    async def get_itr1(self, filing_model: FilingModel) -> ITR1:
+        """Build the complete ITR-1 JSON from the filing data."""
+        logger.info("get_itr1 called for filing_id=%s", filing_model.filing_id)
+        orchestrator = ItrBuildingOrchestrator()
+        result = await orchestrator.build_itr(filing_model)
+        return result.itr1

@@ -11,10 +11,10 @@
  *   DELETE /api/foreign-capital-gains/{filing_id}/{foreign_sale_id}  - Delete single asset
  */
 
-import { apiClient, ApiResponse } from '@/domain/filing/core/api/client'
-import type { ForeignCapitalGains } from '@/domain/filing/widgets/income/capital-gains/capital-foreign/models/foreign-capital-gains-model'
-import type { ForeignAssetModel } from '@/domain/filing/widgets/income/capital-gains/models/foreign-asset-model'
-import type { ForeignAssetSummaryModel } from '@/domain/filing/widgets/income/capital-gains/capital-foreign/models/foreign-asset-summary-model'
+import { apiClient, ApiResponse } from '@/filing/core/api/client'
+import type { ForeignCapitalGains } from '@/filing/widgets/income/capital-gains/capital-foreign/models/foreign-capital-gains-model'
+import type { ForeignAssetModel } from '@/filing/widgets/income/capital-gains/models/foreign-asset-model'
+import type { ForeignAssetSummaryModel } from '@/filing/widgets/income/capital-gains/capital-foreign/models/foreign-asset-summary-model'
 
 // ==================== Types ====================
 

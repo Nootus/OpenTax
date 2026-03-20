@@ -11,7 +11,7 @@
  *   DELETE /api/movable-capital-gains/{filing_id}/{movable_sale_id}  - Delete single asset
  */
 
-import { apiClient, ApiResponse } from '@/domain/filing/core/api/client'
+import { apiClient, ApiResponse } from '@/filing/core/api/client'
 import type { MovableCapitalGains } from './models/movable-capital-gains-model'
 import type { MovableAssetModel } from './models/movable-asset-model'
 import type { MovableAssetSummaryModel } from './models/movable-asset-summary-model.ts'

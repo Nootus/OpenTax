@@ -9,12 +9,12 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import Input from '@/domain/filing/ui/Input';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
+import Input from '@/filing/ui/Input';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
 
 const SECTION_80CCD1B_LIMIT = 50000;
 

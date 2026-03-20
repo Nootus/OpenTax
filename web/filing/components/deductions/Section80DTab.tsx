@@ -9,14 +9,14 @@ import {
   PlusCircleIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/outline';
-import Input from '@/domain/filing/ui/Input';
-import Select from '@/domain/filing/ui/Select';
-import Checkbox from '@/domain/filing/ui/Checkbox';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
+import Input from '@/filing/ui/Input';
+import Select from '@/filing/ui/Select';
+import Checkbox from '@/filing/ui/Checkbox';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
 import {
   Deduction80DModel,
   Deduction80DHealthInsuranceModel,
@@ -25,11 +25,11 @@ import {
   INITIAL_HEALTH_INSURANCE_ITEM,
   INITIAL_PREVENTIVE_CHECKUP_FORM_DATA,
   INITIAL_MEDICAL_EXPENDITURE_FORM_DATA,
-} from '@/domain/filing/models/deductions/medical/deduction-80d-model';
+} from '@/filing/models/deductions/medical/deduction-80d-model';
 import {
   HEALTH_INSURANCE_TAKEN_FOR,
   PREVENTIVE_MEDICAL_TAKEN_FOR,
-} from '@/domain/utils/master-data';
+} from '@/utils/master-data';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });

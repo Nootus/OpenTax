@@ -52,7 +52,9 @@ const EMPTY_FILING: FilingModel = {
   houseProperty: [],
   interestIncome: [],
   equityCompensationIncome: null,
+  foreignIncome: null,
   capitalGainsSecurities: null,
+  agriculturalIncome: null,
   capitalGainsRealEstate: null,
   capitalGainsForeign: null,
   capitalGainsMovable: null,
@@ -76,6 +78,7 @@ const EMPTY_FILING: FilingModel = {
   // Metadata
   form16Metadata: [],
   taxComputation: null,
+  taxIntrest: 0,
   userValidationErrors: [],
   chapterVIADeductions: null,
 }

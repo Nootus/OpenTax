@@ -9,16 +9,16 @@ import {
   PencilSquareIcon,
   PlusCircleIcon,
 } from '@heroicons/react/24/outline';
-import Input from '@/domain/filing/ui/Input';
-import Select from '@/domain/filing/ui/Select';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import { INITIAL_80DDB_FORM_DATA } from '@/domain/filing/models/deductions/medical/deduction-80ddb-model';
-import type { Deduction80DDBModel } from '@/domain/filing/models/deductions/medical/deduction-80ddb-model';
-import { DISEASES_80DDB, TREATMENT_FOR, SENIOR_CITIZEN_TYPES } from '@/domain/utils/master-data';
+import Input from '@/filing/ui/Input';
+import Select from '@/filing/ui/Select';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import { INITIAL_80DDB_FORM_DATA } from '@/filing/models/deductions/medical/deduction-80ddb-model';
+import type { Deduction80DDBModel } from '@/filing/models/deductions/medical/deduction-80ddb-model';
+import { DISEASES_80DDB, TREATMENT_FOR, SENIOR_CITIZEN_TYPES } from '@/utils/master-data';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });

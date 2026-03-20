@@ -10,7 +10,7 @@
  * This model is used in FilingModel to aggregate data for display purposes.
  */
 
-import type { ForeignCapitalGains } from '@/domain/filing/widgets/income/capital-gains/capital-foreign/models/foreign-capital-gains-model'
+import type { ForeignCapitalGains } from '@/filing/widgets/income/capital-gains/capital-foreign/models/foreign-capital-gains-model'
 import type { MovableCapitalGainsWithImprovements } from '../capital-movable/models/movable-capital-gains-wrapper-model'
 import type { DeemedCapitalGainsModel, DeemedSTCG, DeemedLTCG } from '../capital-deemed/models/deemed-capital-gains-model'
 

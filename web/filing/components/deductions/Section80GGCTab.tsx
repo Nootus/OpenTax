@@ -9,14 +9,14 @@ import {
   PlusCircleIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/outline';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import Input from '@/domain/filing/ui/Input';
-import DatePicker from '@/domain/filing/ui/DatePicker';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import type { Deduction80GGCModel } from '@/domain/filing/models/deductions/donation/deduction-80ggc-model';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import Input from '@/filing/ui/Input';
+import DatePicker from '@/filing/ui/DatePicker';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import type { Deduction80GGCModel } from '@/filing/models/deductions/donation/deduction-80ggc-model';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });

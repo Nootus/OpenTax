@@ -2,16 +2,16 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronDownIcon, ChevronRightIcon, HomeIcon, PencilSquareIcon, TrashIcon, PlusCircleIcon } from '@heroicons/react/24/outline';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import Input from '@/domain/filing/ui/Input';
-import DatePicker from '@/domain/filing/ui/DatePicker';
-import Select from '@/domain/filing/ui/Select';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import type { PropertyModel } from '@/domain/filing/models/income/house-property/property-model';
-import { PROPERTY_TYPES, LENDER_TYPES, TENANT_IDENTIFIER_TYPES, STATES, COUNTRIES } from '@/domain/utils/master-data';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import Input from '@/filing/ui/Input';
+import DatePicker from '@/filing/ui/DatePicker';
+import Select from '@/filing/ui/Select';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import type { PropertyModel } from '@/filing/models/income/house-property/property-model';
+import { PROPERTY_TYPES, LENDER_TYPES, TENANT_IDENTIFIER_TYPES, STATES, COUNTRIES } from '@/utils/master-data';
 
 interface HousePropertyData {
   entries: PropertyModel[];

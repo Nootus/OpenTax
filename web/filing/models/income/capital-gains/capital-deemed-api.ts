@@ -15,8 +15,8 @@
  *   DELETE /api/deemed-capital-gains/{filing_id}                        - Delete all for filing
  */
 
-import { apiClient, ApiResponse } from '@/domain/filing/core/api/client'
-import type { DeemedSummaryResponse } from '@/domain/filing/widgets/income/capital-gains/capital-deemed/models/deemed-capital-gains-model'
+import { apiClient, ApiResponse } from '@/filing/core/api/client'
+import type { DeemedSummaryResponse } from '@/filing/widgets/income/capital-gains/capital-deemed/models/deemed-capital-gains-model'
 import type { DeemedCapitalGainsWrapperPayload } from './models/deemed-capital-gains-wrapper-model'
 
 // ==================== API Functions ====================

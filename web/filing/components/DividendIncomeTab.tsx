@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { ChevronDownIcon, ChevronRightIcon, CurrencyDollarIcon, PencilSquareIcon, PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import Input from '@/domain/filing/ui/Input';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import type { DividendIncomeRecord } from '@/domain/filing/models/income/dividend/dividend-income-model';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import Input from '@/filing/ui/Input';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import type { DividendIncomeRecord } from '@/filing/models/income/dividend/dividend-income-model';
 
 interface QuarterlyData {
   q1Dividend: number; q1Expense: number;

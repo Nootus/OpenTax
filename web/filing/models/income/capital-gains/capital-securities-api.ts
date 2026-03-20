@@ -28,7 +28,7 @@
  *   DELETE /api/securities-capital-gains/filing/{filing_id}
  */
 
-import { apiClient, ApiResponse } from '@/domain/filing/core/api/client'
+import { apiClient, ApiResponse } from '@/filing/core/api/client'
 import type { BondsCapitalGains } from './models/bonds-capital-gains-model'
 import type { StocksCapitalGains } from './models/stocks-capital-gains-model'
 import type { MutualFundsCapitalGains } from './models/mutual-funds-capital-gains-model'

@@ -66,6 +66,8 @@ import { EquityCompensationIncomeModel } from './income/dividend/equity-compensa
 import { DividendIncomeModel } from './income/dividend/dividend-income-model'
 import { ExemptIncomeModel } from './income/exempt-income-model'
 import { LotteryOnlineGamingAggregatedModel as LotteryOnlineGamingModel } from './income/lottery-online-gaming-wrapper-model'
+import { AgriculturalIncomeModel } from './income/agricultural-income-model'
+import { ForeignIncomeModel } from './income/foreign-income-model'
 
 // Form16 Metadata
 export interface Form16Metadata {
@@ -147,7 +149,9 @@ export interface FilingModel {
   houseProperty: PropertyModel[]
   interestIncome: InterestIncomeModel[]
   equityCompensationIncome?: EquityCompensationIncomeModel | null
+  foreignIncome?: ForeignIncomeModel | null
   capitalGainsSecurities?: CapitalGainsSecuritiesModel | null
+  agriculturalIncome?: AgriculturalIncomeModel | null
   capitalGainsRealEstate?: CapitalGainsRealEstateModel | null
   capitalGainsForeign?: ForeignCapitalGains[] | null
   capitalGainsMovable?: MovableCapitalGainsWithImprovements | null
@@ -173,6 +177,9 @@ export interface FilingModel {
   // ############# Form16 Metadata #############
   form16Metadata: Form16Metadata[]
   taxComputation?: TaxComputationModel | null
+
+  // Total penal interest + late fee (234A/234B/234C/234F) from ITR build
+  taxIntrest?: number
 
   // ############# User Validation Errors #############
   // User validation errors - for left panel (incomplete/invalid user input)

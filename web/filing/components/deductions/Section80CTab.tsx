@@ -9,13 +9,13 @@ import {
   TrashIcon,
   PlusCircleIcon,
 } from '@heroicons/react/24/outline';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import Input from '@/domain/filing/ui/Input';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import type { Deduction80CModel } from '@/domain/filing/models/deductions/popular/deduction-80c-model';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import Input from '@/filing/ui/Input';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import type { Deduction80CModel } from '@/filing/models/deductions/popular/deduction-80c-model';
 
 const SECTION_80C_LIMIT = 150000;
 

@@ -9,15 +9,15 @@ import {
   TrashIcon,
   PlusCircleIcon,
 } from '@heroicons/react/24/outline';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import Input from '@/domain/filing/ui/Input';
-import Select from '@/domain/filing/ui/Select';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import type { InterestIncomeModel } from '@/domain/filing/models/income/interest-income-model';
-import { INTEREST_TYPES, PROVIDENT_FUND_TYPES } from '@/domain/utils/master-data';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import Input from '@/filing/ui/Input';
+import Select from '@/filing/ui/Select';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import type { InterestIncomeModel } from '@/filing/models/income/interest-income-model';
+import { INTEREST_TYPES, PROVIDENT_FUND_TYPES } from '@/utils/master-data';
 
 const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
+import { useFilingContext } from '@/filing/context/FilingContext';
 
 import Section80CTab from './deductions/Section80CTab';
 import NPSTab from './deductions/NPSTab';

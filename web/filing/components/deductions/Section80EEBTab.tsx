@@ -9,16 +9,16 @@ import {
   PlusCircleIcon,
   PencilSquareIcon,
 } from '@heroicons/react/24/outline';
-import Input from '@/domain/filing/ui/Input';
-import Select from '@/domain/filing/ui/Select';
-import DatePicker from '@/domain/filing/ui/DatePicker';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Button from '@/domain/filing/ui/Button';
-import ConfirmModal from '@/domain/filing/ui/ConfirmModal';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import type { Deduction80EEBModel } from '@/domain/filing/models/deductions/loan/deduction-80eeb-model';
-import { LENDER_TYPES } from '@/domain/utils/master-data';
+import Input from '@/filing/ui/Input';
+import Select from '@/filing/ui/Select';
+import DatePicker from '@/filing/ui/DatePicker';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Button from '@/filing/ui/Button';
+import ConfirmModal from '@/filing/ui/ConfirmModal';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import type { Deduction80EEBModel } from '@/filing/models/deductions/loan/deduction-80eeb-model';
+import { LENDER_TYPES } from '@/utils/master-data';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });

@@ -13,19 +13,19 @@ import {
   BuildingLibraryIcon,
   CreditCardIcon,
 } from '@heroicons/react/24/outline';
-import IconButton from '@/domain/filing/ui/IconButton';
-import Button from '@/domain/filing/ui/Button';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Input from '@/domain/filing/ui/Input';
-import Select from '@/domain/filing/ui/Select';
-import Checkbox from '@/domain/filing/ui/Checkbox';
-import DatePicker from '@/domain/filing/ui/DatePicker';
-import PhoneInput from '@/domain/filing/ui/PhoneInput';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import { PersonDetailsModel } from '@/domain/filing/models/person/person-details-model';
-import { AddressModel } from '@/domain/filing/models/person/person-address-model';
-import { BankAccountModel } from '@/domain/filing/models/person/bank-account-model';
-import { STATES, COUNTRIES, RESIDENTIAL_STATUSES, ACCOUNT_TYPES } from '@/domain/utils/master-data';
+import IconButton from '@/filing/ui/IconButton';
+import Button from '@/filing/ui/Button';
+import AddButton from '@/filing/ui/AddButton';
+import Input from '@/filing/ui/Input';
+import Select from '@/filing/ui/Select';
+import Checkbox from '@/filing/ui/Checkbox';
+import DatePicker from '@/filing/ui/DatePicker';
+import PhoneInput from '@/filing/ui/PhoneInput';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import { PersonDetailsModel } from '@/filing/models/person/person-details-model';
+import { AddressModel } from '@/filing/models/person/person-address-model';
+import { BankAccountModel } from '@/filing/models/person/bank-account-model';
+import { STATES, COUNTRIES, RESIDENTIAL_STATUSES, ACCOUNT_TYPES } from '@/utils/master-data';
 
 const EMPTY_PERSON: PersonDetailsModel = {
   firstName: '',

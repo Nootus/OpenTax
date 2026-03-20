@@ -9,17 +9,17 @@ import {
   PencilSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import IconButton from '@/domain/filing/ui/IconButton';
-import AddButton from '@/domain/filing/ui/AddButton';
-import Input from '@/domain/filing/ui/Input';
-import Select from '@/domain/filing/ui/Select';
-import Button from '@/domain/filing/ui/Button';
-import DatePicker from '@/domain/filing/ui/DatePicker';
-import { useFilingContext } from '@/domain/filing/context/FilingContext';
-import { fyDatesFromAy } from '@/domain/utils/tax-year';
-import type { TDSModel } from '@/domain/filing/models/tax-credits/tds-model';
-import type { TCSModel } from '@/domain/filing/models/tax-credits/tcs-model';
-import type { TaxPaidSelfModel } from '@/domain/filing/models/tax-credits/tax-paid-self-model';
+import IconButton from '@/filing/ui/IconButton';
+import AddButton from '@/filing/ui/AddButton';
+import Input from '@/filing/ui/Input';
+import Select from '@/filing/ui/Select';
+import Button from '@/filing/ui/Button';
+import DatePicker from '@/filing/ui/DatePicker';
+import { useFilingContext } from '@/filing/context/FilingContext';
+import { fyDatesFromAy } from '@/utils/tax-year';
+import type { TDSModel } from '@/filing/models/tax-credits/tds-model';
+import type { TCSModel } from '@/filing/models/tax-credits/tcs-model';
+import type { TaxPaidSelfModel } from '@/filing/models/tax-credits/tax-paid-self-model';
 
 const fc = (n: number) => n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 

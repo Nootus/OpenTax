@@ -13,6 +13,7 @@ from fastapi import HTTPException
 
 
 # Import exception handlers
+from main_router import add_routes
 
 
 # Initialize app

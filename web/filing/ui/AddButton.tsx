@@ -1,7 +1,7 @@
 'use client'
 
 import { PlusIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
-import Button from '@/domain/filing/ui/Button'
+import Button from '@/filing/ui/Button'
 
 interface AddButtonProps {
   label: string

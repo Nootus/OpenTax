@@ -1,7 +1,7 @@
 'use client'
 
-import { useFilingContext } from '@/domain/filing/context/FilingContext'
-import { STATES, COUNTRIES, ACCOUNT_TYPES, PROPERTY_TYPES, EMPLOYER_TYPES, LENDER_TYPES, DEDUCTION_80C_TYPES, DISABILITY_TYPES, DONATION_TYPES, DISEASES_80DDB } from '@/domain/utils/master-data'
+import { useFilingContext } from '@/filing/context/FilingContext'
+import { STATES, COUNTRIES, ACCOUNT_TYPES, PROPERTY_TYPES, EMPLOYER_TYPES, LENDER_TYPES, DEDUCTION_80C_TYPES, DISABILITY_TYPES, DONATION_TYPES, DISEASES_80DDB } from '@/utils/master-data'
 
 // ─── Helpers ─────────────────────────────────────────────
 
