@@ -18,13 +18,14 @@ import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import { INITIAL_80DDB_FORM_DATA } from '@/filing/models/deductions/medical/deduction-80ddb-model';
 import type { Deduction80DDBModel } from '@/filing/models/deductions/medical/deduction-80ddb-model';
-import { DISEASES_80DDB, TREATMENT_FOR, SENIOR_CITIZEN_TYPES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
 export default function Section80DDBTab() {
   const { filing, updateSection } = useFilingContext();
+  const { diseaseTypes: DISEASES_80DDB, treatmentFor: TREATMENT_FOR, seniorCitizenTypes: SENIOR_CITIZEN_TYPES } = useMasterData();
 
   const [entry, setEntry] = useState<Deduction80DDBModel | null>(() =>
     filing.section80Ddb ? { ...filing.section80Ddb } : null

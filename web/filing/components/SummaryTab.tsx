@@ -315,7 +315,7 @@ export default function SummaryTab() {
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
           <CalculatorIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">Click <strong>Compute Tax</strong> to calculate your tax using the backend engine.</p>
+          <p className="text-gray-500 text-sm">Click <strong>Compute Tax</strong> to calculate your tax.</p>
         </div>
       )}
 

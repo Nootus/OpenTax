@@ -389,8 +389,8 @@ class Itr1BuildingService:
                 personal_info.Address.PinCode = self._to_int(addr.pincode)
 
             master_data_service = MasterDataService()
-            states_list = await master_data_service.fetch_states()
-            countries_list = await master_data_service.fetch_countries()
+            states_list = master_data_service.get_states()
+            countries_list = master_data_service.get_countries()
             state_label_to_code = {str(r["label"]).strip(): str(r["value"]) for r in (states_list or [])}
             country_label_to_code = {str(r["label"]).strip(): str(r["value"]) for r in (countries_list or [])}
             state_codes = {str(r["value"]) for r in (states_list or [])}

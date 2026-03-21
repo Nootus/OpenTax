@@ -290,7 +290,7 @@ class Itr1IncomeBuilderService:
 
     async def build_other_sources_income(self, filing: FilingModel) -> OtherSourcesIncomePartModel:
         """Build other sources income: delegates to sub-methods for each section."""
-        other_income_options = await MasterDataService().fetch_interest_types()
+        other_income_options = MasterDataService().get_interest_types()
 
         interest_dtls, interest_total = await self._build_interest_income_details(filing, other_income_options)
         div_detail, div_total = self._build_dividend_income_with_quarterly_breakup(filing)

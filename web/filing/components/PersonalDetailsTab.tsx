@@ -25,7 +25,7 @@ import { useFilingContext } from '@/filing/context/FilingContext';
 import { PersonDetailsModel } from '@/filing/models/person/person-details-model';
 import { AddressModel } from '@/filing/models/person/person-address-model';
 import { BankAccountModel } from '@/filing/models/person/bank-account-model';
-import { STATES, COUNTRIES, RESIDENTIAL_STATUSES, ACCOUNT_TYPES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const EMPTY_PERSON: PersonDetailsModel = {
   firstName: '',
@@ -63,6 +63,7 @@ const EMPTY_BANK: BankAccountModel = {
 
 export default function PersonalDetailsTab() {
   const { filing, updateSection } = useFilingContext();
+  const { states: STATES, countries: COUNTRIES, residentialStatuses: RESIDENTIAL_STATUSES, accountTypes: ACCOUNT_TYPES } = useMasterData();
 
   // Edit modes
   const [editModePersonal, setEditModePersonal] = useState(false);

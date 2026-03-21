@@ -11,7 +11,7 @@ import Select from '@/filing/ui/Select';
 import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import type { PropertyModel } from '@/filing/models/income/house-property/property-model';
-import { PROPERTY_TYPES, LENDER_TYPES, TENANT_IDENTIFIER_TYPES, STATES, COUNTRIES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 interface HousePropertyData {
   entries: PropertyModel[];
@@ -57,6 +57,7 @@ const normalizeEntries = (raw: PropertyModel[]): PropertyModel[] =>
 
 export default function HousePropertyTab() {
   const { filing, updateSection } = useFilingContext();
+  const { propertyTypes: PROPERTY_TYPES, lenderTypes: LENDER_TYPES, tenantIdentifierTypes: TENANT_IDENTIFIER_TYPES, states: STATES, countries: COUNTRIES } = useMasterData();
   const filingPan = filing.person?.panNumber?.toUpperCase();
 
   // ── static options ────────────────────────────────────────
