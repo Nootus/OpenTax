@@ -5,6 +5,8 @@ from fastapi import APIRouter
 from filing.itr.itr_building_orchestrator import ItrBuildingOrchestrator
 from filing.itr.validations.models.validation import ValidationResponse
 from filing.models.filing_model import FilingModel
+from filing.models.master_data_model import MasterDataModel
+from filing.utils.master_data_service import MasterDataService
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,13 @@ class FilingController:
 
     def _register_routes(self) -> None:
         """Register all filing routes."""
+        self.router.add_api_route(
+            "/master_data",
+            self.get_master_data,
+            methods=["GET"],
+            response_model=MasterDataModel,
+        )
+
         self.router.add_api_route(
             "/calculate_tax",
             self.calculate_tax,
@@ -38,6 +47,10 @@ class FilingController:
         orchestrator = ItrBuildingOrchestrator()
         result = await orchestrator.build_itr(filing_model)
         return result.filingSummary
+
+    def get_master_data(self) -> MasterDataModel:
+        """Return all master data (dropdown options) in one call."""
+        return MasterDataService().get_all_master_data()
 
     async def get_itr1(self, filing_model: FilingModel) -> ValidationResponse:
         """Build the complete ITR-1 JSON from the filing data."""

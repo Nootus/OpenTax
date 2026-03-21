@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import Image from "next/image";
 import "./globals.css";
 import { FilingProvider } from "@/filing/context/FilingContext";
+import { MasterDataProvider } from "@/filing/context/MasterDataContext";
 import { ToasterProvider } from "@/filing/ui/Toaster";
 import GoogleAnalytics from "@/filing/analytics/GoogleAnalytics";
 import ContactUs from "@/filing/components/ContactUs";
@@ -73,6 +74,7 @@ export default function RootLayout({
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
         )}
+        <MasterDataProvider>
         <FilingProvider>
           <ToasterProvider>
             {/* Global header — visible on every page/view */}
@@ -114,6 +116,7 @@ export default function RootLayout({
             <ContactUs />
           </ToasterProvider>
         </FilingProvider>
+        </MasterDataProvider>
       </body>
     </html>
   );

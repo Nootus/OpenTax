@@ -17,7 +17,7 @@ import Button from '@/filing/ui/Button';
 import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import type { Deduction80GGAModel } from '@/filing/models/deductions/donation/deduction-80gga-model';
-import { CLAUSE_TYPES_80GGA, STATES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -40,6 +40,7 @@ const INITIAL_ENTRY: Deduction80GGAModel = {
 
 export default function Section80GGATab() {
   const { filing, updateSection } = useFilingContext();
+  const { clauseTypes: CLAUSE_TYPES_80GGA, states: STATES } = useMasterData();
 
   const [entries, setEntries] = useState<Deduction80GGAModel[]>(() =>
     (filing.section80Gga ?? []).map((e, i) =>

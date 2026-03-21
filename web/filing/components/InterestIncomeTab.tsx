@@ -17,18 +17,18 @@ import Select from '@/filing/ui/Select';
 import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import type { InterestIncomeModel } from '@/filing/models/income/interest-income-model';
-import { INTEREST_TYPES, PROVIDENT_FUND_TYPES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
 // PF interest type has id=5 in the original master data
 const PF_TYPE_ID = 5;
 
-const interestTypeOptions = [{ value: '', label: 'Select type' }, ...INTEREST_TYPES];
-const pfTypeOptions = [{ value: '', label: 'Select type' }, ...PROVIDENT_FUND_TYPES];
-
 export default function InterestIncomeTab() {
   const { filing, updateSection } = useFilingContext();
+  const { interestTypes: INTEREST_TYPES, providentFundTypes: PROVIDENT_FUND_TYPES } = useMasterData();
+  const interestTypeOptions = [{ value: '', label: 'Select type' }, ...INTEREST_TYPES];
+  const pfTypeOptions = [{ value: '', label: 'Select type' }, ...PROVIDENT_FUND_TYPES];
 
   // Local copy of entries for inline editing
   const [entries, setEntries] = useState<InterestIncomeModel[]>(filing.interestIncome ?? []);

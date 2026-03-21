@@ -9,6 +9,7 @@ import SummaryTab from '@/filing/components/SummaryTab';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import { calculateTax } from '@/filing/api/filing-api';
 import { ayToFy } from '@/utils/tax-year';
+import { ASSESSMENT_YEAR_OPTIONS } from '@/utils/assessment-year';
 import { TEST_FILING } from '@/filing/test-data/fill-test-data';
 
 const TABS = [
@@ -66,7 +67,15 @@ export default function Home() {
               </div>
               <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2 pt-3">
                 <label className="absolute -top-2 left-2 text-xs font-medium text-gray-500 bg-white px-2">Assessment Year (AY)</label>
-                <p className="text-sm font-semibold text-indigo-700">{assessmentYear}</p>
+                <select
+                  value={assessmentYear}
+                  onChange={(e) => updateFiling({ assessmentYear: e.target.value })}
+                  className="text-sm font-semibold text-indigo-700 bg-transparent border-none outline-none cursor-pointer w-full"
+                >
+                  {ASSESSMENT_YEAR_OPTIONS.map((ay) => (
+                    <option key={ay} value={ay}>{ay}</option>
+                  ))}
+                </select>
               </div>
               <div className="relative bg-gray-50 rounded-lg border border-gray-200 p-2 pt-3">
                 <label className="absolute -top-2 left-2 text-xs font-medium text-gray-500 bg-white px-2">ITR Type</label>

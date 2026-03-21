@@ -26,16 +26,14 @@ import {
   INITIAL_PREVENTIVE_CHECKUP_FORM_DATA,
   INITIAL_MEDICAL_EXPENDITURE_FORM_DATA,
 } from '@/filing/models/deductions/medical/deduction-80d-model';
-import {
-  HEALTH_INSURANCE_TAKEN_FOR,
-  PREVENTIVE_MEDICAL_TAKEN_FOR,
-} from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
 export default function Section80DTab() {
   const { filing, updateSection } = useFilingContext();
+  const { healthInsuranceTakenFor: HEALTH_INSURANCE_TAKEN_FOR, preventiveMedicalTakenFor: PREVENTIVE_MEDICAL_TAKEN_FOR } = useMasterData();
 
   const [formData, setFormData] = useState<Deduction80DModel>(() => ({
     deductionId: filing.section80D?.deductionId ?? null,

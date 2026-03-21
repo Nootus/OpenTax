@@ -19,13 +19,14 @@ import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import { INITIAL_80DD_FORM_DATA } from '@/filing/models/deductions/medical/deduction-80dd-model';
 import type { Deduction80DDModel } from '@/filing/models/deductions/medical/deduction-80dd-model';
-import { DISABILITY_TYPES, RELATION_TO_DEPENDANT } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
 export default function Section80DDTab() {
   const { filing, updateSection } = useFilingContext();
+  const { disabilityTypes: DISABILITY_TYPES, disabilityRelationships: RELATION_TO_DEPENDANT } = useMasterData();
 
   const [entry, setEntry] = useState<Deduction80DDModel | null>(() =>
     filing.section80Dd ? { ...filing.section80Dd } : null

@@ -5,7 +5,6 @@
 <h1 align="center">OpenTax</h1>
 
 <p align="center">
-  <a href="https://indiatax.ai"><img src="web/public/logo.webp" alt="Powered by IndiaTax.AI" height="32" /></a><br/>
   <a href="https://indiatax.ai"><strong>Powered by IndiaTax.AI</strong></a>
 </p>
 
@@ -121,6 +120,19 @@ npm run dev
 ```
 
 Access the application at `http://localhost:3000`.
+
+---
+
+## Getting Help
+
+| Channel | Link |
+|---------|------|
+| Bug reports & feature requests | [GitHub Issues](https://github.com/nootus/OpenTax/issues) |
+| Browse the source | [github.com/nootus/OpenTax](https://github.com/nootus/OpenTax) |
+| Email | [connect@indiatax.ai](mailto:connect@indiatax.ai) |
+| Powered by | [IndiaTax.AI](https://indiatax.ai) |
+
+If something is broken or unclear, opening a GitHub issue is the fastest way to get a response.
 
 ---
 

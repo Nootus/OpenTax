@@ -19,17 +19,13 @@ import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import { fyDatesFromAy } from '@/utils/tax-year';
 import type { SalaryModel } from '@/filing/models/income/salary/salary-model';
-import { STATES, COUNTRIES, EMPLOYER_TYPES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
 const SECTION_171 = { BASIC_SALARY: 8, HRA: 11, LTA: 13, OTHER_ALLOWANCES: 14 } as const;
 const SECTION_172 = { RFA: 5, COMPANY_CAR: 6, OTHER_PERQUISITES: 9 } as const;
 const SECTION_173 = { TERMINATION_COMP: 5, GRATUITY: 7, OTHER_PROFITS: 9 } as const;
-
-const stateOptions = [{ value: '', label: 'Select state' }, ...STATES];
-const countryOptions = [{ value: '', label: 'Select country' }, ...COUNTRIES];
-const employerTypeOptions = [{ value: '', label: 'Select type' }, ...EMPLOYER_TYPES];
 
 interface SalaryData {
   entries: SalaryModel[];
@@ -70,6 +66,10 @@ const calcTotals = (entries: SalaryModel[]) => ({
 
 export default function SalaryTab() {
   const { filing, updateSection } = useFilingContext();
+  const { states: STATES, countries: COUNTRIES, employerTypes: EMPLOYER_TYPES } = useMasterData();
+  const stateOptions = [{ value: '', label: 'Select state' }, ...STATES];
+  const countryOptions = [{ value: '', label: 'Select country' }, ...COUNTRIES];
+  const employerTypeOptions = [{ value: '', label: 'Select type' }, ...EMPLOYER_TYPES];
   const assessmentYear = filing.assessmentYear ?? '2026-27';
   const standardDeductionAmount = (filing.regime ?? 'new').toLowerCase() === 'new' ? 75000 : 50000;
   const { fyMinDate, fyMaxDate } = fyDatesFromAy(assessmentYear);

@@ -18,7 +18,7 @@ import Button from '@/filing/ui/Button';
 import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import type { Deduction80EEBModel } from '@/filing/models/deductions/loan/deduction-80eeb-model';
-import { LENDER_TYPES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
@@ -39,6 +39,7 @@ const INITIAL_FORM: Deduction80EEBModel = {
 
 export default function Section80EEBTab() {
   const { filing, updateSection } = useFilingContext();
+  const { lenderTypes: LENDER_TYPES } = useMasterData();
 
   const [formData, setFormData] = useState<Deduction80EEBModel>(() =>
     filing.section80Eeb ? { ...filing.section80Eeb } : { ...INITIAL_FORM }

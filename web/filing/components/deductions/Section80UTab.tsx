@@ -18,13 +18,14 @@ import ConfirmModal from '@/filing/ui/ConfirmModal';
 import { useFilingContext } from '@/filing/context/FilingContext';
 import { INITIAL_80U_FORM_DATA } from '@/filing/models/deductions/medical/deduction-80u-model';
 import type { Deduction80UModel } from '@/filing/models/deductions/medical/deduction-80u-model';
-import { DISABILITY_TYPES } from '@/utils/master-data';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
 export default function Section80UTab() {
   const { filing, updateSection } = useFilingContext();
+  const { disabilityTypes: DISABILITY_TYPES } = useMasterData();
 
   const [entry, setEntry] = useState<Deduction80UModel | null>(() =>
     filing.section80U ? { ...filing.section80U } : null
