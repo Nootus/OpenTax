@@ -10,14 +10,14 @@
 
 <br/>
 
-OpenTax is a free, open-source Income Tax Return (ITR) filing application for India. It provides a single-page browser interface for completing ITR-1 filings, backed by a FastAPI service that performs tax calculations, ITR-1 construction, and validation.
+OpenTax is a free, open-source Income Tax Return (ITR) filing application for India. It provides a single-page browser interface for completing ITR filings, backed by a FastAPI service that performs tax calculations, ITR construction, and validation.
 
 ## Project Structure
 
 ```
 OpenTax/
 ├── web/          Next.js 16 frontend — React 19, TypeScript 5.9, Tailwind CSS 4
-├── api/          FastAPI backend — tax calculation, ITR-1 building, validation
+├── api/          FastAPI backend — tax calculation, ITR building, validation
 └── README.md
 ```
 
@@ -26,7 +26,7 @@ OpenTax/
 - No authentication required
 - Single-page layout with tab navigation (Personal Details, Income, Deductions, Tax Paid, Summary)
 - Automatic tax computation under both Old and New regimes
-- ITR-1 JSON construction with validation error reporting
+- ITR JSON construction with validation error reporting
 - Static export — the frontend can be served directly from the FastAPI process in production
 - Apache 2.0 licensed
 

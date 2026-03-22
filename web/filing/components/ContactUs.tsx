@@ -40,11 +40,11 @@ const INDIATAX = "https://indiatax.ai";
 
 export default function ContactUs() {
   return (
-    <footer className="w-full py-16 px-6 print:hidden" style={{ background: '#000000' }}>
+    <footer className="w-full py-6 px-6 print:hidden" style={{ background: '#000000' }}>
       <a id="contact" aria-label="contact-section" />
       <div className="max-w-7xl mx-auto">
         <div className="mb-12">
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-8">
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-8">
             Contact Us
           </h2>
         </div>

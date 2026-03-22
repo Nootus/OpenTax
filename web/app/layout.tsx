@@ -85,7 +85,7 @@ export default function RootLayout({
                   <Image src="/ITAI-logo.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
                   <div>
                     <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
-                    <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR-1 Filing</p>
+                    <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR Filing</p>
                   </div>
                 </div>
                 {/* Right — GitHub + powered by */}
