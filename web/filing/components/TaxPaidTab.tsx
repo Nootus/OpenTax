@@ -187,7 +187,7 @@ export default function TaxPaidTab() {
     const errors: Record<string, string> = {};
     if (!entry.deductorName?.trim()) errors[`tds_${index}_deductorName`] = 'Deductor name is required';
     if (!entry.tan?.trim()) errors[`tds_${index}_tan`] = 'TAN is required';
-    else if (!/^[A-Z]{4}[0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tds_${index}_tan`] = 'Invalid TAN (e.g. AAAA99999A)';
+    else if (!/^(HYD|VPN|BBN|BPL|JBP|CHE|CMB|MRI|DEL|CAL|MRT|AHM|BRD|RKT|SRT|BLR|AGR|KNP|CHN|TVD|ALD|LKN|MUM|NGP|AMR|JLD|PTL|RTK|KLP|NSK|PNE|PTN|RCH|JDH|JPR|SHL)[A-Z][0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tds_${index}_tan`] = 'Invalid TAN format (e.g., DELA99999A)';
     if (!entry.taxDeducted || entry.taxDeducted === 0) errors[`tds_${index}_taxDeducted`] = 'Tax deducted is required';
     if (Object.keys(errors).length > 0) { setSaveErrors(errors); return; }
     setSaveErrors({});
@@ -225,7 +225,7 @@ export default function TaxPaidTab() {
     const errors: Record<string, string> = {};
     if (!entry.collectorName?.trim()) errors[`tcs_${index}_collectorName`] = 'Collector name is required';
     if (!entry.tan?.trim()) errors[`tcs_${index}_tan`] = 'TAN is required';
-    else if (!/^[A-Z]{4}[0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tcs_${index}_tan`] = 'Invalid TAN (e.g. AAAA99999A)';
+    else if (!/^(HYD|VPN|BBN|BPL|JBP|CHE|CMB|MRI|DEL|CAL|MRT|AHM|BRD|RKT|SRT|BLR|AGR|KNP|CHN|TVD|ALD|LKN|MUM|NGP|AMR|JLD|PTL|RTK|KLP|NSK|PNE|PTN|RCH|JDH|JPR|SHL)[A-Z][0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tcs_${index}_tan`] = 'Invalid TAN format (e.g., DELA99999A)';
     if (!entry.amountCollected || entry.amountCollected === 0) errors[`tcs_${index}_amountCollected`] = 'Gross payment amount is required';
     if (!entry.taxCollected || entry.taxCollected === 0) errors[`tcs_${index}_taxCollected`] = 'Tax collected is required';
     if (Object.keys(errors).length > 0) { setSaveErrors(errors); return; }
@@ -265,7 +265,7 @@ export default function TaxPaidTab() {
     if (!entry.taxType) errors[`taxPaid_${index}_taxType`] = 'Tax type is required';
     if (!entry.taxPaidAmount || entry.taxPaidAmount === 0) errors[`taxPaid_${index}_amount`] = 'Amount is required';
     if (!entry.challanNumber) errors[`taxPaid_${index}_challan`] = 'Challan number is required';
-    else if (String(entry.challanNumber).length > 7) errors[`taxPaid_${index}_challan`] = 'Challan number must be less than or equal to 7 digits';
+    else if (!/^[0-9]{5}$/.test(String(entry.challanNumber))) errors[`taxPaid_${index}_challan`] = 'Challan number must be exactly 5 digits';
     if (!entry.bsrCode?.trim()) errors[`taxPaid_${index}_bsrCode`] = 'BSR code is required';
     else if (!/^[0-9]{7}$/.test(entry.bsrCode)) errors[`taxPaid_${index}_bsrCode`] = 'BSR code must be 7 digits';
     if (!entry.dateOfPayment) errors[`taxPaid_${index}_date`] = 'Date of payment is required';
@@ -492,7 +492,7 @@ export default function TaxPaidTab() {
                       <tr key={entry.taxPaidId ?? `tp-${index}`} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
                         {editingTaxPaidIndex === index ? (
                           <>
-                            <td className="px-3 py-2"><Input value={entry.challanNumber || ''} onChange={(e) => updateTaxPaidEntry(index, 'challanNumber', e.target.value)} placeholder="Challan" className="text-sm" error={saveErrors[`taxPaid_${index}_challan`]} /></td>
+                            <td className="px-3 py-2"><Input value={entry.challanNumber || ''} onChange={(e) => updateTaxPaidEntry(index, 'challanNumber', e.target.value.replace(/[^\d]/g, ''))} placeholder="Challan" maxLength={5} className="text-sm" error={saveErrors[`taxPaid_${index}_challan`]} /></td>
                             <td className="px-3 py-2"><Input value={entry.bsrCode || ''} onChange={(e) => updateTaxPaidEntry(index, 'bsrCode', e.target.value.replace(/[^\d]/g, ''))} placeholder="7-digit BSR" maxLength={7} className="text-sm" error={saveErrors[`taxPaid_${index}_bsrCode`]} /></td>
                             <td className="px-3 py-2"><DatePicker value={entry.dateOfPayment} onChange={(date) => updateTaxPaidEntry(index, 'dateOfPayment', date)} className="text-sm" minDate={fyMinDate} maxDate={fyMaxDate} error={saveErrors[`taxPaid_${index}_date`]} /></td>
                             <td className="px-3 py-2 amount-column"><Input type="number" value={entry.taxPaidAmount || ''} onChange={(e) => updateTaxPaidEntry(index, 'taxPaidAmount', parseFloat(e.target.value) || 0)} placeholder="Amount" className="text-sm" error={saveErrors[`taxPaid_${index}_amount`]} /></td>

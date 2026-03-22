@@ -571,24 +571,29 @@ class Interest234Service:
     @staticmethod
     def _parse_date(value: Any) -> Optional[date]:
         """Parse date from various formats."""
-        if value is None:
-            return None
-        if isinstance(value, date):
-            return value
-        s = str(value).strip()
-        if not s:
-            return None
-        # Try common formats
-        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
-            try:
-                from datetime import datetime
-                return datetime.strptime(s, fmt).date()
-            except ValueError:
-                continue
-        return None
+        return parse_date(value)
 
 
 # ── Module-level helpers ──────────────────────────────────────────────────────
+
+def parse_date(value: Any) -> Optional[date]:
+    """Parse date from various formats."""
+    if value is None:
+        return None
+    if isinstance(value, date):
+        return value
+    s = str(value).strip()
+    if not s:
+        return None
+    # Try common formats
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            from datetime import datetime
+            return datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+    return None
+
 
 def _floor_to_100(value: int) -> int:
     """Floor to nearest 100 (VBA: Application.WorksheetFunction.Floor(x, 100))."""

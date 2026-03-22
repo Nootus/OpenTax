@@ -75,6 +75,7 @@ class FilingModel(ApiBaseModel):
     # Filing metadata
     filing_id: int
     assessment_year: str | None = None
+    filing_as_on_date: str | None = None
     regime: str | None = None
     
     ############# Personal Details #############

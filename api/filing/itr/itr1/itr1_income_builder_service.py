@@ -32,10 +32,10 @@ class Itr1IncomeBuilderService:
         """Build income part by combining salary, house property, and other sources → GrossTotIncome."""
         
         salary_part = await self.build_salary_income(filing, context, regime)
-        hp_part = await self.build_house_property_income(filing)
+        hp_part = await self.build_house_property_income(filing, regime)
         other_part = await self.build_other_sources_income(filing)
 
-        gross_tot_income = int(salary_part.IncomeFromSal or 0) + int(hp_part.TotalIncomeOfHP or 0) + int(other_part.IncomeOthSrc or 0)
+        gross_tot_income = int(getattr(salary_part, "IncomeFromSal", None) or 0) + int(getattr(hp_part, "TotalIncomeOfHP", None) or 0) + int(getattr(other_part, "IncomeOthSrc", None) or 0)
 
         self.income_breakdown = IncomeBreakdown(
             salary=salary_part,
@@ -43,6 +43,11 @@ class Itr1IncomeBuilderService:
             others=other_part,
             gross_total=gross_tot_income,
         )
+
+        context.gross_salary = int(getattr(salary_part, "IncomeFromSal", None) or 0)
+        context.income_house_property = int(getattr(hp_part, "TotalIncomeOfHP", None) or 0)
+        context.income_other_sources = int(getattr(other_part, "IncomeOthSrc", None) or 0)
+        context.gross_total_income = gross_tot_income
 
         return ITR1IncomePartModel(
             **salary_part.model_dump(),
@@ -131,13 +136,17 @@ class Itr1IncomeBuilderService:
             for item in sal.salary_section_171 or []:
                 if item.amount:
                     comp_id = int(item.component_id)
-                    if regime.lower() == "new" and comp_id == 11:
-                        continue  # Skip House Rent Allowance exemption in new regime
+                    if regime.lower() == "new" and comp_id in {10, 11, 12, 13, 14, 38, 39}:
+                        continue  # New regime: skip Conveyance (10), HRA (11), Medical (12), LTA (13), Other (14), Duty (38), Personal Expense (39)
                     
                     # Component IDs that are exempt allowances
                     if comp_id in [10, 11, 12, 13, 14, 21, 22, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]:
-                        exempt_amt = float(item.exemption_amount) if item.exemption_amount is not None else float(item.amount or 0.0)
-                        TotalAllwncExemptUs10 += exempt_amt
+                        if float(item.exemption_amount or 0.0) > float(item.amount):
+                            TotalAllwncExemptUs10 += float(item.amount or 0.0)
+                        elif item.exemption_amount is not None:
+                            TotalAllwncExemptUs10 += float(item.exemption_amount or 0.0)
+                        else:
+                            TotalAllwncExemptUs10 += float(item.amount or 0.0)
                         current_component = next(
                             (c for c in salary_components if c["component_id"] == item.component_id), None
                         )
@@ -145,7 +154,7 @@ class Itr1IncomeBuilderService:
                             AllwncExemptUs10Dtls.append({
                                 "SalNatureDesc": current_component.get("component_code", ""),
                                 "SalOthNatOfInc": current_component.get("component_name") if current_component.get("component_code") != "OTH" else None,
-                                "SalOthAmount": int(exempt_amt),
+                                "SalOthAmount": min(float(item.exemption_amount if item.exemption_amount is not None else item.amount or 0.0), float(item.amount or 0.0)),
                             })
 
         return AllwncExemptUs10Dtls, int(TotalAllwncExemptUs10)
@@ -192,12 +201,14 @@ class Itr1IncomeBuilderService:
             standard_deduction = 75000 if regime.lower() == "new" else 50000
         entertainment_allowance_total = min(entertainment_allowance_total, 5000)
         professional_tax_total = min(professional_tax_total, 5000)
+        if regime.lower() == "new":
+            professional_tax_total = 0
         
-        total_deductions = standard_deduction + entertainment_allowance_total + (0 if regime.lower() == "new" else professional_tax_total)
+        total_deductions = standard_deduction + entertainment_allowance_total + professional_tax_total
 
         return int(standard_deduction), int(entertainment_allowance_total), int(professional_tax_total), int(total_deductions)
 
-    async def build_house_property_income(self, filing: FilingModel) -> HousePropertyIncomePartModel:
+    async def build_house_property_income(self, filing: FilingModel, regime: str = "old") -> HousePropertyIncomePartModel:
         """Build house property income part: delegates to sub-methods for each section."""
         if not filing.house_property:
             return HousePropertyIncomePartModel(
@@ -217,10 +228,11 @@ class Itr1IncomeBuilderService:
         tax_paid_local_auth = self._build_tax_paid_to_local_authorities(filing)
         annual_value = self._build_annual_value(gross_rent_received, tax_paid_local_auth)
         standard_deduction_hp = self._build_standard_deduction_30_percent(annual_value)
-        interest_payable = self._build_interest_payable_on_borrowed_capital(filing)
+        interest_payable = self._build_interest_payable_on_borrowed_capital(filing, regime)
         arrears_unrealized_rent_rcvd = self._build_arrears_unrealized_rent(filing)
         total_income_of_hp = self._build_total_income_of_house_property(
-            annual_value, standard_deduction_hp, interest_payable, arrears_unrealized_rent_rcvd
+            annual_value, standard_deduction_hp, interest_payable, arrears_unrealized_rent_rcvd,
+            regime=regime, property_type=type_of_hp,
         )
 
         return HousePropertyIncomePartModel(
@@ -257,15 +269,22 @@ class Itr1IncomeBuilderService:
         return tax_paid_local_auth
 
     def _build_annual_value(self, gross_rent_received: float, tax_paid_local_auth: float) -> float:
-        """Build Row iii - Annual Value (i - ii)."""
-        return gross_rent_received - tax_paid_local_auth
+        """Build Row iii - Annual Value (i - ii). Cannot be negative."""
+        return max(0.0, gross_rent_received - tax_paid_local_auth)
 
     def _build_standard_deduction_30_percent(self, annual_value: float) -> float:
-        """Build Row iv - 30% of Annual Value (30% * iii)."""
-        return annual_value * 0.30
+        """Build Row iv - 30% of Annual Value (only when AnnualValue > 0)."""
+        return annual_value * 0.30 if annual_value > 0 else 0.0
 
-    def _build_interest_payable_on_borrowed_capital(self, filing: FilingModel) -> float:
-        """Build Row v - Interest payable on borrowed capital."""
+    def _build_interest_payable_on_borrowed_capital(self, filing: FilingModel, regime: str = "old") -> float:
+        """Build Row v - Interest payable on borrowed capital.
+        
+        New regime: interest deduction only for let-out property (L/D); self-occupied (S) gets no deduction.
+        """
+        if regime.lower() == "new":
+            property_type = self._build_type_of_house_property(filing)
+            if property_type not in ("L", "D"):
+                return 0
         _, total = self.build_scheduleUs24B(filing)
         return total
 
@@ -279,13 +298,19 @@ class Itr1IncomeBuilderService:
         annual_value: float,
         standard_deduction: float,
         interest_payable: float,
-        arrears_unrealized_rent: float
+        arrears_unrealized_rent: float,
+        regime: str = "old",
+        property_type: Optional[str] = None,
     ) -> float:
         """Build Row vii - Income chargeable under the head 'House Property' (iii - iv - v + vi).
         
-        Note: Maximum loss from house property is capped at ₹2,00,000.
+        Old regime: loss capped at ₹2,00,000.
+        New regime, self-occupied (S): interest already 0, no loss possible.
+        New regime, let-out/deemed (L/D): interest allowed but no loss setoff (floor at 0).
         """
         total_income = (annual_value - standard_deduction - interest_payable) + arrears_unrealized_rent
+        if regime.lower() == "new" and property_type in ("L", "D"):
+            return max(0, total_income)
         return max(-200000, total_income)
 
     async def build_other_sources_income(self, filing: FilingModel) -> OtherSourcesIncomePartModel:
@@ -311,7 +336,7 @@ class Itr1IncomeBuilderService:
         
         excel_options = [
             o["value"] for o in other_income_options 
-            if o.get("code") in ["SAV", "IFD", "PFINT", "TAX", "PPF", "FAP", "10(11)(iP)", "10(11)(iiP)", "10(12)(iP)", "10(12)(iiP)", "NOT89A", "OTHNOT89A", "OTH"]
+            if o.get("code") in ["SAV", "IFD", "TAX", "FAP", "10(11)(iP)", "10(11)(iiP)", "10(12)(iP)", "10(12)(iiP)", "OTH"]
         ]
         oth_option = next((o for o in other_income_options if o.get("code") == "OTH"), None)
         oth_type_id = int(oth_option["value"]) if oth_option else None

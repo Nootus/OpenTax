@@ -8,6 +8,8 @@ export interface Deduction80UModel {
   filingId: number
   disabilityType: string  // "Disabled" / "Severely Disabled"
   expenditureIncurred: number
+  form101aAckNo?: string | null
+  udidNo?: string | null
 }
 
 

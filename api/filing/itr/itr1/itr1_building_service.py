@@ -51,7 +51,7 @@ from filing.tax_calculation.models.tax_regime_breakdown import TaxRegimeBreakdow
 from filing.itr.itr1.itr1_income_builder_service import Itr1IncomeBuilderService
 from filing.itr.itr1.itr1_deduction_builder_service import Itr1DeductionBuilderService, Itr1ComputationContext
 from filing.itr.validations.tax_validation_service import TaxValidationService
-from filing.tax_calculation.interest_234_service import Interest234Service
+from filing.tax_calculation.interest_234_service import Interest234Service, parse_date
 
 logger = logging.getLogger(__name__)
 class Itr1BuildingService:
@@ -370,10 +370,9 @@ class Itr1BuildingService:
 
         if filing.salary and len(filing.salary) > 0:
             first_salary = filing.salary[0]
-            if first_salary.employer and first_salary.employer.employer_type:
-                ec = first_salary.employer.employer_type
-                if ec in ["CGOV", "SGOV", "PSU", "PE", "PESG", "PEPS", "PEO", "OTH", "NA"]:
-                    personal_info.EmployerCategory = EmployerCategoryEnum(ec)
+            ec = (first_salary.employer.employer_type or "").strip() if first_salary.employer else ""
+            _VALID_EC = {"CGOV", "SGOV", "PSU", "PE", "PESG", "PEPS", "PEO", "OTH", "NA"}
+            personal_info.EmployerCategory = EmployerCategoryEnum(ec if ec in _VALID_EC else "OTH")
 
         if filing.person_address:
             addr = filing.person_address
@@ -432,6 +431,7 @@ class Itr1BuildingService:
                 advance_tax_payments=filing.advance_tax or [],
                 age=age,
                 assessment_year=filing.assessment_year or "2026-27",
+                filing_date=parse_date(filing.filing_as_on_date) if filing.filing_as_on_date else None,
                 total_income=int(regime.total_income or 0),
                 is_resident=_rs.upper().startswith("RES"),
             )
@@ -939,30 +939,5 @@ class Itr1BuildingService:
         tax_payments.TaxPayment = tax_payments_dtls if tax_payments_dtls else None
         tax_payments.TotalTaxPayments = total_tax_payments
         return tax_payments
-  
-    def _merge_section(self, payload: Dict[str, Any], section_name: str, section_value: Dict[str, Any]) -> None:
-        """Merge section value into payload."""
-        existing_any = payload.get(section_name)
-        if isinstance(existing_any, dict):
-            existing = cast(Dict[str, Any], existing_any)
-        else:
-            existing = {}
-            payload[section_name] = existing
-        Itr1BuildingService._deep_update(existing, section_value)
-
-    @staticmethod
-    def _deep_update(dst: Dict[str, Any], src: Dict[str, Any]) -> None:
-        """Deep update dst with src."""
-        for k, v in src.items():
-            if isinstance(v, dict):
-                dst_child_any = dst.get(k)
-                if isinstance(dst_child_any, dict):
-                    dst_child = cast(Dict[str, Any], dst_child_any)
-                else:
-                    dst_child = {}
-                    dst[k] = dst_child
-                Itr1BuildingService._deep_update(dst_child, cast(Dict[str, Any], v))
-            else:
-                dst[k] = v
 
        

@@ -37,7 +37,7 @@ function Row({ label, value, indent, highlight, bold }: {
   return (
     <div className={`flex items-center border-b border-gray-200 text-sm ${highlight ? 'bg-blue-50' : ''} ${indent ? 'pl-8' : ''}`}>
       <div className={`flex-1 px-3 py-1.5 ${bold ? 'font-semibold' : ''}`}>{label}</div>
-      <div className={`w-48 text-right px-3 py-1.5 border-l border-gray-200 font-mono text-sm ${bold ? 'font-bold' : ''}`}>
+      <div className={`w-56 text-right px-3 py-1.5 border-l border-gray-200 font-mono text-sm ${bold ? 'font-bold' : ''}`}>
         {displayVal}
       </div>
     </div>
@@ -72,7 +72,7 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
       {/* Sticky Top Bar */}
       <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
-          {/* Left — logo + name (matches home header) */}
+          {/* Left — logo + name */}
           <div className="flex items-center gap-3">
             <Image src="/ITAI-logo.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
             <div>
@@ -80,15 +80,29 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
               <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR Filing</p>
             </div>
           </div>
-          {/* Centre — back + title */}
-          <div className="flex items-center gap-3">
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-800 transition-colors text-sm font-medium">← Back</button>
-            <span className="text-gray-300">|</span>
-            <span className="text-sm font-bold text-gray-800 hidden sm:inline">ITR‑1 SAHAJ — Preview</span>
-            <span className="text-xs text-gray-500 hidden md:inline">AY {itr1.Form_ITR1.AssessmentYear}</span>
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${isOldRegime ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-              {isOldRegime ? 'Old Regime' : 'New Regime'}
-            </span>
+          {/* Right — powered by */}
+          <a
+            href="https://indiatax.ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+          >
+            <Image src="/logo.webp" alt="IndiaTax.AI" width={24} height={24} className="rounded" />
+            <span className="text-xs text-gray-500 hidden sm:inline">Powered by <span className="font-semibold text-blue-600">IndiaTax.AI</span></span>
+          </a>
+        </div>
+        {/* Sub-bar — back, title, regime, download */}
+        <div className="border-t border-gray-200">
+          <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <button onClick={onClose} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg bg-white hover:bg-gray-100 text-gray-700 transition-colors border border-gray-300 shadow-sm">← Back</button>
+              <span className="text-gray-300">|</span>
+              <span className="text-sm font-bold text-gray-800">ITR‑1 SAHAJ — Preview</span>
+              <span className="text-xs text-gray-500 hidden sm:inline">AY {itr1.Form_ITR1.AssessmentYear}</span>
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${isOldRegime ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                {isOldRegime ? 'Old Regime' : 'New Regime'}
+              </span>
+            </div>
             <button
               onClick={() => {
                 const json = JSON.stringify(itr1, null, 2)
@@ -102,26 +116,16 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
                 document.body.removeChild(a)
                 URL.revokeObjectURL(url)
               }}
-              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold rounded-lg border border-green-400 text-green-700 bg-green-50 hover:bg-green-100 transition-colors shadow-sm"
             >
               ⬇ Download JSON
             </button>
           </div>
-          {/* Right — powered by (matches home header) */}
-          <a
-            href="https://indiatax.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
-          >
-            <Image src="/logo.webp" alt="IndiaTax.AI" width={24} height={24} className="rounded" />
-            <span className="text-xs text-gray-500 hidden sm:inline">Powered by <span className="font-semibold text-blue-600">IndiaTax.AI</span></span>
-          </a>
         </div>
       </div>
 
       {/* Form Body */}
-      <div className="max-w-4xl mx-auto py-6 px-4 space-y-0 print:py-0 print:px-0">
+      <div className="max-w-5xl mx-auto py-6 px-4 space-y-0 print:py-0 print:px-0">
         {/* ═══════════════════════════════════════════════════════
             FORM HEADER
            ═══════════════════════════════════════════════════════ */}
