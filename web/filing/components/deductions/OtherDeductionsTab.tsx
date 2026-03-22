@@ -113,6 +113,10 @@ export default function OtherDeductionsTab() {
     if (ttb < 0) newErrors.ttb = 'Amount cannot be negative';
     if (cch < 0) newErrors.cch = 'Amount cannot be negative';
     if (gg < 0) newErrors.gg = 'Amount cannot be negative';
+    if (tta > 0 && ttb > 0) {
+      newErrors.tta = '80TTA and 80TTB are mutually exclusive';
+      newErrors.ttb = '80TTA and 80TTB are mutually exclusive';
+    }
     if (tta === 0 && ttb === 0 && cch === 0 && gg === 0) {
       newErrors._form = 'Please enter at least one deduction amount';
     }

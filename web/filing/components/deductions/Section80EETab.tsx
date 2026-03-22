@@ -80,6 +80,12 @@ export default function Section80EETab() {
     if (!formData.lenderName?.trim()) e.lenderName = 'Lender name is required';
     if (!formData.loanAccountNumber?.trim()) e.loanAccountNumber = 'Loan account number is required';
     if (!formData.loanSanctionDate) e.loanSanctionDate = 'Loan sanction date is required';
+    else {
+      const sanctionDate = new Date(formData.loanSanctionDate);
+      if (sanctionDate < new Date(2016, 3, 1) || sanctionDate > new Date(2017, 2, 31)) {
+        e.loanSanctionDate = 'Loan sanction date must be between 01 Apr 2016 and 31 Mar 2017';
+      }
+    }
     if (!formData.totalLoanAmount || formData.totalLoanAmount <= 0) e.totalLoanAmount = 'Total loan amount must be > 0';
     if (!formData.loanOutstanding || formData.loanOutstanding <= 0) e.loanOutstanding = 'Loan outstanding must be > 0';
     if (!formData.interestOnLoan || formData.interestOnLoan <= 0) e.interestOnLoan = 'Interest amount must be > 0';
@@ -179,6 +185,8 @@ export default function Section80EETab() {
                         label="Loan Sanction Date *"
                         value={formData.loanSanctionDate || null}
                         onChange={(date) => update('loanSanctionDate', date)}
+                        minDate={new Date(2016, 3, 1)}
+                        maxDate={new Date(2017, 2, 31)}
                         error={errors.loanSanctionDate}
                         disabled={!isEditing}
                       />

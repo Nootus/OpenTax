@@ -187,12 +187,6 @@ export default function SummaryTab() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { setShowValidationErrors(false); setShowITRPreview(true); }}
-                className="text-xs px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-200 transition-colors font-medium"
-              >
-                View ITR-1 Anyway
-              </button>
-              <button
                 onClick={() => setShowValidationErrors(false)}
                 className="text-amber-500 hover:text-amber-700 text-lg leading-none"
               >

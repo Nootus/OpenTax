@@ -11,26 +11,25 @@ import { useFilingContext } from '@/filing/context/FilingContext';
 import type { DividendIncomeRecord } from '@/filing/models/income/dividend/dividend-income-model';
 
 interface QuarterlyData {
-  q1Dividend: number; q1Expense: number;
-  q2Dividend: number; q2Expense: number;
-  q3Dividend: number; q3Expense: number;
-  q4Dividend: number; q4Expense: number;
-  q5Dividend: number; q5Expense: number;
+  q1Dividend: number;
+  q2Dividend: number;
+  q3Dividend: number;
+  q4Dividend: number;
+  q5Dividend: number;
 }
 
 const EMPTY_QUARTERLY: QuarterlyData = {
-  q1Dividend: 0, q1Expense: 0,
-  q2Dividend: 0, q2Expense: 0,
-  q3Dividend: 0, q3Expense: 0,
-  q4Dividend: 0, q4Expense: 0,
-  q5Dividend: 0, q5Expense: 0,
+  q1Dividend: 0,
+  q2Dividend: 0,
+  q3Dividend: 0,
+  q4Dividend: 0,
+  q5Dividend: 0,
 };
 
 const formatCurrency = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
 const quarterlySum = (q: QuarterlyData) =>
-  (q.q1Dividend + q.q2Dividend + q.q3Dividend + q.q4Dividend + q.q5Dividend) -
-  (q.q1Expense + q.q2Expense + q.q3Expense + q.q4Expense + q.q5Expense);
+  q.q1Dividend + q.q2Dividend + q.q3Dividend + q.q4Dividend + q.q5Dividend;
 
 const dateToQuarterIndex = (date: string | Date | null | undefined): number => {
   if (!date) return 0;
@@ -120,12 +119,6 @@ export default function DividendIncomeTab() {
       setSaveError('At least one quarter must have a dividend amount greater than 0.');
       return;
     }
-    const hasEquityNegative = quarters.some((q) => equityQuarterly[`${q}Expense`] > equityQuarterly[`${q}Dividend`]);
-    const hasRsuNegative = quarters.some((q) => rsuQuarterly[`${q}Expense`] > rsuQuarterly[`${q}Dividend`]);
-    if (hasEquityNegative || hasRsuNegative) {
-      setSaveError('Expense cannot exceed dividend for any quarter. Total cannot be negative.');
-      return;
-    }
 
     setSaveError(null);
     const [qd1, qd2, qd3, qd4, qd5] = getQuarterDates(assessmentYear);
@@ -133,12 +126,12 @@ export default function DividendIncomeTab() {
     const periodLabels = ['Upto 15th June', '16th Jun – 15th Sep', '16th Sep – 15th Dec', '16th Dec – 15th Mar', '16th Mar – 31st Mar'];
 
     const equityRecords = quarters.flatMap((q, i) => {
-      const net = equityQuarterly[`${q}Dividend`] - equityQuarterly[`${q}Expense`];
-      if (net === 0) return [];
+      const amount = equityQuarterly[`${q}Dividend`];
+      if (amount === 0) return [];
       return [{
         dividendType: 'equity' as const,
         narration: `${periodLabels[i]} dividend income from equity, stocks, and mutual funds`,
-        amount: net,
+        amount,
         dateOfReceipt: quarterDates[i],
         amountReceivedCurrencyType: 'INR',
         taxPaidForeignCurrencyType: 'INR',
@@ -146,13 +139,13 @@ export default function DividendIncomeTab() {
     });
 
     const rsuRecords = quarters.flatMap((q, i) => {
-      const net = rsuQuarterly[`${q}Dividend`] - rsuQuarterly[`${q}Expense`];
-      if (net === 0) return [];
+      const amount = rsuQuarterly[`${q}Dividend`];
+      if (amount === 0) return [];
       return [{
         dividendType: 'rsu' as const,
         description: `${periodLabels[i]} dividend income from RSUs/ESOPs/ESSPs`,
-        amount: net,
-        amountReceived: net,
+        amount,
+        amountReceived: amount,
         amountReceivedCurrencyType: 'INR',
         taxPaidForeignCurrencyType: 'INR',
         dateOfReceipt: quarterDates[i],
@@ -186,28 +179,17 @@ export default function DividendIncomeTab() {
   const renderQuarterSection = (
     quarterLabel: string,
     dividendValue: number,
-    expenseValue: number,
     onDividendChange: (v: number) => void,
-    onExpenseChange: (v: number) => void,
   ) => {
-    const expenseExceedsDividend = expenseValue > dividendValue;
     return (
       <div className="mb-3">
         <h6 className="text-xs font-medium text-gray-600 mb-2">{quarterLabel}</h6>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <Input label="Dividend" type="number" value={dividendValue}
             onChange={(e) => {
               const newDividend = Number(e.target.value) || 0;
               onDividendChange(newDividend);
-              if (expenseValue > newDividend) onExpenseChange(newDividend);
             }} disabled={!editMode} />
-          <Input label="Expense" type="number" value={expenseValue}
-            onChange={(e) => {
-              const clamped = Math.min(Number(e.target.value) || 0, dividendValue);
-              onExpenseChange(clamped);
-            }}
-            disabled={!editMode}
-            error={expenseExceedsDividend ? 'Cannot exceed dividend' : undefined} />
         </div>
       </div>
     );
@@ -272,21 +254,16 @@ export default function DividendIncomeTab() {
                     </div>
                   </div>
                   <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-3">
-                    {renderQuarterSection('Upto 15th June', equityQuarterly.q1Dividend, equityQuarterly.q1Expense,
-                      (v) => setEquityQuarterly((p) => ({ ...p, q1Dividend: v })),
-                      (v) => setEquityQuarterly((p) => ({ ...p, q1Expense: v })))}
-                    {renderQuarterSection('16th Jun – 15th Sep', equityQuarterly.q2Dividend, equityQuarterly.q2Expense,
-                      (v) => setEquityQuarterly((p) => ({ ...p, q2Dividend: v })),
-                      (v) => setEquityQuarterly((p) => ({ ...p, q2Expense: v })))}
-                    {renderQuarterSection('16th Sep – 15th Dec', equityQuarterly.q3Dividend, equityQuarterly.q3Expense,
-                      (v) => setEquityQuarterly((p) => ({ ...p, q3Dividend: v })),
-                      (v) => setEquityQuarterly((p) => ({ ...p, q3Expense: v })))}
-                    {renderQuarterSection('16th Dec – 15th Mar', equityQuarterly.q4Dividend, equityQuarterly.q4Expense,
-                      (v) => setEquityQuarterly((p) => ({ ...p, q4Dividend: v })),
-                      (v) => setEquityQuarterly((p) => ({ ...p, q4Expense: v })))}
-                    {renderQuarterSection('16th Mar – 31st Mar', equityQuarterly.q5Dividend, equityQuarterly.q5Expense,
-                      (v) => setEquityQuarterly((p) => ({ ...p, q5Dividend: v })),
-                      (v) => setEquityQuarterly((p) => ({ ...p, q5Expense: v })))}
+                    {renderQuarterSection('Upto 15th June', equityQuarterly.q1Dividend,
+                      (v) => setEquityQuarterly((p) => ({ ...p, q1Dividend: v })))}
+                    {renderQuarterSection('16th Jun – 15th Sep', equityQuarterly.q2Dividend,
+                      (v) => setEquityQuarterly((p) => ({ ...p, q2Dividend: v })))}
+                    {renderQuarterSection('16th Sep – 15th Dec', equityQuarterly.q3Dividend,
+                      (v) => setEquityQuarterly((p) => ({ ...p, q3Dividend: v })))}
+                    {renderQuarterSection('16th Dec – 15th Mar', equityQuarterly.q4Dividend,
+                      (v) => setEquityQuarterly((p) => ({ ...p, q4Dividend: v })))}
+                    {renderQuarterSection('16th Mar – 31st Mar', equityQuarterly.q5Dividend,
+                      (v) => setEquityQuarterly((p) => ({ ...p, q5Dividend: v })))}
                   </div>
                 </div>
 
@@ -300,21 +277,16 @@ export default function DividendIncomeTab() {
                     </div>
                   </div>
                   <div className="bg-gray-50 rounded-lg border border-gray-200 p-4 space-y-3">
-                    {renderQuarterSection('Upto 15th June', rsuQuarterly.q1Dividend, rsuQuarterly.q1Expense,
-                      (v) => setRsuQuarterly((p) => ({ ...p, q1Dividend: v })),
-                      (v) => setRsuQuarterly((p) => ({ ...p, q1Expense: v })))}
-                    {renderQuarterSection('16th Jun – 15th Sep', rsuQuarterly.q2Dividend, rsuQuarterly.q2Expense,
-                      (v) => setRsuQuarterly((p) => ({ ...p, q2Dividend: v })),
-                      (v) => setRsuQuarterly((p) => ({ ...p, q2Expense: v })))}
-                    {renderQuarterSection('16th Sep – 15th Dec', rsuQuarterly.q3Dividend, rsuQuarterly.q3Expense,
-                      (v) => setRsuQuarterly((p) => ({ ...p, q3Dividend: v })),
-                      (v) => setRsuQuarterly((p) => ({ ...p, q3Expense: v })))}
-                    {renderQuarterSection('16th Dec – 15th Mar', rsuQuarterly.q4Dividend, rsuQuarterly.q4Expense,
-                      (v) => setRsuQuarterly((p) => ({ ...p, q4Dividend: v })),
-                      (v) => setRsuQuarterly((p) => ({ ...p, q4Expense: v })))}
-                    {renderQuarterSection('16th Mar – 31st Mar', rsuQuarterly.q5Dividend, rsuQuarterly.q5Expense,
-                      (v) => setRsuQuarterly((p) => ({ ...p, q5Dividend: v })),
-                      (v) => setRsuQuarterly((p) => ({ ...p, q5Expense: v })))}
+                    {renderQuarterSection('Upto 15th June', rsuQuarterly.q1Dividend,
+                      (v) => setRsuQuarterly((p) => ({ ...p, q1Dividend: v })))}
+                    {renderQuarterSection('16th Jun – 15th Sep', rsuQuarterly.q2Dividend,
+                      (v) => setRsuQuarterly((p) => ({ ...p, q2Dividend: v })))}
+                    {renderQuarterSection('16th Sep – 15th Dec', rsuQuarterly.q3Dividend,
+                      (v) => setRsuQuarterly((p) => ({ ...p, q3Dividend: v })))}
+                    {renderQuarterSection('16th Dec – 15th Mar', rsuQuarterly.q4Dividend,
+                      (v) => setRsuQuarterly((p) => ({ ...p, q4Dividend: v })))}
+                    {renderQuarterSection('16th Mar – 31st Mar', rsuQuarterly.q5Dividend,
+                      (v) => setRsuQuarterly((p) => ({ ...p, q5Dividend: v })))}
                   </div>
                 </div>
               </div>

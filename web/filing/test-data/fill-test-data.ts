@@ -206,13 +206,13 @@ export const TEST_FILING: Partial<FilingModel> = {
 
   // ── Deductions ────────────────────────────────────────────────
   section80C: [
-    { deductionId: null, filingId: 0, description: 'Life Insurance Premium', amount: 150000 },
+    { deductionId: null, filingId: 0, description: 'Life Insurance Premium', policyNumber: 'POL123456789', amount: 150000 },
   ],
   section80Ccc: [
-    { deductionId: null, filingId: 0, pranNumber: '', amount: 20000 },
+    { deductionId: null, filingId: 0, pranNumber: 'PRAN000123456', amount: 20000 },
   ],
   section80Ccd1B: [
-    { deductionId: null, filingId: 0, pranNumber: '', amount: 50000 },
+    { deductionId: null, filingId: 0, pranNumber: 'NPS000123456', amount: 50000 },
   ],
   section80D: {
     deductionId: null,
@@ -243,17 +243,17 @@ export const TEST_FILING: Partial<FilingModel> = {
     expenditureIncurred: 45000,
   },
   section80E: [
-    { deductionId: null, filingId: 0, lenderType: 'bank', lenderName: 'HDFC Bank', loanAccountNumber: null, loanSanctionDate: null, totalLoanAmount: null, loanOutstanding: null, interestOnLoan: 95000 },
+    { deductionId: null, filingId: 0, lenderType: 'bank', lenderName: 'HDFC Bank', loanAccountNumber: 'HDFC80E0012345', loanSanctionDate: new Date('2020-04-01'), totalLoanAmount: null, loanOutstanding: 500000, interestOnLoan: 95000 },
   ],
   section80Ee: {
     deductionId: null,
     filingId: 0,
     lenderType: 'bank',
     lenderName: 'State Bank of India',
-    loanAccountNumber: null,
-    loanSanctionDate: null,
+    loanAccountNumber: 'SBI80EE0012345',
+    loanSanctionDate: new Date('2016-06-15'),
     totalLoanAmount: null,
-    loanOutstanding: null,
+    loanOutstanding: 2000000,
     interestOnLoan: 50000,
   },
   section80Eea: {
@@ -261,10 +261,10 @@ export const TEST_FILING: Partial<FilingModel> = {
     filingId: 0,
     lenderType: 'bank',
     lenderName: 'ICICI Bank',
-    loanAccountNumber: null,
-    loanSanctionDate: null,
+    loanAccountNumber: 'ICICI80EEA001',
+    loanSanctionDate: new Date('2019-04-01'),
     totalLoanAmount: null,
-    loanOutstanding: null,
+    loanOutstanding: 1500000,
     interestOnLoan: 35000,
   },
   section80Eeb: {
@@ -274,17 +274,17 @@ export const TEST_FILING: Partial<FilingModel> = {
     vehicleRegistrationNumber: 'TS09XY5678',
     lenderType: 'bank',
     lenderName: 'HDFC Bank',
-    loanAccountNumber: null,
-    loanSanctionDate: null,
-    totalLoanAmount: null,
-    loanOutstanding: null,
+    loanAccountNumber: 'HDFC80EEB01234',
+    loanSanctionDate: new Date('2020-04-01'),
+    totalLoanAmount: 3000000,
+    loanOutstanding: 2500000,
     interestOnLoan: 150000,
   },
   section80G: [
     { deductionId: null, filingId: 0, doneeName: 'PM Relief Fund', doneePan: null, donationType: null, donationAmountCash: 0, donationAmountNonCash: 45000, donationAmount: 45000, qualifyingPercentage: null, limitOnDeduction: null, addressLine1: null, city: null, state: null },
   ],
   section80Gga: [
-    { deductionId: null, filingId: 0, doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 95000, totalDonationAmount: 95000 },
+    { deductionId: null, filingId: 0, doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 95000, totalDonationAmount: 95000, doneePan: 'AAAAB0001A', addressLine1: 'Plot 5, Science Park', city: 'Mumbai', state: '27', pincode: '400001' },
   ],
   section80Gg: {
     deductionId: null,
@@ -293,7 +293,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     acknowledgementNo10Ba: null,
   },
   section80Ggc: [
-    { deductionId: null, filingId: 0, politicalPartyName: 'Sample Political Party', contributionAmountCash: 0, contributionAmountNonCash: 55000, totalContribution: 55000 },
+    { deductionId: null, filingId: 0, politicalPartyName: 'Sample Political Party', contributionAmountCash: 0, contributionAmountNonCash: 55000, totalContribution: 55000, dateOfDonation: new Date('2024-08-15'), transactionId: 'TXN202408150001', donorBankIfsc: 'SBIN0001234' },
   ],
   section80Tta: {
     deductionId: null,
@@ -310,5 +310,6 @@ export const TEST_FILING: Partial<FilingModel> = {
     filingId: 0,
     disabilityType: 'Disabled',
     expenditureIncurred: 75000,
+    form101aAckNo: '123456789012',
   },
 }

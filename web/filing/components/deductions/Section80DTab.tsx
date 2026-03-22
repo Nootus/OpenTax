@@ -109,7 +109,7 @@ export default function Section80DTab() {
 
   const addHealthInsurance = () => {
     setIsEditMode(true);
-    setFormData(prev => ({ ...prev, healthInsurance: [...(prev.healthInsurance ?? []), { ...INITIAL_HEALTH_INSURANCE_ITEM, healthId: -Date.now(), filingId: null as unknown as number } as Deduction80DHealthInsuranceModel] }));
+    setFormData(prev => ({ ...prev, healthInsurance: [...(prev.healthInsurance ?? []), { ...INITIAL_HEALTH_INSURANCE_ITEM, healthId: -Date.now(), filingId: null as unknown as number, takenFor: 'Self' } as Deduction80DHealthInsuranceModel] }));
   };
   const updateHealthInsurance = (index: number, field: keyof Deduction80DHealthInsuranceModel, value: any) => {
     setFormData(prev => ({ ...prev, healthInsurance: (prev.healthInsurance ?? []).map((item, i) => i === index ? { ...item, [field]: value } : item) }));
@@ -210,7 +210,7 @@ export default function Section80DTab() {
                           <Input label="Premium Amount" required type="number" value={entry.healthInsurancePremium || 0} onChange={(e) => updateHealthInsurance(index, 'healthInsurancePremium', Number(e.target.value))} placeholder="0" prefix="₹" disabled={!isEditMode} />
                         </div>
                         <div className="flex items-center justify-between">
-                          <Checkbox label="Includes Senior Citizen" checked={entry.includesSeniorCitizen || false} onChange={(checked) => updateHealthInsurance(index, 'includesSeniorCitizen', checked)} disabled={!isEditMode} />
+                          <Checkbox label="Includes Senior Citizen" checked={entry.includesSeniorCitizen || false} onChange={(e) => updateHealthInsurance(index, 'includesSeniorCitizen', (e as React.ChangeEvent<HTMLInputElement>).target.checked)} disabled={!isEditMode} />
                           <IconButton onClick={() => removeHealthInsurance(index)} label="Remove" disabled={!isEditMode}><TrashIcon className="w-3 h-3" /></IconButton>
                         </div>
                       </div>
@@ -238,7 +238,7 @@ export default function Section80DTab() {
                           <Input label="Checkup Amount" type="number" value={entry.checkupAmount || 0} onChange={(e) => updatePreventiveCheckup(index, 'checkupAmount', Number(e.target.value))} placeholder="0" prefix="₹" disabled={!isEditMode} />
                         </div>
                         <div className="flex items-center justify-between">
-                          <Checkbox label="Includes Senior Citizen" checked={entry.includesSeniorCitizen || false} onChange={(checked) => updatePreventiveCheckup(index, 'includesSeniorCitizen', checked)} disabled={!isEditMode} />
+                          <Checkbox label="Includes Senior Citizen" checked={entry.includesSeniorCitizen || false} onChange={(e) => updatePreventiveCheckup(index, 'includesSeniorCitizen', (e as React.ChangeEvent<HTMLInputElement>).target.checked)} disabled={!isEditMode} />
                           <IconButton onClick={() => removePreventiveCheckup(index)} label="Remove" disabled={!isEditMode}><TrashIcon className="w-3 h-3" /></IconButton>
                         </div>
                       </div>
@@ -266,7 +266,7 @@ export default function Section80DTab() {
                           <Input label="Expenditure Amount" type="number" value={entry.expenditureAmount || 0} onChange={(e) => updateMedicalExpenditure(index, 'expenditureAmount', Number(e.target.value))} placeholder="0" prefix="₹" disabled={!isEditMode} />
                         </div>
                         <div className="flex items-center justify-between">
-                          <Checkbox label="Includes Senior Citizen" checked={entry.includesSeniorCitizen || false} onChange={(checked) => updateMedicalExpenditure(index, 'includesSeniorCitizen', checked)} disabled={!isEditMode} />
+                          <Checkbox label="Includes Senior Citizen" checked={entry.includesSeniorCitizen || false} onChange={(e) => updateMedicalExpenditure(index, 'includesSeniorCitizen', (e as React.ChangeEvent<HTMLInputElement>).target.checked)} disabled={!isEditMode} />
                           <IconButton onClick={() => removeMedicalExpenditure(index)} label="Remove" disabled={!isEditMode}><TrashIcon className="w-3 h-3" /></IconButton>
                         </div>
                       </div>

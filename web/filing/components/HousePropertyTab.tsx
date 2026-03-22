@@ -520,7 +520,6 @@ export default function HousePropertyTab() {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                               <Input label="Interest Paid" type="number" value={entry.propertyLoan?.interestPaid || 0} onChange={(e) => updateEntry(entry.property.propertyId, 'propertyLoan.interestPaid', Number(e.target.value))} disabled={!isEditing} error={isEditing ? errs.loanInterestPaid : undefined} />
-                              <Input label="Principal Repaid" type="number" value={entry.propertyLoan?.principalRepaid || 0} onChange={(e) => updateEntry(entry.property.propertyId, 'propertyLoan.principalRepaid', Number(e.target.value))} disabled={!isEditing} />
                             </div>
                             </>); })()}
                           </div>
