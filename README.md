@@ -8,6 +8,10 @@
   <a href="https://indiatax.ai"><strong>Powered by IndiaTax.AI</strong></a>
 </p>
 
+<p align="center">
+  <strong>Check it out at <a href="https://opentax.indiatax.ai">opentax.indiatax.ai</a></strong>
+</p>
+
 <br/>
 
 OpenTax is a free, open-source Income Tax Return (ITR) filing application for India. It provides a single-page browser interface for completing ITR-1 filings, backed by a FastAPI service that performs tax calculations, ITR-1 construction, and validation.
