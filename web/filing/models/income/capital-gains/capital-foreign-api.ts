@@ -12,9 +12,8 @@
  */
 
 import { apiClient, ApiResponse } from '@/filing/core/api/client'
-import type { ForeignCapitalGains } from '@/filing/widgets/income/capital-gains/capital-foreign/models/foreign-capital-gains-model'
-import type { ForeignAssetModel } from '@/filing/widgets/income/capital-gains/models/foreign-asset-model'
-import type { ForeignAssetSummaryModel } from '@/filing/widgets/income/capital-gains/capital-foreign/models/foreign-asset-summary-model'
+import type { ForeignCapitalGains } from './foreign-capital-gains-model'
+import type { ForeignAssetSummaryModel } from './foreign-asset-summary-model'
 
 // ==================== Types ====================
 
