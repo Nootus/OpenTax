@@ -9,7 +9,7 @@
 
 <br/>
 
-# 🧾 OpenTax — Open‑Source Infrastructure for Indian Income Tax
+# OpenTax — Open‑Source Framework for Indian Income Tax
 
 **OpenTax** is a free, open‑source framework for Indian Income Tax.  
 It aims to **democratise tax processing** by making complex tax rules, calculations, and ITR generation accessible to everyone — individuals, developers, startups, and large-scale platforms.
