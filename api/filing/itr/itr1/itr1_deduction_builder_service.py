@@ -710,7 +710,7 @@ class Itr1DeductionBuilderService:
                 )
                 schedule_80gga_dtls.append(
                     DonationDtlsSciRsrchRuralDevItem(
-                        RelevantClauseUndrDedClaimed=RelevantClauseUndrDedClaimedEnum(getattr(section_80gga, 'clause_under_donation', None)),
+                        RelevantClauseUndrDedClaimed=RelevantClauseUndrDedClaimedEnum(section_80gga.itr_relevant_clause),
                         NameOfDonee=section_80gga.donee_name,
                         AddressDetail=addressDetail,
                         DoneePAN=section_80gga.donee_pan,
