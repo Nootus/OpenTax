@@ -71,7 +71,7 @@ export default function TaxComputationScreen({ onClose }: TaxComputationScreenPr
     const borderColor = isOld ? 'border-blue-300' : 'border-green-300'
     const titleColor = isOld ? 'text-blue-800' : 'text-green-800'
     const title = isOld ? 'Old Regime' : 'New Regime (115BAC)'
-    const tdsValue = Number(isOld ? regimeData?.tds : regimeData?.totalTaxesPaid) || 0
+    const tdsValue = Number(regimeData?.totalTaxesPaid ?? (Number(regimeData?.tds ?? 0) + Number(regimeData?.tcs ?? 0) + Number(regimeData?.advanceTax ?? 0))) || 0
     const slabTaxTotal = (regimeData?.slabBreakdown ?? []).reduce((sum, s) => sum + Number(s.tax ?? 0), 0)
     const totalDeductions = Number(regimeData?.totalDeductions ?? 0) || 0
     const canClickDeductions = totalDeductions > 0
