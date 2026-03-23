@@ -20,68 +20,9 @@ import { fyDatesFromAy } from '@/utils/tax-year';
 import type { TDSModel } from '@/filing/models/tax-credits/tds-model';
 import type { TCSModel } from '@/filing/models/tax-credits/tcs-model';
 import type { TaxPaidSelfModel } from '@/filing/models/tax-credits/tax-paid-self-model';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const fc = (n: number) => n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-
-// Static master data options (no API in OpenTax)
-const INCOME_SOURCE_OPTIONS = [
-  { value: '', label: 'Select source' },
-  { value: 'SALARY', label: 'Salary' },
-  { value: 'INTEREST', label: 'Interest Income' },
-  { value: 'RENT', label: 'Rental Income' },
-  { value: 'DIVIDEND', label: 'Dividend Income' },
-  { value: 'COMMISSION', label: 'Commission' },
-  { value: 'PROFESSIONAL', label: 'Professional Fee' },
-  { value: 'OTHER', label: 'Other' },
-];
-
-const TDS_SECTION_OPTIONS = [
-  { value: '', label: 'Select section' },
-  { value: '192', label: '192 - Salary' },
-  { value: '192A', label: '192A - PF Premature Withdrawal' },
-  { value: '193', label: '193 - Interest on Securities' },
-  { value: '194', label: '194 - Dividend' },
-  { value: '194A', label: '194A - Interest (Other than Securities)' },
-  { value: '194B', label: '194B - Lottery/Puzzle Winnings' },
-  { value: '194C', label: '194C - Contractor Payments' },
-  { value: '194D', label: '194D - Insurance Commission' },
-  { value: '194H', label: '194H - Commission/Brokerage' },
-  { value: '194I', label: '194I - Rent' },
-  { value: '194IA', label: '194IA - Sale of Immovable Property' },
-  { value: '194J', label: '194J - Professional/Technical Fees' },
-  { value: '194N', label: '194N - Cash Withdrawal' },
-  { value: '194Q', label: '194Q - Purchase of Goods' },
-  { value: 'OTHER', label: 'Other' },
-];
-
-const QUARTER_OPTIONS = [
-  { value: '', label: 'Select quarter' },
-  { value: 'Q1', label: 'Q1 (Apr-Jun)' },
-  { value: 'Q2', label: 'Q2 (Jul-Sep)' },
-  { value: 'Q3', label: 'Q3 (Oct-Dec)' },
-  { value: 'Q4', label: 'Q4 (Jan-Mar)' },
-];
-
-const NATURE_OF_COLLECTION_OPTIONS = [
-  { value: '', label: 'Select nature' },
-  { value: '6CA', label: '6CA - Alcoholic Liquor' },
-  { value: '6CB', label: '6CB - Tendu Leaves' },
-  { value: '6CC', label: '6CC - Timber (Forest Lease)' },
-  { value: '6CD', label: '6CD - Timber (Other mode)' },
-  { value: '6CE', label: '6CE - Other Forest Produce' },
-  { value: '6CF', label: '6CF - Scrap' },
-  { value: '6CG', label: '6CG - Minerals' },
-  { value: '6CH', label: '6CH - Motor Vehicle above 10L' },
-  { value: '6CI', label: '6CI - Overseas Tour Package' },
-  { value: '6CJ', label: '6CJ - Remittance under LRS' },
-  { value: 'OTHER', label: 'Other' },
-];
-
-const TAX_TYPE_OPTIONS = [
-  { value: '', label: 'Select type' },
-  { value: '100', label: '100 - Advance Tax' },
-  { value: '300', label: '300 - Self Assessment Tax' },
-];
 
 // Interfaces
 interface TDSData { entries: TDSModel[]; totalAmount: number; }
@@ -95,16 +36,28 @@ const advSum = (e: TaxPaidSelfModel[]) => e.reduce((s, i) => s + (i.taxPaidAmoun
 export default function TaxPaidTab() {
   const { filing, updateSection } = useFilingContext();
   const { fyMinDate, fyMaxDate } = fyDatesFromAy(filing.assessmentYear);
+  const masterData = useMasterData();
+
+  // Master data dropdown options
+  const TDS_SECTION_OPTIONS = [{ value: '', label: 'Select section' }, ...masterData.tdsSections];
+  const QUARTER_OPTIONS = [{ value: '', label: 'Select quarter' }, ...masterData.quarters];
+  const NATURE_OF_COLLECTION_OPTIONS = [{ value: '', label: 'Select nature' }, ...masterData.tcsNatureOfCollections];
+  const TAX_TYPE_OPTIONS = [{ value: '', label: 'Select type' }, ...masterData.taxPaymentTypes];
 
   // Assign stable temp IDs to entries missing them
   const assignTdsIds = (arr: TDSModel[]) => arr.map((e, i) => e.tdsId != null ? e : { ...e, tdsId: -(Date.now() + i) });
   const assignTcsIds = (arr: TCSModel[]) => arr.map((e, i) => e.tcsId != null ? e : { ...e, tcsId: -(Date.now() + i + 1000) });
   const assignTaxPaidIds = (arr: TaxPaidSelfModel[]) => arr.map((e, i) => e.taxPaidId != null ? e : { ...e, taxPaidId: -(Date.now() + i + 2000) });
 
-  // TDS state
-  const [tdsData, setTdsData] = useState<TDSData>(() => { const e = assignTdsIds(filing.tds ?? []); return { entries: e, totalAmount: tdsSum(e) }; });
-  const [editableTdsData, setEditableTdsData] = useState<TDSData>(() => { const e = assignTdsIds(filing.tds ?? []); return { entries: e, totalAmount: tdsSum(e) }; });
-  const [editingTdsIndex, setEditingTdsIndex] = useState<number | null>(null);
+  // TDS Salary state
+  const [tdsSalaryData, setTdsSalaryData] = useState<TDSData>(() => { const e = assignTdsIds((filing.tds ?? []).filter(t => t.incomeSource === 'salary')); return { entries: e, totalAmount: tdsSum(e) }; });
+  const [editableTdsSalaryData, setEditableTdsSalaryData] = useState<TDSData>(() => { const e = assignTdsIds((filing.tds ?? []).filter(t => t.incomeSource === 'salary')); return { entries: e, totalAmount: tdsSum(e) }; });
+  const [editingTdsSalaryIndex, setEditingTdsSalaryIndex] = useState<number | null>(null);
+
+  // TDS Other state
+  const [tdsOtherData, setTdsOtherData] = useState<TDSData>(() => { const e = assignTdsIds((filing.tds ?? []).filter(t => t.incomeSource !== 'salary')); return { entries: e, totalAmount: tdsSum(e) }; });
+  const [editableTdsOtherData, setEditableTdsOtherData] = useState<TDSData>(() => { const e = assignTdsIds((filing.tds ?? []).filter(t => t.incomeSource !== 'salary')); return { entries: e, totalAmount: tdsSum(e) }; });
+  const [editingTdsOtherIndex, setEditingTdsOtherIndex] = useState<number | null>(null);
 
   // TCS state
   const [tcsData, setTcsData] = useState<TCSData>(() => { const e = assignTcsIds(filing.tcs ?? []); return { entries: e, totalAmount: tcsSum(e) }; });
@@ -117,12 +70,14 @@ export default function TaxPaidTab() {
   const [editingTaxPaidIndex, setEditingTaxPaidIndex] = useState<number | null>(null);
 
   // Accordion
-  const [tdsExpanded, setTdsExpanded] = useState(true);
+  const [tdsSalaryExpanded, setTdsSalaryExpanded] = useState(true);
+  const [tdsOtherExpanded, setTdsOtherExpanded] = useState(true);
   const [tcsExpanded, setTcsExpanded] = useState(true);
   const [taxPaidExpanded, setTaxPaidExpanded] = useState(true);
 
   // Refs
-  const tdsRef = useRef<HTMLDivElement>(null);
+  const tdsSalaryRef = useRef<HTMLDivElement>(null);
+  const tdsOtherRef = useRef<HTMLDivElement>(null);
   const tcsRef = useRef<HTMLDivElement>(null);
   const taxPaidRef = useRef<HTMLDivElement>(null);
 
@@ -157,10 +112,16 @@ export default function TaxPaidTab() {
     return () => { document.getElementById('tax-paid-tab-input-style')?.remove(); };
   }, []);
 
+  // Income source options for TDS Other (exclude salary)
+  const TDS_OTHER_INCOME_SOURCE_OPTIONS = [{ value: '', label: 'Select source' }, ...masterData.tdsIncomeSources.filter((o: { value: string }) => o.value !== 'salary')];
+
   // Auto-scroll effects
   useEffect(() => {
-    if (tdsExpanded && tdsRef.current) { const t = setTimeout(() => tdsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); return () => clearTimeout(t); }
-  }, [tdsExpanded]);
+    if (tdsSalaryExpanded && tdsSalaryRef.current) { const t = setTimeout(() => tdsSalaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); return () => clearTimeout(t); }
+  }, [tdsSalaryExpanded]);
+  useEffect(() => {
+    if (tdsOtherExpanded && tdsOtherRef.current) { const t = setTimeout(() => tdsOtherRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); return () => clearTimeout(t); }
+  }, [tdsOtherExpanded]);
   useEffect(() => {
     if (tcsExpanded && tcsRef.current) { const t = setTimeout(() => tcsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); return () => clearTimeout(t); }
   }, [tcsExpanded]);
@@ -168,44 +129,82 @@ export default function TaxPaidTab() {
     if (taxPaidExpanded && taxPaidRef.current) { const t = setTimeout(() => taxPaidRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); return () => clearTimeout(t); }
   }, [taxPaidExpanded]);
 
-  const totalTaxPaid = (tdsData.totalAmount || 0) + (tcsData.totalAmount || 0) + (taxPaidData.totalAmount || 0);
+  const totalTaxPaid = (tdsSalaryData.totalAmount || 0) + (tdsOtherData.totalAmount || 0) + (tcsData.totalAmount || 0) + (taxPaidData.totalAmount || 0);
 
-  // TDS handlers
-  const addTdsEntry = () => {
-    const newEntry: TDSModel = { tdsId: -Date.now(), filingId: filing.filingId, deductorName: '', tan: '', pan: null, incomeSource: undefined, tdsSection: undefined, amountPaid: undefined, taxDeducted: undefined, tdsCertificateNumber: undefined, quarter: undefined };
-    const updatedEntries = [...editableTdsData.entries, newEntry];
-    setEditableTdsData({ entries: updatedEntries, totalAmount: tdsSum(updatedEntries) });
-    setEditingTdsIndex(updatedEntries.length - 1);
+  // TDS Salary handlers
+  const addTdsSalaryEntry = () => {
+    const newEntry: TDSModel = { tdsId: -Date.now(), filingId: filing.filingId, deductorName: '', tan: '', pan: null, incomeSource: 'salary', tdsSection: '192', amountPaid: undefined, taxDeducted: undefined, tdsCertificateNumber: undefined, quarter: undefined };
+    const updatedEntries = [...editableTdsSalaryData.entries, newEntry];
+    setEditableTdsSalaryData({ entries: updatedEntries, totalAmount: tdsSum(updatedEntries) });
+    setEditingTdsSalaryIndex(updatedEntries.length - 1);
   };
-  const updateTdsEntry = (index: number, field: keyof TDSModel, value: any) => {
-    const updatedEntries = editableTdsData.entries.map((e, i) => i === index ? { ...e, [field]: value } : e);
-    setEditableTdsData({ entries: updatedEntries, totalAmount: tdsSum(updatedEntries) });
+  const updateTdsSalaryEntry = (index: number, field: keyof TDSModel, value: any) => {
+    const updatedEntries = editableTdsSalaryData.entries.map((e, i) => i === index ? { ...e, [field]: value } : e);
+    setEditableTdsSalaryData({ entries: updatedEntries, totalAmount: tdsSum(updatedEntries) });
     setSaveErrors({});
   };
-  const saveTdsEntry = (index: number) => {
-    const entry = editableTdsData.entries[index];
+  const saveTdsSalaryEntry = (index: number) => {
+    const entry = editableTdsSalaryData.entries[index];
     const errors: Record<string, string> = {};
-    if (!entry.deductorName?.trim()) errors[`tds_${index}_deductorName`] = 'Deductor name is required';
-    if (!entry.tan?.trim()) errors[`tds_${index}_tan`] = 'TAN is required';
-    else if (!/^(HYD|VPN|BBN|BPL|JBP|CHE|CMB|MRI|DEL|CAL|MRT|AHM|BRD|RKT|SRT|BLR|AGR|KNP|CHN|TVD|ALD|LKN|MUM|NGP|AMR|JLD|PTL|RTK|KLP|NSK|PNE|PTN|RCH|JDH|JPR|SHL)[A-Z][0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tds_${index}_tan`] = 'Invalid TAN format (e.g., DELA99999A)';
-    if (!entry.taxDeducted || entry.taxDeducted === 0) errors[`tds_${index}_taxDeducted`] = 'Tax deducted is required';
+    if (!entry.deductorName?.trim()) errors[`tdsSalary_${index}_deductorName`] = 'Deductor name is required';
+    if (!entry.tan?.trim()) errors[`tdsSalary_${index}_tan`] = 'TAN is required';
+    else if (!/^(HYD|VPN|BBN|BPL|JBP|CHE|CMB|MRI|DEL|CAL|MRT|AHM|BRD|RKT|SRT|BLR|AGR|KNP|CHN|TVD|ALD|LKN|MUM|NGP|AMR|JLD|PTL|RTK|KLP|NSK|PNE|PTN|RCH|JDH|JPR|SHL)[A-Z][0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tdsSalary_${index}_tan`] = 'Invalid TAN format (e.g., DELA99999A)';
+    if (!entry.taxDeducted || entry.taxDeducted === 0) errors[`tdsSalary_${index}_taxDeducted`] = 'Tax deducted is required';
+    if (Object.keys(errors).length > 0) { setSaveErrors(errors); return; }
+    setSaveErrors({});
+    const saved = { ...entry, tdsId: entry.tdsId ?? Date.now(), incomeSource: 'salary', tdsSection: '192' };
+    const updatedEntries = editableTdsSalaryData.entries.map((e, i) => i === index ? saved : e);
+    const newData = { entries: updatedEntries, totalAmount: tdsSum(updatedEntries) };
+    setTdsSalaryData(newData); setEditableTdsSalaryData(newData); updateSection('tds', [...updatedEntries, ...tdsOtherData.entries]); setEditingTdsSalaryIndex(null);
+  };
+  const cancelTdsSalaryEdit = (index: number) => {
+    const original = tdsSalaryData.entries[index];
+    if (original) { const u = editableTdsSalaryData.entries.map((e, i) => i === index ? original : e); setEditableTdsSalaryData({ entries: u, totalAmount: tdsSum(u) }); }
+    else { const u = editableTdsSalaryData.entries.filter((_, i) => i !== index); setEditableTdsSalaryData({ entries: u, totalAmount: tdsSum(u) }); }
+    setEditingTdsSalaryIndex(null); setSaveErrors({});
+  };
+  const deleteTdsSalaryEntry = (index: number) => {
+    const u = tdsSalaryData.entries.filter((_, i) => i !== index);
+    const newData = { entries: u, totalAmount: tdsSum(u) };
+    setTdsSalaryData(newData); setEditableTdsSalaryData(newData); updateSection('tds', [...u, ...tdsOtherData.entries]);
+  };
+
+  // TDS Other handlers
+  const addTdsOtherEntry = () => {
+    const newEntry: TDSModel = { tdsId: -Date.now(), filingId: filing.filingId, deductorName: '', tan: '', pan: null, incomeSource: undefined, tdsSection: undefined, amountPaid: undefined, taxDeducted: undefined, tdsCertificateNumber: undefined, quarter: undefined };
+    const updatedEntries = [...editableTdsOtherData.entries, newEntry];
+    setEditableTdsOtherData({ entries: updatedEntries, totalAmount: tdsSum(updatedEntries) });
+    setEditingTdsOtherIndex(updatedEntries.length - 1);
+  };
+  const updateTdsOtherEntry = (index: number, field: keyof TDSModel, value: any) => {
+    const updatedEntries = editableTdsOtherData.entries.map((e, i) => i === index ? { ...e, [field]: value } : e);
+    setEditableTdsOtherData({ entries: updatedEntries, totalAmount: tdsSum(updatedEntries) });
+    setSaveErrors({});
+  };
+  const saveTdsOtherEntry = (index: number) => {
+    const entry = editableTdsOtherData.entries[index];
+    const errors: Record<string, string> = {};
+    if (!entry.deductorName?.trim()) errors[`tdsOther_${index}_deductorName`] = 'Deductor name is required';
+    if (!entry.tan?.trim()) errors[`tdsOther_${index}_tan`] = 'TAN is required';
+    else if (!/^(HYD|VPN|BBN|BPL|JBP|CHE|CMB|MRI|DEL|CAL|MRT|AHM|BRD|RKT|SRT|BLR|AGR|KNP|CHN|TVD|ALD|LKN|MUM|NGP|AMR|JLD|PTL|RTK|KLP|NSK|PNE|PTN|RCH|JDH|JPR|SHL)[A-Z][0-9]{5}[A-Z]$/.test(entry.tan)) errors[`tdsOther_${index}_tan`] = 'Invalid TAN format (e.g., DELA99999A)';
+    if (!entry.taxDeducted || entry.taxDeducted === 0) errors[`tdsOther_${index}_taxDeducted`] = 'Tax deducted is required';
     if (Object.keys(errors).length > 0) { setSaveErrors(errors); return; }
     setSaveErrors({});
     const saved = { ...entry, tdsId: entry.tdsId ?? Date.now() };
-    const updatedEntries = editableTdsData.entries.map((e, i) => i === index ? saved : e);
+    const updatedEntries = editableTdsOtherData.entries.map((e, i) => i === index ? saved : e);
     const newData = { entries: updatedEntries, totalAmount: tdsSum(updatedEntries) };
-    setTdsData(newData); setEditableTdsData(newData); updateSection('tds', updatedEntries); setEditingTdsIndex(null);
+    setTdsOtherData(newData); setEditableTdsOtherData(newData); updateSection('tds', [...tdsSalaryData.entries, ...updatedEntries]); setEditingTdsOtherIndex(null);
   };
-  const cancelTdsEdit = (index: number) => {
-    const original = tdsData.entries[index];
-    if (original) { const u = editableTdsData.entries.map((e, i) => i === index ? original : e); setEditableTdsData({ entries: u, totalAmount: tdsSum(u) }); }
-    else { const u = editableTdsData.entries.filter((_, i) => i !== index); setEditableTdsData({ entries: u, totalAmount: tdsSum(u) }); }
-    setEditingTdsIndex(null); setSaveErrors({});
+  const cancelTdsOtherEdit = (index: number) => {
+    const original = tdsOtherData.entries[index];
+    if (original) { const u = editableTdsOtherData.entries.map((e, i) => i === index ? original : e); setEditableTdsOtherData({ entries: u, totalAmount: tdsSum(u) }); }
+    else { const u = editableTdsOtherData.entries.filter((_, i) => i !== index); setEditableTdsOtherData({ entries: u, totalAmount: tdsSum(u) }); }
+    setEditingTdsOtherIndex(null); setSaveErrors({});
   };
-  const deleteTdsEntry = (index: number) => {
-    const u = tdsData.entries.filter((_, i) => i !== index);
+  const deleteTdsOtherEntry = (index: number) => {
+    const u = tdsOtherData.entries.filter((_, i) => i !== index);
     const newData = { entries: u, totalAmount: tdsSum(u) };
-    setTdsData(newData); setEditableTdsData(newData); updateSection('tds', u);
+    setTdsOtherData(newData); setEditableTdsOtherData(newData); updateSection('tds', [...tdsSalaryData.entries, ...u]);
   };
 
   // TCS handlers
@@ -301,21 +300,90 @@ export default function TaxPaidTab() {
         </div>
       </div>
 
-      {/* TDS Section */}
-      <div ref={tdsRef} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 cursor-pointer hover:from-emerald-100 hover:to-teal-100 transition-all" onClick={() => setTdsExpanded(!tdsExpanded)}>
+      {/* TDS on Salary Section */}
+      <div ref={tdsSalaryRef} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 cursor-pointer hover:from-emerald-100 hover:to-teal-100 transition-all" onClick={() => setTdsSalaryExpanded(!tdsSalaryExpanded)}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {tdsExpanded ? <ChevronDownIcon className="w-5 h-5 text-gray-600" /> : <ChevronRightIcon className="w-5 h-5 text-gray-600" />}
-              <DocumentTextIcon className="w-6 h-6 text-emerald-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Tax Deducted at Source (TDS)</h3>
+              {tdsSalaryExpanded ? <ChevronDownIcon className="w-5 h-5 text-gray-600" /> : <ChevronRightIcon className="w-5 h-5 text-gray-600" />}
+              <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">S</span>
+              <h3 className="text-lg font-semibold text-gray-900">TDS on Salary (Section 192)</h3>
             </div>
-            <p className="text-2xl font-bold text-emerald-600">&#8377;{fc(tdsData.totalAmount)}</p>
+            <p className="text-2xl font-bold text-emerald-600">&#8377;{fc(tdsSalaryData.totalAmount)}</p>
           </div>
         </div>
-        {tdsExpanded && (
+        {tdsSalaryExpanded && (
           <div className="p-6 space-y-4">
-            {editableTdsData.entries.length > 0 && (
+            {editableTdsSalaryData.entries.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b-2 border-gray-200">
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 deductor-column">Employer / Deductor Name <span className="text-red-500">*</span></th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 tan-column">TAN <span className="text-red-500">*</span></th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 amount-column">Amount Paid</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 amount-column">Tax Deducted <span className="text-red-500">*</span></th>
+                      <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600 actions-column">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {editableTdsSalaryData.entries.map((entry, index) => (
+                      <tr key={entry.tdsId ?? `tdsSal-${index}`} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
+                        {editingTdsSalaryIndex === index ? (
+                          <>
+                            <td className="px-3 py-2 deductor-column"><Input value={entry.deductorName} onChange={(e) => updateTdsSalaryEntry(index, 'deductorName', e.target.value)} placeholder="Employer name" className="text-sm" error={saveErrors[`tdsSalary_${index}_deductorName`]} /></td>
+                            <td className="px-3 py-2 tan-column"><Input value={entry.tan} onChange={(e) => updateTdsSalaryEntry(index, 'tan', e.target.value.toUpperCase())} placeholder="AAAA99999A" maxLength={10} className="text-sm uppercase" error={saveErrors[`tdsSalary_${index}_tan`]} /></td>
+                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.amountPaid || ''} onChange={(e) => updateTdsSalaryEntry(index, 'amountPaid', parseFloat(e.target.value) || 0)} placeholder="Amount" className="text-sm" /></td>
+                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.taxDeducted || ''} onChange={(e) => updateTdsSalaryEntry(index, 'taxDeducted', parseFloat(e.target.value) || 0)} placeholder="Tax" className="text-sm" error={saveErrors[`tdsSalary_${index}_taxDeducted`]} /></td>
+                            <td className="px-3 py-2 actions-column">
+                              <div className="flex items-center justify-center gap-2">
+                                <Button variant="primary" size="sm" onClick={() => saveTdsSalaryEntry(index)}>Save</Button>
+                                <Button variant="outline" size="sm" onClick={() => cancelTdsSalaryEdit(index)}>Cancel</Button>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-3 py-2 text-sm text-gray-900 deductor-column">{entry.deductorName || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 tan-column">{entry.tan || '-'}</td>
+                            <td className="px-3 py-2 text-sm text-gray-900 amount-column">&#8377;{fc(entry.amountPaid || 0)}</td>
+                            <td className="px-3 py-2 text-sm font-semibold text-emerald-600 amount-column">&#8377;{fc(entry.taxDeducted || 0)}</td>
+                            <td className="px-3 py-2 actions-column">
+                              <div className="flex items-center justify-center gap-2">
+                                <IconButton label="Edit" onClick={() => { setSaveErrors({}); setEditingTdsSalaryIndex(index); }}><PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" /></IconButton>
+                                <IconButton label="Delete" onClick={() => deleteTdsSalaryEntry(index)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="pt-2">
+              <AddButton label="Add TDS on Salary" onClick={addTdsSalaryEntry} colorScheme="teal" disableEdit={editingTdsSalaryIndex !== null} />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* TDS Other than Salary Section */}
+      <div ref={tdsOtherRef} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 cursor-pointer hover:from-orange-100 hover:to-amber-100 transition-all" onClick={() => setTdsOtherExpanded(!tdsOtherExpanded)}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {tdsOtherExpanded ? <ChevronDownIcon className="w-5 h-5 text-gray-600" /> : <ChevronRightIcon className="w-5 h-5 text-gray-600" />}
+              <span className="w-6 h-6 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-bold">O</span>
+              <h3 className="text-lg font-semibold text-gray-900">TDS (Other than Salary)</h3>
+            </div>
+            <p className="text-2xl font-bold text-orange-600">&#8377;{fc(tdsOtherData.totalAmount)}</p>
+          </div>
+        </div>
+        {tdsOtherExpanded && (
+          <div className="p-6 space-y-4">
+            {editableTdsOtherData.entries.length > 0 && (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -332,22 +400,22 @@ export default function TaxPaidTab() {
                     </tr>
                   </thead>
                   <tbody>
-                    {editableTdsData.entries.map((entry, index) => (
-                      <tr key={entry.tdsId ?? `tds-${index}`} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
-                        {editingTdsIndex === index ? (
+                    {editableTdsOtherData.entries.map((entry, index) => (
+                      <tr key={entry.tdsId ?? `tdsOth-${index}`} className="border-b border-gray-100 hover:bg-gray-50 [&>td]:align-top">
+                        {editingTdsOtherIndex === index ? (
                           <>
-                            <td className="px-3 py-2 deductor-column"><Input value={entry.deductorName} onChange={(e) => updateTdsEntry(index, 'deductorName', e.target.value)} placeholder="Deductor" className="text-sm" error={saveErrors[`tds_${index}_deductorName`]} /></td>
-                            <td className="px-3 py-2 tan-column"><Input value={entry.tan} onChange={(e) => updateTdsEntry(index, 'tan', e.target.value.toUpperCase())} placeholder="AAAA99999A" maxLength={10} className="text-sm uppercase" error={saveErrors[`tds_${index}_tan`]} /></td>
-                            <td className="px-3 py-2 income-source-column"><Select value={entry.incomeSource || ''} onChange={(e) => updateTdsEntry(index, 'incomeSource', e.target.value)} options={INCOME_SOURCE_OPTIONS} className="text-sm" /></td>
-                            <td className="px-3 py-2 tds-section-column"><Select value={entry.tdsSection || ''} onChange={(e) => updateTdsEntry(index, 'tdsSection', e.target.value)} options={TDS_SECTION_OPTIONS} className="text-sm" /></td>
-                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.amountPaid || ''} onChange={(e) => updateTdsEntry(index, 'amountPaid', parseFloat(e.target.value) || 0)} placeholder="Amount" className="text-sm" /></td>
-                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.taxDeducted || ''} onChange={(e) => updateTdsEntry(index, 'taxDeducted', parseFloat(e.target.value) || 0)} placeholder="Tax" className="text-sm" error={saveErrors[`tds_${index}_taxDeducted`]} /></td>
-                            <td className="px-3 py-2 certificate-column"><Input value={entry.tdsCertificateNumber || ''} onChange={(e) => updateTdsEntry(index, 'tdsCertificateNumber', e.target.value)} placeholder="Certificate" className="text-sm" /></td>
-                            <td className="px-3 py-2 quarter-column"><Select value={entry.quarter || ''} onChange={(e) => updateTdsEntry(index, 'quarter', e.target.value)} options={QUARTER_OPTIONS} className="text-sm" /></td>
+                            <td className="px-3 py-2 deductor-column"><Input value={entry.deductorName} onChange={(e) => updateTdsOtherEntry(index, 'deductorName', e.target.value)} placeholder="Deductor" className="text-sm" error={saveErrors[`tdsOther_${index}_deductorName`]} /></td>
+                            <td className="px-3 py-2 tan-column"><Input value={entry.tan} onChange={(e) => updateTdsOtherEntry(index, 'tan', e.target.value.toUpperCase())} placeholder="AAAA99999A" maxLength={10} className="text-sm uppercase" error={saveErrors[`tdsOther_${index}_tan`]} /></td>
+                            <td className="px-3 py-2 income-source-column"><Select value={entry.incomeSource || ''} onChange={(e) => updateTdsOtherEntry(index, 'incomeSource', e.target.value)} options={TDS_OTHER_INCOME_SOURCE_OPTIONS} className="text-sm" /></td>
+                            <td className="px-3 py-2 tds-section-column"><Select value={entry.tdsSection || ''} onChange={(e) => updateTdsOtherEntry(index, 'tdsSection', e.target.value)} options={TDS_SECTION_OPTIONS} className="text-sm" /></td>
+                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.amountPaid || ''} onChange={(e) => updateTdsOtherEntry(index, 'amountPaid', parseFloat(e.target.value) || 0)} placeholder="Amount" className="text-sm" /></td>
+                            <td className="px-3 py-2 amount-column"><Input type="number" value={entry.taxDeducted || ''} onChange={(e) => updateTdsOtherEntry(index, 'taxDeducted', parseFloat(e.target.value) || 0)} placeholder="Tax" className="text-sm" error={saveErrors[`tdsOther_${index}_taxDeducted`]} /></td>
+                            <td className="px-3 py-2 certificate-column"><Input value={entry.tdsCertificateNumber || ''} onChange={(e) => updateTdsOtherEntry(index, 'tdsCertificateNumber', e.target.value)} placeholder="Certificate" className="text-sm" /></td>
+                            <td className="px-3 py-2 quarter-column"><Select value={entry.quarter || ''} onChange={(e) => updateTdsOtherEntry(index, 'quarter', e.target.value)} options={QUARTER_OPTIONS} className="text-sm" /></td>
                             <td className="px-3 py-2 actions-column">
                               <div className="flex items-center justify-center gap-2">
-                                <Button variant="primary" size="sm" onClick={() => saveTdsEntry(index)}>Save</Button>
-                                <Button variant="outline" size="sm" onClick={() => cancelTdsEdit(index)}>Cancel</Button>
+                                <Button variant="primary" size="sm" onClick={() => saveTdsOtherEntry(index)}>Save</Button>
+                                <Button variant="outline" size="sm" onClick={() => cancelTdsOtherEdit(index)}>Cancel</Button>
                               </div>
                             </td>
                           </>
@@ -358,13 +426,13 @@ export default function TaxPaidTab() {
                             <td className="px-3 py-2 text-sm text-gray-900 income-source-column">{entry.incomeSource || '-'}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 tds-section-column">{entry.tdsSection || '-'}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 amount-column">&#8377;{fc(entry.amountPaid || 0)}</td>
-                            <td className="px-3 py-2 text-sm font-semibold text-emerald-600 amount-column">&#8377;{fc(entry.taxDeducted || 0)}</td>
+                            <td className="px-3 py-2 text-sm font-semibold text-orange-600 amount-column">&#8377;{fc(entry.taxDeducted || 0)}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 certificate-column">{entry.tdsCertificateNumber || '-'}</td>
                             <td className="px-3 py-2 text-sm text-gray-900 quarter-column">{entry.quarter || '-'}</td>
                             <td className="px-3 py-2 actions-column">
                               <div className="flex items-center justify-center gap-2">
-                                <IconButton label="Edit" onClick={() => { setSaveErrors({}); setEditingTdsIndex(index); }}><PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" /></IconButton>
-                                <IconButton label="Delete" onClick={() => deleteTdsEntry(index)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>
+                                <IconButton label="Edit" onClick={() => { setSaveErrors({}); setEditingTdsOtherIndex(index); }}><PencilSquareIcon className="w-3.5 h-3.5 text-blue-600" /></IconButton>
+                                <IconButton label="Delete" onClick={() => deleteTdsOtherEntry(index)}><TrashIcon className="w-3.5 h-3.5 text-red-600" /></IconButton>
                               </div>
                             </td>
                           </>
@@ -376,7 +444,7 @@ export default function TaxPaidTab() {
               </div>
             )}
             <div className="pt-2">
-              <AddButton label="Add TDS Entry" onClick={addTdsEntry} colorScheme="teal" disableEdit={editingTdsIndex !== null} />
+              <AddButton label="Add TDS Entry" onClick={addTdsOtherEntry} colorScheme="orange" disableEdit={editingTdsOtherIndex !== null} />
             </div>
           </div>
         )}

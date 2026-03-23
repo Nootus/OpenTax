@@ -78,7 +78,6 @@ export default function Section80EEBTab() {
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!formData.vehicleMakeModel?.trim()) e.vehicleMakeModel = 'Vehicle make/model is required';
     if (!formData.vehicleRegistrationNumber?.trim()) e.vehicleRegistrationNumber = 'Vehicle registration number is required';
     if (!formData.lenderType?.trim()) e.lenderType = 'Lender type is required';
     if (!formData.lenderName?.trim()) e.lenderName = 'Lender name is required';
@@ -186,7 +185,7 @@ export default function Section80EEBTab() {
                     {/* Row 1: Vehicle Make/Model | Vehicle Registration Number */}
                     <div className="grid grid-cols-2 gap-2.5">
                       <Input
-                        label="Vehicle Model *"
+                        label="Vehicle Model"
                         value={formData.vehicleMakeModel || ''}
                         onChange={(e) => update('vehicleMakeModel', e.target.value)}
                         placeholder="e.g., Tata Nexon EV"
@@ -194,7 +193,7 @@ export default function Section80EEBTab() {
                         disabled={!isEditing}
                       />
                       <Input
-                        label="Registration Number *"
+                        label="Registration Number"
                         value={formData.vehicleRegistrationNumber || ''}
                         onChange={(e) => update('vehicleRegistrationNumber', e.target.value.toUpperCase())}
                         placeholder="e.g., MH01AB1234"
@@ -214,7 +213,7 @@ export default function Section80EEBTab() {
                         disabled={!isEditing}
                       />
                       <DatePicker
-                        label="Loan Sanction Date"
+                        label="Sanction Date"
                         value={formData.loanSanctionDate || null}
                         onChange={(date) => update('loanSanctionDate', date)}
                         disabled={!isEditing}
@@ -233,7 +232,7 @@ export default function Section80EEBTab() {
                         disabled={!isEditing}
                       />
                       <Input
-                        label="Loan Account Number *"
+                        label="Account Number *"
                         value={formData.loanAccountNumber || ''}
                         onChange={(e) => update('loanAccountNumber', e.target.value)}
                         placeholder="Enter loan account number"

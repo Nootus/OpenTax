@@ -186,7 +186,15 @@ export default function OtherDeductionsTab() {
                       label="80TTA - Savings Interest"
                       type="number"
                       value={entry.deduction80Tta.interestAmount || 0}
-                      onChange={(e) => updateSubField('deduction80Tta', 'interestAmount', Number(e.target.value))}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        updateSubField('deduction80Tta', 'interestAmount', val);
+                        if (val > 0 && (entry.deduction80Ttb.interestAmount || 0) > 0) {
+                          setErrors(prev => ({ ...prev, tta: '80TTA and 80TTB are mutually exclusive', ttb: '80TTA and 80TTB are mutually exclusive' }));
+                        } else {
+                          setErrors(prev => ({ ...prev, tta: '', ttb: '' }));
+                        }
+                      }}
                       placeholder="0"
                       prefix="Rs."
                       error={errors.tta}
@@ -196,7 +204,15 @@ export default function OtherDeductionsTab() {
                       label="80TTB - Senior Citizen"
                       type="number"
                       value={entry.deduction80Ttb.interestAmount || 0}
-                      onChange={(e) => updateSubField('deduction80Ttb', 'interestAmount', Number(e.target.value))}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        updateSubField('deduction80Ttb', 'interestAmount', val);
+                        if (val > 0 && (entry.deduction80Tta.interestAmount || 0) > 0) {
+                          setErrors(prev => ({ ...prev, tta: '80TTA and 80TTB are mutually exclusive', ttb: '80TTA and 80TTB are mutually exclusive' }));
+                        } else {
+                          setErrors(prev => ({ ...prev, tta: '', ttb: '' }));
+                        }
+                      }}
                       placeholder="0"
                       prefix="Rs."
                       error={errors.ttb}

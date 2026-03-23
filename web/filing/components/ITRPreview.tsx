@@ -48,6 +48,17 @@ function SubHeader({ label }: { label: string }) {
   return <div className="bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-700 uppercase tracking-wide border-b border-gray-200">{label}</div>
 }
 
+function DeductionRow({ label, claimed, eligible }: { label: string; claimed: number; eligible: number }) {
+  if (claimed === 0 && eligible === 0) return null
+  return (
+    <div className="flex items-center border-b border-gray-200 text-sm">
+      <div className="flex-1 px-3 py-1.5">{label}</div>
+      <div className="w-28 text-right px-3 py-1.5 border-l border-gray-200 font-mono text-sm text-gray-600">{fc(claimed)}</div>
+      <div className={`w-28 text-right px-3 py-1.5 border-l border-gray-200 font-mono text-sm font-semibold ${eligible < claimed ? 'text-orange-600' : 'text-green-700'}`}>{fc(eligible)}</div>
+    </div>
+  )
+}
+
 // ─── Main Component ──────────────────────────────────────
 
 interface ITRPreviewProps {
@@ -243,30 +254,41 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
           <SectionHeader title="DEDUCTIONS UNDER CHAPTER VI-A" partLabel="Part C" />
           {(() => {
             const d = inc.DeductUndChapVIA
+            const u = inc.UsrDeductUndChapVIA
             return (
               <>
-                {d.Section80C > 0 && <Row label="Section 80C — Life Insurance, PPF, ELSS, etc." value={d.Section80C} />}
-                {d.Section80CCC > 0 && <Row label="Section 80CCC — Pension Fund" value={d.Section80CCC} />}
-                {d.Section80CCDEmployeeOrSE > 0 && <Row label="Section 80CCD(1) — Employee NPS" value={d.Section80CCDEmployeeOrSE} />}
-                {d.Section80CCD1B > 0 && <Row label="Section 80CCD(1B) — Additional NPS" value={d.Section80CCD1B} />}
-                {d.Section80CCDEmployer > 0 && <Row label="Section 80CCD(2) — Employer NPS" value={d.Section80CCDEmployer} />}
-                {d.Section80D > 0 && <Row label="Section 80D — Health Insurance" value={d.Section80D} />}
-                {d.Section80DD > 0 && <Row label="Section 80DD — Disabled Dependent" value={d.Section80DD} />}
-                {d.Section80DDB > 0 && <Row label="Section 80DDB — Medical Treatment" value={d.Section80DDB} />}
-                {d.Section80E > 0 && <Row label="Section 80E — Education Loan Interest" value={d.Section80E} />}
-                {d.Section80EE > 0 && <Row label="Section 80EE — Home Loan Interest" value={d.Section80EE} />}
-                {d.Section80EEA > 0 && <Row label="Section 80EEA — Affordable Housing" value={d.Section80EEA} />}
-                {d.Section80EEB > 0 && <Row label="Section 80EEB — Electric Vehicle Loan" value={d.Section80EEB} />}
-                {d.Section80G > 0 && <Row label="Section 80G — Donations" value={d.Section80G} />}
-                {d.Section80GG > 0 && <Row label="Section 80GG — Rent Paid" value={d.Section80GG} />}
-                {d.Section80GGA > 0 && <Row label="Section 80GGA — Scientific Research" value={d.Section80GGA} />}
-                {d.Section80GGC > 0 && <Row label="Section 80GGC — Political Contributions" value={d.Section80GGC} />}
-                {d.Section80U > 0 && <Row label="Section 80U — Self Disability" value={d.Section80U} />}
-                {d.Section80TTA > 0 && <Row label="Section 80TTA — Savings Interest" value={d.Section80TTA} />}
-                {d.Section80TTB > 0 && <Row label="Section 80TTB — Sr. Citizen Interest" value={d.Section80TTB} />}
-                {d.AnyOthSec80CCH > 0 && <Row label="Section 80CCH — Agnipath Contribution" value={d.AnyOthSec80CCH} />}
+                {/* Column headers */}
+                <div className="flex items-center border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wide">
+                  <div className="flex-1 px-3 py-1.5">Section</div>
+                  <div className="w-28 text-right px-3 py-1.5 border-l border-gray-200">Claimed</div>
+                  <div className="w-28 text-right px-3 py-1.5 border-l border-gray-200">Eligible</div>
+                </div>
+                <DeductionRow label="Section 80C — Life Insurance, PPF, ELSS, etc." claimed={u.Section80C} eligible={d.Section80C} />
+                <DeductionRow label="Section 80CCC — Pension Fund" claimed={u.Section80CCC} eligible={d.Section80CCC} />
+                <DeductionRow label="Section 80CCD(1) — Employee NPS" claimed={u.Section80CCDEmployeeOrSE} eligible={d.Section80CCDEmployeeOrSE} />
+                <DeductionRow label="Section 80CCD(1B) — Additional NPS" claimed={u.Section80CCD1B} eligible={d.Section80CCD1B} />
+                <DeductionRow label="Section 80CCD(2) — Employer NPS" claimed={u.Section80CCDEmployer} eligible={d.Section80CCDEmployer} />
+                <DeductionRow label="Section 80D — Health Insurance" claimed={u.Section80D} eligible={d.Section80D} />
+                <DeductionRow label="Section 80DD — Disabled Dependent" claimed={u.Section80DD} eligible={d.Section80DD} />
+                <DeductionRow label="Section 80DDB — Medical Treatment" claimed={u.Section80DDB} eligible={d.Section80DDB} />
+                <DeductionRow label="Section 80E — Education Loan Interest" claimed={u.Section80E} eligible={d.Section80E} />
+                <DeductionRow label="Section 80EE — Home Loan Interest" claimed={u.Section80EE} eligible={d.Section80EE} />
+                <DeductionRow label="Section 80EEA — Affordable Housing" claimed={u.Section80EEA} eligible={d.Section80EEA} />
+                <DeductionRow label="Section 80EEB — Electric Vehicle Loan" claimed={u.Section80EEB} eligible={d.Section80EEB} />
+                <DeductionRow label="Section 80G — Donations" claimed={u.Section80G} eligible={d.Section80G} />
+                <DeductionRow label="Section 80GG — Rent Paid" claimed={u.Section80GG} eligible={d.Section80GG} />
+                <DeductionRow label="Section 80GGA — Scientific Research" claimed={u.Section80GGA} eligible={d.Section80GGA} />
+                <DeductionRow label="Section 80GGC — Political Contributions" claimed={u.Section80GGC} eligible={d.Section80GGC} />
+                <DeductionRow label="Section 80U — Self Disability" claimed={u.Section80U} eligible={d.Section80U} />
+                <DeductionRow label="Section 80TTA — Savings Interest" claimed={u.Section80TTA} eligible={d.Section80TTA} />
+                <DeductionRow label="Section 80TTB — Sr. Citizen Interest" claimed={u.Section80TTB} eligible={d.Section80TTB} />
+                <DeductionRow label="Section 80CCH — Agnipath Contribution" claimed={u.AnyOthSec80CCH} eligible={d.AnyOthSec80CCH} />
                 <div className="bg-blue-50 border-t-2 border-blue-200">
-                  <Row label="TOTAL DEDUCTIONS UNDER CHAPTER VI-A" value={d.TotalChapVIADeductions} bold highlight />
+                  <div className="flex items-center text-sm font-bold">
+                    <div className="flex-1 px-3 py-1.5">TOTAL DEDUCTIONS UNDER CHAPTER VI-A</div>
+                    <div className="w-28 text-right px-3 py-1.5 border-l border-gray-200 font-mono">{fc(u.TotalChapVIADeductions)}</div>
+                    <div className="w-28 text-right px-3 py-1.5 border-l border-gray-200 font-mono text-blue-700">{fc(d.TotalChapVIADeductions)}</div>
+                  </div>
                 </div>
               </>
             )

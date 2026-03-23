@@ -89,7 +89,14 @@ export default function Section80GTab() {
   const totalAmount = entries.reduce((sum, e) => sum + (e.donationAmount || 0), 0);
 
   const updateEntry = (id: number | null | undefined, field: keyof Deduction80GModel, value: any) => {
-    setEntries(prev => prev.map(e => e.deductionId === id ? { ...e, [field]: value } : e));
+    setEntries(prev => prev.map(e => {
+      if (e.deductionId !== id) return e;
+      const updated = { ...e, [field]: value };
+      if (field === 'donationAmountCash' || field === 'donationAmountNonCash') {
+        updated.donationAmount = (updated.donationAmountCash || 0) + (updated.donationAmountNonCash || 0);
+      }
+      return updated;
+    }));
     if (id != null && entryErrors[id]?.[field as string]) {
       setEntryErrors(prev => {
         const next = { ...prev[id] };
@@ -291,7 +298,7 @@ export default function Section80GTab() {
                               placeholder="0"
                               prefix="Rs."
                               error={errors.donationAmount}
-                              disabled={!isEditing}
+                              disabled
                             />
                           </div>
 

@@ -59,7 +59,7 @@ export const TEST_FILING: Partial<FilingModel> = {
         employerName: 'Meridian Tech Solutions Pvt Ltd',
         employerType: 'OTH',
         tanNumber: 'BLRM29174C',
-        panNumber: null,
+        panNumber: 'AJJPA2996K',
       },
       employerAddress: {
         employerAddressId: null,
@@ -74,62 +74,21 @@ export const TEST_FILING: Partial<FilingModel> = {
         employmentPeriodId: null,
         filingId: 0,
         employerId: null,
-        employmentFrom: new Date('2024-04-01'),
-        employmentTo: new Date('2025-03-31'),
+        employmentFrom: new Date('2025-04-01'),
+        employmentTo: new Date('2026-03-30'),
       },
       salaryDeduction16: {
         salaryDeductionId: null,
         filingId: 0,
         employerId: null,
-        standardDeduction: 50000,
+        standardDeduction: 75000,
         entertainmentAllowance: 0,
         professionalTax: 2400,
       },
       salarySection171: [
-        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 8, amount: 1200000, exemptionAmount: 0 },
-        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 11, amount: 300000, exemptionAmount: 150000 },
-        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 14, amount: 200000, exemptionAmount: 0 },
-      ],
-      salarySection172: [],
-      salarySection173: [],
-    },
-    {
-      employer: {
-        employerId: null,
-        filingId: 0,
-        employerName: 'Pinnacle Analytics Pvt Ltd',
-        employerType: 'OTH',
-        tanNumber: 'MUMB38427K',
-        panNumber: null,
-      },
-      employerAddress: {
-        employerAddressId: null,
-        employerId: null,
-        addressLine1: 'Tower 2, Raheja Mindspace',
-        city: 'Hyderabad',
-        state: '36',
-        pincode: '500032',
-        country: 'India',
-      },
-      employmentPeriod: {
-        employmentPeriodId: null,
-        filingId: 0,
-        employerId: null,
-        employmentFrom: new Date('2024-04-01'),
-        employmentTo: new Date('2024-09-30'),
-      },
-      salaryDeduction16: {
-        salaryDeductionId: null,
-        filingId: 0,
-        employerId: null,
-        standardDeduction: 50000,
-        entertainmentAllowance: 0,
-        professionalTax: 2400,
-      },
-      salarySection171: [
-        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 8, amount: 1800000, exemptionAmount: 0 },
-        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 11, amount: 100000, exemptionAmount: 50000 },
-        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 14, amount: 200000, exemptionAmount: 0 },
+        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 8, amount: 1700000, exemptionAmount: 0 },
+        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 11, amount: 400000, exemptionAmount: 400000 },
+        { salaryDetailId: null, filingId: 0, employerId: null, componentId: 13, amount: 100000, exemptionAmount: 100000 },
       ],
       salarySection172: [],
       salarySection173: [],
@@ -187,6 +146,15 @@ export const TEST_FILING: Partial<FilingModel> = {
     { interestId: null, filingId: 0, interestTypeId: 1, interestTypeName: 'Savings Account', providentFundType: null, amount: 80000, description: 'Bank savings interest' },
   ],
 
+  // ── Dividend Income ───────────────────────────────────────────
+  dividendIncome: {
+    filingId: 0,
+    equity: [
+      { filingId: 0, dividendType: 'equity', currency: 'INR', narration: '16th Mar – 31st Mar dividend income from equity, stocks, and mutual funds', amount: 50000, dateOfReceipt: new Date('2026-03-31') },
+    ],
+    rsu: [],
+  },
+
   // ── TDS ───────────────────────────────────────────────────────
   tds: [
     { tdsId: null, filingId: 0, deductorName: 'Meridian Tech Solutions Pvt Ltd', tan: 'BLRM29174C', pan: null, incomeSource: 'Salary', tdsSection: '192', amountPaid: 1200000, taxDeducted: 120000 },
@@ -206,7 +174,7 @@ export const TEST_FILING: Partial<FilingModel> = {
 
   // ── Deductions ────────────────────────────────────────────────
   section80C: [
-    { deductionId: null, filingId: 0, description: 'Life Insurance Premium', policyNumber: 'POL123456789', amount: 150000 },
+    { deductionId: null, filingId: 0, description: 'Life Insurance Premium', policyNumber: '34567234', amount: 150000 },
   ],
   section80Ccc: [
     { deductionId: null, filingId: 0, pranNumber: 'PRAN000123456', amount: 20000 },
@@ -217,7 +185,9 @@ export const TEST_FILING: Partial<FilingModel> = {
   section80D: {
     deductionId: null,
     filingId: 0,
-    healthInsurance: [],
+    healthInsurance: [
+      { filingId: 0, takenFor: 'Self & Family', insurerName: 'Star Health', policyNumber: '563457', healthInsurancePremium: 25000, includesSeniorCitizen: false },
+    ],
     preventiveCheckup: [],
     medicalExpenditure: [],
   },
@@ -243,36 +213,14 @@ export const TEST_FILING: Partial<FilingModel> = {
     expenditureIncurred: 45000,
   },
   section80E: [
-    { deductionId: null, filingId: 0, lenderType: 'bank', lenderName: 'HDFC Bank', loanAccountNumber: 'HDFC80E0012345', loanSanctionDate: new Date('2020-04-01'), totalLoanAmount: null, loanOutstanding: 500000, interestOnLoan: 95000 },
+    { deductionId: null, filingId: 0, lenderType: 'Bank', lenderName: 'Axis Bank', loanAccountNumber: '3456782', loanSanctionDate: new Date('2025-03-01'), totalLoanAmount: 4000000, loanOutstanding: 4000000, interestOnLoan: 200000 },
   ],
-  section80Ee: {
-    deductionId: null,
-    filingId: 0,
-    lenderType: 'bank',
-    lenderName: 'State Bank of India',
-    loanAccountNumber: 'SBI80EE0012345',
-    loanSanctionDate: new Date('2016-06-15'),
-    totalLoanAmount: null,
-    loanOutstanding: 2000000,
-    interestOnLoan: 50000,
-  },
-  section80Eea: {
-    deductionId: null,
-    filingId: 0,
-    lenderType: 'bank',
-    lenderName: 'ICICI Bank',
-    loanAccountNumber: 'ICICI80EEA001',
-    loanSanctionDate: new Date('2019-04-01'),
-    totalLoanAmount: 4000000,
-    loanOutstanding: 1500000,
-    interestOnLoan: 35000,
-  },
   section80Eeb: {
     deductionId: null,
     filingId: 0,
     vehicleMakeModel: 'Tata Nexon EV',
     vehicleRegistrationNumber: 'TS09XY5678',
-    lenderType: 'bank',
+    lenderType: 'Bank',
     lenderName: 'HDFC Bank',
     loanAccountNumber: 'HDFC80EEB01234',
     loanSanctionDate: new Date('2020-04-01'),
@@ -286,12 +234,6 @@ export const TEST_FILING: Partial<FilingModel> = {
   section80Gga: [
     { deductionId: null, filingId: 0, clauseUnderDonation: '80GGA2a', doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 95000, totalDonationAmount: 95000, doneePan: 'AAAAB0001A', addressLine1: 'Plot 5, Science Park', city: 'Mumbai', state: '27', pincode: '400001' },
   ],
-  section80Gg: {
-    deductionId: null,
-    filingId: 0,
-    rentPaidAmount: 5000,
-    acknowledgementNo10Ba: null,
-  },
   section80Ggc: [
     { deductionId: null, filingId: 0, politicalPartyName: 'Sample Political Party', contributionAmountCash: 0, contributionAmountNonCash: 55000, totalContribution: 55000, dateOfDonation: new Date('2024-08-15'), transactionId: 'TXN202408150001', donorBankIfsc: 'SBIN0001234' },
   ],
@@ -299,11 +241,6 @@ export const TEST_FILING: Partial<FilingModel> = {
     deductionId: null,
     filingId: 0,
     interestAmount: 0,
-  },
-  section80Ttb: {
-    deductionId: null,
-    filingId: 0,
-    interestAmount: 5000,
   },
   section80U: {
     deductionId: null,

@@ -137,9 +137,10 @@ export default function NPSTab() {
                 <Input
                   label="PRAN Number"
                   value={(editMode ? editableData.pranNumber : formData.pranNumber) || ''}
-                  onChange={(e) => setEditableData(prev => ({ ...prev, pranNumber: e.target.value }))}
+                  onChange={(e) => setEditableData(prev => ({ ...prev, pranNumber: e.target.value.replace(/\D/g, '') }))}
                   placeholder="12 Digit PRAN"
                   maxLength={12}
+                  inputMode="numeric"
                   disabled={!editMode}
                 />
               </div>
@@ -179,9 +180,10 @@ export default function NPSTab() {
               <Input
                 label="PRAN Number"
                 value={editableData.pranNumber || ''}
-                onChange={(e) => setEditableData(prev => ({ ...prev, pranNumber: e.target.value }))}
+                onChange={(e) => setEditableData(prev => ({ ...prev, pranNumber: e.target.value.replace(/\D/g, '') }))}
                 placeholder="12 Digit PRAN"
                 maxLength={12}
+                inputMode="numeric"
               />
             </div>
           )}
@@ -203,7 +205,7 @@ export default function NPSTab() {
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <Input
-                    label="80CCC - Pension Fund"
+                    label="Pension"
                     type="number"
                     value={editableData.cccAmount}
                     onChange={(e) => setEditableData(prev => ({ ...prev, cccAmount: Number(e.target.value) }))}
@@ -212,7 +214,7 @@ export default function NPSTab() {
                     prefix="₹"
                   />
                   <Input
-                    label="80CCD(1) - Employee"
+                    label="Employee"
                     type="number"
                     value={editableData.ccd1Amount}
                     onChange={(e) => setEditableData(prev => ({ ...prev, ccd1Amount: Number(e.target.value) }))}
@@ -221,7 +223,7 @@ export default function NPSTab() {
                     prefix="₹"
                   />
                   <Input
-                    label="80CCD(1B) - Additional"
+                    label="Additional"
                     type="number"
                     value={editableData.ccd1bAmount}
                     onChange={(e) => setEditableData(prev => ({ ...prev, ccd1bAmount: Number(e.target.value) }))}
@@ -230,7 +232,7 @@ export default function NPSTab() {
                     prefix="₹"
                   />
                   <Input
-                    label="80CCD(2) - Employer"
+                    label="Employer"
                     type="number"
                     value={editableData.ccd2Amount}
                     onChange={(e) => setEditableData(prev => ({ ...prev, ccd2Amount: Number(e.target.value) }))}
