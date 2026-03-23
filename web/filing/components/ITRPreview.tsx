@@ -122,7 +122,7 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
             </div>
             <button
               onClick={() => {
-                const json = JSON.stringify(itr1, null, 2)
+                const json = JSON.stringify({ ITR: { ITR1: itr1 } }, null, 2)
                 const blob = new Blob([json], { type: 'application/json' })
                 const url = URL.createObjectURL(blob)
                 const a = document.createElement('a')

@@ -384,12 +384,12 @@ class FilingStatusModel(BaseModel):
         description='11 : 139(1)-On or before due date, 12 : 139(4)-After due date, 13 : 142(1), 14 : 148,  16 : 153C, 17 : 139(5)-Revised , 18 : 139(9), 20 : 119(2)(b)-After condonation of delay, 21 : 139(8A)-Updated Return',
     )
     OptOutNewTaxRegime: NonEmptyString = "N"
-    SeventhProvisio139: NonEmptyString | None = None
+    SeventhProvisio139: NonEmptyString = "N"
     IncrExpAggAmt2LkTrvFrgnCntryFlg: NonEmptyString | None = None
     AmtSeventhProvisio139ii: conint(ge=200000, le=99999999999999) | None = None
     IncrExpAggAmt1LkElctrctyPrYrFlg: NonEmptyString | None = None
     AmtSeventhProvisio139iii: conint(ge=100000, le=99999999999999) | None = None
-    clauseiv7provisio139i: NonEmptyString | None = None
+    clauseiv7provisio139i: NonEmptyString ="N"
     clauseiv7provisio139iDtls: list[Clauseiv7provisio139iTypeModel] | None = None
     ReceiptNo: constr(pattern=r'[0-9]{15}') | None = Field(
         None, description='Enter the Acknowledgement number of the original return.'
@@ -898,7 +898,7 @@ class ITR1IncomeDeductionsModel(BaseModel):
     ProfitsInSalary: conint(ge=0, le=99999999999999) | None = None
     IncomeNotified89A: conint(ge=0, le=99999999999999) = 0
     IncomeNotified89AType: list[NOT89AType] | None = None
-    IncomeNotifiedOther89A: conint(ge=0, le=99999999999999) | None = None
+    IncomeNotifiedOther89A: conint(ge=0, le=99999999999999) =0
     AllwncExemptUs10: AllwncExemptUs10Model | None = Field(None, alias='AllwncExemptUs10')
     Increliefus89A: conint(ge=0, le=99999999999999) | None = None
     NetSalary: conint(ge=0, le=99999999999999) = 0
@@ -924,7 +924,7 @@ class ITR1IncomeDeductionsModel(BaseModel):
     )
     IncomeOthSrc: conint(ge=0, le=99999999999999) = 0
     OthersInc: OthersIncModel | None = Field(None, alias='OthersInc')
-    DeductionUs57iia: conint(ge=0, le=25000) | None = None
+    DeductionUs57iia: conint(ge=0, le=25000) =0
     Increliefus89AOS: conint(ge=0, le=99999999999999) | None = None
     GrossTotIncome: conint(le=99999999999999) = Field(
         0, description='Gross Total Income without LTCG u/s 112A'

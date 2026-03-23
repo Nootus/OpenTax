@@ -102,7 +102,7 @@ export const TEST_FILING: Partial<FilingModel> = {
         propertyId: null,
         filingId: 0,
         propertyType: 'L',
-        ownershipShare: 100,
+        ownershipShare: 50,
         annualRentReceived: 240000,
         municipalTaxesPaid: 12000,
       },
@@ -121,12 +121,12 @@ export const TEST_FILING: Partial<FilingModel> = {
         loanId: null,
         filingId: 0,
         propertyId: null,
-        vendorType: null,
+        vendorType: 'Bank',
         lenderName: 'HDFC Bank',
-        loanAccountNumber: null,
-        loanSanctionDate: null,
-        totalLoanAmount: null,
-        loanOutstanding: null,
+        loanAccountNumber: 'HDFC0012345678',
+        loanSanctionDate: new Date('2022-06-15'),
+        totalLoanAmount: 3500000,
+        loanOutstanding: 3200000,
         interestPaid: 150000,
         principalRepaid: null,
       },
@@ -163,8 +163,8 @@ export const TEST_FILING: Partial<FilingModel> = {
 
   // ── TCS ───────────────────────────────────────────────────────
   tcs: [
-    { tcsId: null, filingId: 0, collectorName: 'Online Marketplace Ltd', tan: 'DELZ74193P', natureOfCollection: null, amountCollected: null, taxCollected: 5000 },
-    { tcsId: null, filingId: 0, collectorName: 'Retail Commerce Pvt Ltd', tan: 'BLRK58362M', natureOfCollection: null, amountCollected: null, taxCollected: 6500 },
+    { tcsId: null, filingId: 0, collectorName: 'Online Marketplace Ltd', tan: 'DELZ74193P', natureOfCollection: null, amountCollected: 500000, taxCollected: 5000 },
+    { tcsId: null, filingId: 0, collectorName: 'Retail Commerce Pvt Ltd', tan: 'BLRK58362M', natureOfCollection: null, amountCollected: 650000, taxCollected: 6500 },
   ],
 
   // ── Advance Tax ───────────────────────────────────────────────
@@ -177,10 +177,10 @@ export const TEST_FILING: Partial<FilingModel> = {
     { deductionId: null, filingId: 0, description: 'Life Insurance Premium', policyNumber: '34567234', amount: 150000 },
   ],
   section80Ccc: [
-    { deductionId: null, filingId: 0, pranNumber: 'PRAN000123456', amount: 20000 },
+    { deductionId: null, filingId: 0, pranNumber: '110082845678', amount: 20000 },
   ],
   section80Ccd1B: [
-    { deductionId: null, filingId: 0, pranNumber: 'NPS000123456', amount: 50000 },
+    { deductionId: null, filingId: 0, pranNumber: '110098765432', amount: 50000 },
   ],
   section80D: {
     deductionId: null,
@@ -196,7 +196,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     filingId: 0,
     dependantName: 'Priya Mehta',
     dependantPan: null,
-    relationToDependant: 'SPOUSE',
+    relationToDependant: 'Spouse',
     disabilityType: 'Disabled',
     natureOfDisability: 'Locomotor Disability',
     expenditureIncurred: 75000,
@@ -207,9 +207,9 @@ export const TEST_FILING: Partial<FilingModel> = {
   section80Ddb: {
     deductionId: null,
     filingId: 0,
-    treatmentFor: 'Self',
-    seniorCitizenType: null,
-    disease: 'cancer',
+    treatmentFor: '1',
+    seniorCitizenType: 'None',
+    disease: 'i',
     expenditureIncurred: 45000,
   },
   section80E: [
@@ -229,7 +229,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     interestOnLoan: 150000,
   },
   section80G: [
-    { deductionId: null, filingId: 0, doneeName: 'Prime Minister National Relief Fund', doneePan: 'AACTP4637Q', donationType: null, donationAmountCash: 0, donationAmountNonCash: 45000, donationAmount: 45000, qualifyingPercentage: '100', limitOnDeduction: 'Without Limit', addressLine1: 'South Block, Raisina Hill', city: 'New Delhi', state: '07', pincode: '110011' },
+    { deductionId: null, filingId: 0, doneeName: 'Prime Minister National Relief Fund', doneePan: 'AACTP4637Q', donationType: 'PM National Relief Fund', donationAmountCash: 0, donationAmountNonCash: 45000, donationAmount: 45000, qualifyingPercentage: '100', limitOnDeduction: 'Without Limit', addressLine1: 'South Block, Raisina Hill', city: 'New Delhi', state: '07', pincode: '110011' },
   ],
   section80Gga: [
     { deductionId: null, filingId: 0, clauseUnderDonation: '80GGA2a', doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 82220, totalDonationAmount: 82220, doneePan: 'AAAAB0001A', addressLine1: 'Plot 5, Science Park', city: 'Mumbai', state: '27', pincode: '400001' },

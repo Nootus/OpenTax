@@ -126,7 +126,8 @@ class TaxValidationService:
         self.ValidateSchedule80EEB(filing_model, errors)
         self.ValidateSchedule80DD(filing_model, errors)
         self.ValidateSchedule80U(filing_model, errors)
-        self.ValidateSchedule80TTA(filing_model, errors)    
+        self.ValidateSchedule80TTA(filing_model, errors)  
+        self.ValidateTDS(filing_model, errors)  
         return errors
 
     def perinfo_validator(self, req: ITR1,errors: list[ValidationError]) -> bool:
@@ -1836,4 +1837,41 @@ class TaxValidationService:
             return False
         return True
 
+    def ValidateTDS(self, filing_model: FilingModel, messages: list[ValidationError]) -> bool:
+        """Validate that Gross Salary does not exceed the sum of amount_paid across all TDS entries.
+        Source: ITR1 schema validation — Schedule TDS1 IncChrgSal must cover the declared Gross Salary."""
+        if not filing_model.tds:
+            return True
+
+        # Compute gross salary: sum of all 17(1), 17(2), 17(3) component amounts
+        gross_salary = 0.0
+        for sal in filing_model.salary or []:
+            for item in sal.salary_section_171 or []:
+                gross_salary += float(item.amount or 0)
+            for item in sal.salary_section_172 or []:
+                gross_salary += float(item.amount or 0)
+            for item in sal.salary_section_173 or []:
+                gross_salary += float(item.amount or 0)
+
+        if gross_salary == 0:
+            return True
+
+        # Sum amount_paid across all TDS entries
+        total_tds_amount_paid = 0.0
+        for tds in filing_model.tds:
+            try:
+                total_tds_amount_paid += float(tds.amount_paid or 0)
+            except (TypeError, ValueError):
+                pass
+
+        if gross_salary > total_tds_amount_paid:
+            messages.append(ValidationError(
+                field="tds.amountPaid",
+                message=(
+                    "* Gross Salary declared is more than the total Amount Paid/Credited in Schedule TDS1. "
+                    "Please ensure that the total Amount Paid in TDS entries is not less than the Gross Salary."
+                ),
+            ))
+            return False
+        return True
 
