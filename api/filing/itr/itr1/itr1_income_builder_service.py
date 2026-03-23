@@ -4,12 +4,17 @@ This includes Salary, House Property, and Other Sources income.
 """
 import logging
 from datetime import date
+from decimal import Decimal
 from typing import Any, Optional
 
 from filing.itr.itr1.models.itr1_model import (
     AllwncExemptUs10Model,
+    DateRangeModel,
+    DateRangeType,
     HousePropertyIncomePartModel,
     ITR1IncomePartModel,
+    NOT89AType,
+    OtherSourceIncome,
     OtherSourcesIncomePartModel,
     OthersIncModel,
     SalaryIncomePartModel,
@@ -41,7 +46,7 @@ class Itr1IncomeBuilderService:
             salary=salary_part,
             house=hp_part,
             others=other_part,
-            gross_total=gross_tot_income,
+            gross_total=Decimal(gross_tot_income),
         )
 
         context.gross_salary = int(getattr(salary_part, "IncomeFromSal", None) or 0)
@@ -60,9 +65,8 @@ class Itr1IncomeBuilderService:
 
     async def build_salary_income(self, filing: FilingModel, context: Itr1ComputationContext, regime: str = "old") -> SalaryIncomePartModel:
         """Build salary income part: delegates to sub-methods for each section."""
-        # In OpenTax, salary components are not fetched from DB.
-        # The component_id on each item is sufficient for exempt allowance detection.
-        salary_components: list[Any] = []
+        # Salary Components: component_type=2, is_active=1 (exempt allowances under Sec 10)
+        salary_components = MasterDataService().get_salary_components()
 
         section_171_salary = await self._build_section_171_salary(filing)
         section_172_perquisites = await self._build_section_172_perquisites(filing)
@@ -378,84 +382,84 @@ class Itr1IncomeBuilderService:
 
     def _build_dividend_income_with_quarterly_breakup(self, filing: FilingModel) -> tuple[Any, int]:
         """Build dividend income with quarterly date range breakup."""
+        # Derive FY year from assessment year (e.g. "2026-27" → fy_year=2025)
+        ay = (filing.assessment_year or "2026-27").strip()
+        try:
+            fy_year = int(ay.split("-")[0]) - 1
+        except (ValueError, IndexError):
+            fy_year = 2025
+
+        fy_end   = date(fy_year + 1, 3, 31)
+        q1_end   = date(fy_year,     6, 15)
+        q2_start = date(fy_year,     6, 16)
+        q2_end   = date(fy_year,     9, 15)
+        q3_start = date(fy_year,     9, 16)
+        q3_end   = date(fy_year,    12, 15)
+        q4_start = date(fy_year,    12, 16)
+        q4_end   = date(fy_year + 1, 3, 15)
+        q5_start = date(fy_year + 1, 3, 16)
+
         total_dividend_amount = 0
-        
-        # Initialize quarterly breakup
         Up16Of12To15Of3 = Up16Of3To31Of3 = Up16Of9To15Of12 = Upto15Of6 = Upto15Of9 = 0
-        
+
+        def _add_to_quarter(receipt_date: date, amount: int) -> None:
+            nonlocal Up16Of12To15Of3, Up16Of3To31Of3, Up16Of9To15Of12, Upto15Of6, Upto15Of9
+            if q4_start <= receipt_date <= q4_end:
+                Up16Of12To15Of3 += amount
+            elif q5_start <= receipt_date <= fy_end:
+                Up16Of3To31Of3 += amount
+            elif q3_start <= receipt_date <= q3_end:
+                Up16Of9To15Of12 += amount
+            elif receipt_date <= q1_end:
+                Upto15Of6 += amount
+            elif q2_start <= receipt_date <= q2_end:
+                Upto15Of9 += amount
+
         div_income = filing.dividend_income
         if div_income:
             # Process equity dividends
-            if div_income.equity:
-                for div in div_income.equity:
-                    if div.date_of_receipt is not None and div.date_of_receipt > date(2026, 3, 31):
-                        continue
-                    
-                    total_dividend_amount += int(div.amount or 0)
-                    
-                    # Quarterly breakup
-                    if div.date_of_receipt:
-                        if date(2025, 12, 16) <= div.date_of_receipt <= date(2026, 3, 15):
-                            Up16Of12To15Of3 += int(div.amount or 0)
-                        elif date(2026, 3, 16) <= div.date_of_receipt <= date(2026, 3, 31):
-                            Up16Of3To31Of3 += int(div.amount or 0)
-                        elif date(2025, 9, 16) <= div.date_of_receipt <= date(2025, 12, 15):
-                            Up16Of9To15Of12 += int(div.amount or 0)
-                        elif div.date_of_receipt <= date(2025, 6, 15):
-                            Upto15Of6 += int(div.amount or 0)
-                        elif date(2025, 6, 16) <= div.date_of_receipt <= date(2025, 9, 15):
-                            Upto15Of9 += int(div.amount or 0)
-            
+            for div in div_income.equity or []:
+                if div.date_of_receipt is not None and div.date_of_receipt > fy_end:
+                    continue
+                total_dividend_amount += int(div.amount or 0)
+                if div.date_of_receipt:
+                    _add_to_quarter(div.date_of_receipt, int(div.amount or 0))
+
             # Process RSU dividends
-            if div_income.rsu:
-                for div in div_income.rsu:
-                    if div.date_of_receipt > date(2026, 3, 31):
-                        continue
-                    
-                    total_dividend_amount += int(div.amount or 0)
-                    
-                    # Quarterly breakup
-                    if div.date_of_receipt:
-                        if date(2025, 12, 16) <= div.date_of_receipt <= date(2026, 3, 15):
-                            Up16Of12To15Of3 += int(div.amount or 0)
-                        elif date(2026, 3, 16) <= div.date_of_receipt <= date(2026, 3, 31):
-                            Up16Of3To31Of3 += int(div.amount or 0)
-                        elif date(2025, 9, 16) <= div.date_of_receipt <= date(2025, 12, 15):
-                            Up16Of9To15Of12 += int(div.amount or 0)
-                        elif div.date_of_receipt <= date(2025, 6, 15):
-                            Upto15Of6 += int(div.amount or 0)
-                        elif date(2025, 6, 16) <= div.date_of_receipt <= date(2025, 9, 15):
-                            Upto15Of9 += int(div.amount or 0)
-        
-        dividend_detail = {
-            "DividendInc": {
-                "DateRange": {
-                    "Up16Of12To15Of3": Up16Of12To15Of3,
-                    "Up16Of3To31Of3": Up16Of3To31Of3,
-                    "Up16Of9To15Of12": Up16Of9To15Of12,
-                    "Upto15Of6": Upto15Of6,
-                    "Upto15Of9": Upto15Of9,
-                }
-            },
-            "OthSrcOthAmount": total_dividend_amount,
-            "OthSrcNatureDesc": "DIV",
-        }
+            for div in div_income.rsu or []:
+                if div.date_of_receipt is not None and div.date_of_receipt > fy_end:
+                    continue
+                total_dividend_amount += int(div.amount or 0)
+                if div.date_of_receipt:
+                    _add_to_quarter(div.date_of_receipt, int(div.amount or 0))
+
+        dividend_detail = OtherSourceIncome(
+            OthSrcNatureDesc="DIV",
+            OthSrcOthAmount=total_dividend_amount,
+            DividendInc=DateRangeType(DateRange=DateRangeModel(
+                Upto15Of6=Upto15Of6,
+                Upto15Of9=Upto15Of9,
+                Up16Of9To15Of12=Up16Of9To15Of12,
+                Up16Of12To15Of3=Up16Of12To15Of3,
+                Up16Of3To31Of3=Up16Of3To31Of3,
+            )),
+        )
         return dividend_detail, total_dividend_amount
 
     def _build_section_89a_foreign_retirement_income(self, filing: FilingModel) -> tuple[Any, int, list[Any]]:
         """Build Section 89A - Income from retirement benefit account in notified countries (USA, UK, Canada)."""
         section_89a = filing.foreign_income.section_89a if filing.foreign_income else None
 
-        income_notified_89a_type: list[Any] = []
+        income_notified_89a_type: list[NOT89AType] = []
         notified_89a_amount = 0
-        date_range = {
-            "Up16Of12To15Of3": 0,
-            "Up16Of3To31Of3": 0,
-            "Up16Of9To15Of12": 0,
+        dr_kwargs: dict[str, int] = {
             "Upto15Of6": 0,
             "Upto15Of9": 0,
+            "Up16Of9To15Of12": 0,
+            "Up16Of12To15Of3": 0,
+            "Up16Of3To31Of3": 0,
         }
-        
+
         if section_89a:
             # Calculate total from three countries
             notified_89a_amount = int(
@@ -463,29 +467,29 @@ class Itr1IncomeBuilderService:
                 (section_89a.uk_amount or 0) +
                 (section_89a.canada_amount or 0)
             )
-            
+
             # Build country-wise breakup
             income_notified_89a_type = [
-                {"NOT89ACountrycode": "US", "NOT89AAmount": section_89a.usa_amount or 0},
-                {"NOT89ACountrycode": "UK", "NOT89AAmount": section_89a.uk_amount or 0},
-                {"NOT89ACountrycode": "CA", "NOT89AAmount": section_89a.canada_amount or 0},
+                NOT89AType.model_validate({"NOT89ACountrycode": "US", "NOT89AAmount": section_89a.usa_amount or 0}),
+                NOT89AType.model_validate({"NOT89ACountrycode": "UK", "NOT89AAmount": section_89a.uk_amount or 0}),
+                NOT89AType.model_validate({"NOT89ACountrycode": "CA", "NOT89AAmount": section_89a.canada_amount or 0}),
             ]
-            
+
             # Build quarterly breakup
-            date_range = {
-                "Up16Of12To15Of3": section_89a.period4 or 0,
-                "Up16Of3To31Of3": section_89a.period5 or 0,
-                "Up16Of9To15Of12": section_89a.period3 or 0,
-                "Upto15Of6": section_89a.period1 or 0,
-                "Upto15Of9": section_89a.period2 or 0
+            dr_kwargs = {
+                "Upto15Of6": int(section_89a.period1 or 0),
+                "Upto15Of9": int(section_89a.period2 or 0),
+                "Up16Of9To15Of12": int(section_89a.period3 or 0),
+                "Up16Of12To15Of3": int(section_89a.period4 or 0),
+                "Up16Of3To31Of3": int(section_89a.period5 or 0),
             }
-        
-        section_89a_detail = {
-            "OthSrcNatureDesc": "NOT89A",
-            "OthSrcOthAmount": notified_89a_amount,
-            "NOT89A": income_notified_89a_type,
-            "NOT89AInc": {"DateRange": date_range},
-        }
+
+        section_89a_detail = OtherSourceIncome(
+            OthSrcNatureDesc="NOT89A",
+            OthSrcOthAmount=notified_89a_amount,
+            NOT89A=income_notified_89a_type,
+            NOT89AInc=DateRangeType(DateRange=DateRangeModel(**dr_kwargs)),
+        )
         return section_89a_detail, notified_89a_amount, income_notified_89a_type
 
     def build_scheduleUs24B(self, filing: FilingModel) -> tuple[list[Any], int]:

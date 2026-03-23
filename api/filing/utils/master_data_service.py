@@ -129,6 +129,29 @@ _INTEREST_TYPES: List[Dict[str, str]] = [
     {"value": "17", "label": "Other Income", "code": "OTH"},
 ]
 
+# ==================== Salary Exempt Components (component_type=2, is_active=1) ====================
+_SALARY_COMPONENTS: List[Dict[str, Union[str, int]]] = [
+    {"component_id": 10, "component_name": "Conveyance Allowance",         "component_code": "OTH"},
+    {"component_id": 11, "component_name": "House Rent Allowance",          "component_code": "10(13A)"},
+    {"component_id": 12, "component_name": "Medical Allowance",             "component_code": "OTH"},
+    {"component_id": 13, "component_name": "LTA",                           "component_code": "10(5)"},
+    {"component_id": 14, "component_name": "Other Allowances",              "component_code": "OTH"},
+    {"component_id": 21, "component_name": "Gratuity",                      "component_code": "10(10)"},
+    {"component_id": 22, "component_name": "Commuted Pension",              "component_code": "10(10A)"},
+    {"component_id": 31, "component_name": "Embassy Remuneration",          "component_code": "10(6)"},
+    {"component_id": 32, "component_name": "Service Abroad Allowance",      "component_code": "10(7)"},
+    {"component_id": 33, "component_name": "Leave Encashment",              "component_code": "10(10AA)"},
+    {"component_id": 34, "component_name": "Compensation (CG Limit)",       "component_code": "10(10B)(i)"},
+    {"component_id": 35, "component_name": "Compensation (Scheme)",         "component_code": "10(10B)(ii)"},
+    {"component_id": 36, "component_name": "VRS / Termination",             "component_code": "10(10C)"},
+    {"component_id": 37, "component_name": "Employer Tax on Perquisite",    "component_code": "10(10CC)"},
+    {"component_id": 38, "component_name": "Duty Allowances",               "component_code": "10(14)(i)"},
+    {"component_id": 39, "component_name": "Personal Expense Allowances",   "component_code": "10(14)(ii)"},
+    {"component_id": 40, "component_name": "Rule 2BB Allowances",           "component_code": "10(14)(i)(115BAC)"},
+    {"component_id": 41, "component_name": "Transport (Handicapped)",       "component_code": "10(14)(ii)(115BAC)"},
+    {"component_id": 42, "component_name": "Judge Exempt Income",           "component_code": "EIC"},
+]
+
 # ==================== Salary 17(1) Components (grouped) ====================
 _SALARY_171_COMPONENTS: List[Dict[str, Union[str, List[Dict[str, str]]]]] = [
     {
@@ -488,6 +511,9 @@ class MasterDataService:
     def get_interest_types(self) -> List[Dict[str, str]]:
         return _INTEREST_TYPES
 
+    def get_salary_components(self) -> List[Dict[str, Union[str, int]]]:
+        return _SALARY_COMPONENTS
+
     def get_salary_171_components(self) -> List[Dict[str, Union[str, List[Dict[str, str]]]]]:
         return _SALARY_171_COMPONENTS
 
@@ -584,57 +610,57 @@ class MasterDataService:
 
     def get_all_master_data(self) -> MasterDataModel:
         """Return all master data in a single dict — one API call for the frontend."""
-        return MasterDataModel(
+        return MasterDataModel.model_validate({
             # Personal Details / Address
-            states=self.get_states(),
-            countries=self.get_countries(),
-            residential_statuses=self.get_residential_statuses(),
-            account_types=self.get_account_types(),
+            "states": self.get_states(),
+            "countries": self.get_countries(),
+            "residential_statuses": self.get_residential_statuses(),
+            "account_types": self.get_account_types(),
             # Salary
-            employer_types=self.get_employer_types(),
-            salary171_components=self.get_salary_171_components(),
-            salary172_components=self.get_salary_172_components(),
-            salary173_components=self.get_salary_173_components(),
+            "employer_types": self.get_employer_types(),
+            "salary171_components": self.get_salary_171_components(),
+            "salary172_components": self.get_salary_172_components(),
+            "salary173_components": self.get_salary_173_components(),
             # House Property
-            property_types=self.get_property_types(),
-            ownership_types=self.get_ownership_types(),
-            tenant_identifier_types=self.get_tenant_identifier_types(),
-            coowner_relationships=self.get_coowner_relationships(),
+            "property_types": self.get_property_types(),
+            "ownership_types": self.get_ownership_types(),
+            "tenant_identifier_types": self.get_tenant_identifier_types(),
+            "coowner_relationships": self.get_coowner_relationships(),
             # Interest Income
-            interest_types=self.get_interest_types(),
-            provident_fund_types=self.get_provident_fund_types(),
+            "interest_types": self.get_interest_types(),
+            "provident_fund_types": self.get_provident_fund_types(),
             # Deductions - 80C
-            section80c_types=self.get_section_80c_types(),
+            "section80c_types": self.get_section_80c_types(),
             # Deductions - Loans
-            lender_types=self.get_lender_types(),
+            "lender_types": self.get_lender_types(),
             # Deductions - Medical (80D)
-            health_insurance_taken_for=self.get_health_insurance_taken_for(),
-            preventive_medical_taken_for=self.get_preventive_medical_taken_for(),
+            "health_insurance_taken_for": self.get_health_insurance_taken_for(),
+            "preventive_medical_taken_for": self.get_preventive_medical_taken_for(),
             # Deductions - Medical (80DD, 80U)
-            disability_relationships=self.get_disability_relationships(),
-            disability_types=self.get_disability_types(),
+            "disability_relationships": self.get_disability_relationships(),
+            "disability_types": self.get_disability_types(),
             # Deductions - Medical (80DDB)
-            treatment_for=self.get_treatment_for(),
-            disease_types=self.get_disease_types(),
-            senior_citizen_types=self.get_senior_citizen_types(),
+            "treatment_for": self.get_treatment_for(),
+            "disease_types": self.get_disease_types(),
+            "senior_citizen_types": self.get_senior_citizen_types(),
             # Deductions - 80G
-            donation_types=self.get_donation_types(),
-            qualifying_percentages=self.get_qualifying_percentages(),
-            limit_on_deductions=self.get_limit_on_deductions(),
+            "donation_types": self.get_donation_types(),
+            "qualifying_percentages": self.get_qualifying_percentages(),
+            "limit_on_deductions": self.get_limit_on_deductions(),
             # Deductions - 80GGA
-            clause_types=self.get_clause_types(),
+            "clause_types": self.get_clause_types(),
             # Shared
-            payment_modes=self.get_payment_modes(),
-            quarters=self.get_quarters(),
+            "payment_modes": self.get_payment_modes(),
+            "quarters": self.get_quarters(),
             # Tax Credits - TDS
-            tds_income_sources=self.get_tds_income_sources(),
-            tds_sections=self.get_tds_sections(),
+            "tds_income_sources": self.get_tds_income_sources(),
+            "tds_sections": self.get_tds_sections(),
             # Tax Credits - TCS
-            tcs_nature_of_collections=self.get_tcs_nature_of_collections(),
+            "tcs_nature_of_collections": self.get_tcs_nature_of_collections(),
             # Tax Credits - Self / Advance
-            tax_payment_types=self.get_tax_payment_types(),
+            "tax_payment_types": self.get_tax_payment_types(),
             # ITR Preview
-            return_file_sections=self.get_return_file_sections(),
+            "return_file_sections": self.get_return_file_sections(),
             # Assets & Liabilities
-            liability_types=self.get_liability_types(),
-        )
+            "liability_types": self.get_liability_types(),
+        })
