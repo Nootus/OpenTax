@@ -1,12 +1,7 @@
-<p align="center">
-  <img src="web/public/ITAI-logo.png" alt="OpenTax" height="72" />
-</p>
-
-<h1 align="center">OpenTax</h1>
-
-<p align="center">
-  <a href="https://indiatax.ai"><strong>Powered by IndiaTax.AI</strong></a>
-</p>
+<h1 align="center">
+  <img src="web/public/ITAI-logo.png" alt="OpenTax" height="36" />
+  OpenTax
+</h1>
 
 <p align="center">
   <strong>Check it out at <a href="https://opentax.indiatax.ai">opentax.indiatax.ai</a></strong>
@@ -14,116 +9,93 @@
 
 <br/>
 
-OpenTax is a free, open-source Income Tax Return (ITR) filing application for India. It provides a single-page browser interface for completing ITR filings, backed by a FastAPI service that performs tax calculations, ITR construction, and validation.
+# 🧾 OpenTax — Open‑Source Infrastructure for Indian Income Tax
 
-## Project Structure
+**OpenTax** is a free, open‑source framework for Indian Income Tax.  
+It aims to **democratise tax processing** by making complex tax rules, calculations, and ITR generation accessible to everyone — individuals, developers, startups, and large-scale platforms.
 
-```
-OpenTax/
-├── web/          Next.js 16 frontend — React 19, TypeScript 5.9, Tailwind CSS 4
-├── api/          FastAPI backend — tax calculation, ITR building, validation
-└── README.md
-```
-
-## Features
-
-- No authentication required
-- Single-page layout with tab navigation (Personal Details, Income, Deductions, Tax Paid, Summary)
-- Automatic tax computation under both Old and New regimes
-- ITR JSON construction with validation error reporting
-- Static export — the frontend can be served directly from the FastAPI process in production
-- Apache 2.0 licensed
+Today, Indian tax logic is fragmented, opaque, and locked inside proprietary systems. There is **no open, community‑maintained standard** for tax computation. OpenTax changes that.
 
 ---
 
-## Frontend — web/
+## 🚀 What OpenTax Provides
 
-### Prerequisites
+### **1. A Modern, Simple Web App for ITR Filing**
+A clean, intuitive interface for individuals to prepare and file Income Tax Returns without friction.
 
-- Node.js 24.12.0 or later
-- npm 10 or later
+### **2. A Developer‑First Tax API**
+A fully open API that handles:
 
-### Installation
+- Tax calculations (old regime, new regime, special cases)  
+- ITR construction (JSON schemas)  
+- Validation and rule‑based checks  
+- Edge cases and compliance logic  
 
-```bash
-cd web
-npm install
-```
-
-### Development
-
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`.
-
-The frontend expects the API at `http://localhost:8000` by default. This is configured in `web/.env`:
-
-```
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
-
-### Build
-
-```bash
-npm run build
-```
-
-Produces a static export in `web/out/`. In production deployments, this directory is copied to `api/frontend/` and served by the FastAPI process.
-
-### Lint
-
-```bash
-npm run lint
-```
-
-### Scripts Reference
-
-| Script | Command | Description |
-|--------|---------|-------------|
-| dev | `npm run dev` | Start Next.js development server with Turbopack |
-| build | `npm run build` | Produce static export to `out/` |
-| start | `npm start` | Start Next.js production server |
-| lint | `npm run lint` | Run ESLint |
+Developers can embed tax computation directly into their apps — payroll, fintech, accounting, wealth management, or compliance tools — without reinventing the wheel.
 
 ---
 
-## Backend — api/
+## 🧠 Why OpenTax Exists
 
-See [api/README.md](api/README.md) for full API setup and endpoint documentation.
+### **Democratising Tax**
+Tax rules are public, but tax computation is not.  
+OpenTax makes tax logic **transparent, inspectable, and verifiable**.
+
+### **Handling Complexity Together**
+Indian tax law evolves constantly — new sections, exemptions, limits, edge cases.  
+Instead of every company re‑implementing the same logic (and making the same mistakes), OpenTax builds a **shared, community‑maintained knowledge base**.
+
+### **No Open‑Source Standard Exists**
+Despite millions of taxpayers and thousands of apps, there is no open-source reference implementation for Indian Income Tax.  
+OpenTax fills this gap with a **public, auditable, extensible** codebase.
 
 ---
 
-## Running Both Services Together
+## 🤝 Built With the Community
 
-### One-command launch (Windows)
+OpenTax thrives on collaboration:
 
-Run the included PowerShell script from the repository root to start both servers and open the browser automatically:
+- Contributors help encode complex tax rules  
+- Reviewers ensure correctness and compliance  
+- Domain experts validate interpretations  
+- Developers extend the API for new use cases  
 
-```powershell
-.\start.ps1
-```
+Together, we maintain a **living, evolving standard** for Indian tax computation.
 
-This opens two terminal windows (API + frontend) and launches `http://localhost:3000` in Chrome once the servers are ready.
+---
 
-### Manual start
+## 🧩 Architecture at a Glance
 
-Open two terminal sessions from the repository root.
+- **Web App** — A simple UI for individuals  
+- **Core Engine** — Pure, deterministic tax computation logic  
+- **ITR Builder** — Schema‑aware construction of ITR JSON  
+- **Validation Layer** — Rule‑based checks for compliance  
+- **REST API** — Plug‑and‑play for any external application  
 
-**Terminal 1 — API:**
-```bash
-cd api
-python -m uvicorn main:app --reload --port 8000
-```
+---
 
-**Terminal 2 — Frontend:**
-```bash
-cd web
-npm run dev
-```
+## 🌱 Our Vision
 
-Access the application at `http://localhost:3000`.
+To build the **Linux of Indian Tax** —  
+a transparent, community‑driven, open standard that powers everything from personal tax apps to enterprise-scale compliance systems.
+
+---
+
+## Target Users
+A high‑level overview of who benefits from OpenTax — developers, CAs, fintechs, HRMS platforms, government, educators, and individual taxpayers.  
+See: [`TARGET USERS.md`](TARGETUSERS.md)
+
+---
+
+## Contribution Guidelines
+Explains how developers and tax professionals contribute, their workflows, and how OpenTax maintains correctness through community collaboration.  
+See: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+---
+
+## Technical Documentation
+Covers the full technical architecture — project structure, frontend, backend, environment setup, running services, testing, and deployment.  
+See: [`TECHNICAL.md`](TECHNICAL.md)
 
 ---
 
@@ -142,7 +114,7 @@ If something is broken or unclear, opening a GitHub issue is the fastest way to 
 
 ## License
 
-Apache License 2.0
+[Apache License 2.0](https://github.com/nootus/OpenTax/blob/main/LICENSE)
 
 ---
 

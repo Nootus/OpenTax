@@ -117,11 +117,6 @@ export default function ContactUs() {
                   Tax Experts
                 </a>
               </li>
-              <li>
-                <a href={`${INDIATAX}/pricing`} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors">
-                  Pricing
-                </a>
-              </li>
             </ul>
           </div>
 
