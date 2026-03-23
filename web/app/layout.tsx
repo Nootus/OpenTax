@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import Image from "next/image";
+import Link from "next/link";
 import "./globals.css";
 import { FilingProvider } from "@/filing/context/FilingContext";
 import { MasterDataProvider } from "@/filing/context/MasterDataContext";
@@ -81,15 +82,29 @@ export default function RootLayout({
             <header className="bg-white border-b border-gray-200 shadow-sm print:hidden">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
                 {/* Left — logo + name */}
-                <div className="flex items-center gap-3">
-                  <Image src="/ITAI-logo.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
-                  <div>
-                    <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
-                    <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR Filing</p>
+                 <Link href="/">
+                  <div className="flex items-center gap-3">
+                    <Image src="/ITAI-logo.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
+                    <div>
+                      <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
+                      <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR Filing</p>
+                    </div>
                   </div>
-                </div>
-                {/* Right — GitHub + powered by */}
+                </Link>
+                {/* Right — nav links + GitHub + powered by */}
                 <div className="flex items-center gap-4">
+                  <Link
+                    href="/"
+                    className="text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    href="/about"
+                    className="text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    About
+                  </Link>
                   <a
                     href="https://github.com/nootus/OpenTax"
                     target="_blank"
