@@ -47,7 +47,7 @@ export default function Home() {
   const personPan = filing.person?.panNumber ?? '';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-[calc(100vh-100px)] bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Client Info Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 mb-4">
