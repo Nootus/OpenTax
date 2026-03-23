@@ -133,6 +133,9 @@ export default function DeductionsTab() {
       {/* 80D - Full Width */}
       <Section80DTab />
 
+      {/* Other Deductions - Full Width */}
+      <OtherDeductionsTab />
+
       {/* Advanced toggle */}
       <div className="flex justify-center">
         <button
@@ -180,7 +183,6 @@ export default function DeductionsTab() {
               )}
               <span className="w-8 h-8 rounded-lg bg-blue-500 text-white flex items-center justify-center text-sm font-bold">D</span>
               <h3 className="text-lg font-semibold text-gray-800 flex-1">Donation Deductions</h3>
-              <span className="text-base font-bold text-blue-700">₹{formatCurrency(donationsTotal)}</span>
             </button>
             {donationsExpanded && (
               <div className="space-y-4 mt-4">
@@ -201,11 +203,9 @@ export default function DeductionsTab() {
               )}
               <span className="w-8 h-8 rounded-lg bg-slate-500 text-white flex items-center justify-center text-sm font-bold">O</span>
               <h3 className="text-lg font-semibold text-gray-800 flex-1">Other Deductions</h3>
-              <span className="text-base font-bold text-slate-700">₹{formatCurrency(otherTotal)}</span>
             </button>
             {otherExpanded && (
               <div className="space-y-4 mt-4">
-                <OtherDeductionsTab />
               </div>
             )}
           </div>
@@ -220,7 +220,6 @@ export default function DeductionsTab() {
               )}
               <span className="w-8 h-8 rounded-lg bg-green-500 text-white flex items-center justify-center text-sm font-bold">M</span>
               <h3 className="text-lg font-semibold text-gray-800 flex-1">Medical Deductions</h3>
-              <span className="text-base font-bold text-green-700">₹{formatCurrency(medicalTotal)}</span>
             </button>
             {medicalExpanded && (
               <div className="space-y-4 mt-4">

@@ -70,7 +70,7 @@ export default function Section80CTab() {
 
   const validateEntry = (entry: Deduction80CModel): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!entry.description?.trim()) e.description = 'Investment type is required';
+    if (!entry.description?.trim()) e.description = 'Description is required';
     if (!entry.policyNumber?.trim()) e.policyNumber = 'Policy number is required';
     if (!entry.amount || entry.amount <= 0) e.amount = 'Amount must be greater than 0';
     return e;
@@ -179,7 +179,7 @@ export default function Section80CTab() {
                       <div className="flex items-start gap-3">
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                           <Input
-                            label="Investment Type"
+                            label="Description"
                             required
                             value={entry.description || ''}
                             onChange={(e) => updateEntry(entry.deductionId, 'description', e.target.value)}

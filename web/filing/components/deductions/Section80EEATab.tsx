@@ -180,7 +180,7 @@ export default function Section80EEATab() {
                         disabled={!isEditing}
                       />
                       <DatePicker
-                        label="Loan Sanction Date *"
+                        label="Sanction Date *"
                         value={formData.loanSanctionDate || null}
                         onChange={(date) => update('loanSanctionDate', date)}
                         error={errors.loanSanctionDate}
@@ -199,7 +199,7 @@ export default function Section80EEATab() {
                         disabled={!isEditing}
                       />
                       <Input
-                        label="Loan Account Number *"
+                        label="Account Number *"
                         value={formData.loanAccountNumber || ''}
                         onChange={(e) => update('loanAccountNumber', e.target.value)}
                         placeholder="Enter loan account number"

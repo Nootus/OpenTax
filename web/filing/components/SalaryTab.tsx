@@ -71,7 +71,8 @@ export default function SalaryTab() {
   const countryOptions = [{ value: '', label: 'Select country' }, ...COUNTRIES];
   const employerTypeOptions = [{ value: '', label: 'Select type' }, ...EMPLOYER_TYPES];
   const assessmentYear = filing.assessmentYear ?? '2026-27';
-  const standardDeductionAmount = (filing.regime ?? 'new').toLowerCase() === 'new' ? 75000 : 50000;
+  const standardDeductionAmount = filing.taxComputation?.currentRegime?.incomeBreakdown?.salary?.DeductionUs16ia
+    ?? ((filing.regime ?? 'new').toLowerCase() === 'new' ? 75000 : 50000);
   const { fyMinDate, fyMaxDate } = fyDatesFromAy(assessmentYear);
 
   const normalizeEntry = useCallback(

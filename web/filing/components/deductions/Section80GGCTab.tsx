@@ -81,7 +81,14 @@ export default function Section80GGCTab() {
   const totalAmount = entries.reduce((sum, e) => sum + (e.totalContribution || 0), 0);
 
   const updateEntry = (id: number | null | undefined, field: keyof Deduction80GGCModel, value: any) => {
-    setEntries(prev => prev.map(e => e.deductionId === id ? { ...e, [field]: value } : e));
+    setEntries(prev => prev.map(e => {
+      if (e.deductionId !== id) return e;
+      const updated = { ...e, [field]: value };
+      if (field === 'contributionAmountCash' || field === 'contributionAmountNonCash') {
+        updated.totalContribution = (updated.contributionAmountCash || 0) + (updated.contributionAmountNonCash || 0);
+      }
+      return updated;
+    }));
     if (id != null && entryErrors[id]?.[field as string]) {
       setEntryErrors(prev => {
         const next = { ...prev[id] };
@@ -256,7 +263,7 @@ export default function Section80GGCTab() {
                               placeholder="0"
                               prefix="Rs."
                               error={errors.totalContribution}
-                              disabled={!isEditing}
+                              disabled
                             />
                           </div>
                           <div className="flex gap-2 pb-0.5">
