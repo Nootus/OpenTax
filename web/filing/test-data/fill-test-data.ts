@@ -82,7 +82,7 @@ export const TEST_FILING: Partial<FilingModel> = {
         filingId: 0,
         employerId: null,
         standardDeduction: 50000,
-        entertainmentAllowance: 2000,
+        entertainmentAllowance: 0,
         professionalTax: 2400,
       },
       salarySection171: [
@@ -228,7 +228,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     dependantPan: null,
     relationToDependant: 'SPOUSE',
     disabilityType: 'Disabled',
-    natureOfDisability: null,
+    natureOfDisability: 'Locomotor Disability',
     expenditureIncurred: 75000,
     form101aFilingDate: null,
     form101aAckNo: null,
@@ -263,7 +263,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     lenderName: 'ICICI Bank',
     loanAccountNumber: 'ICICI80EEA001',
     loanSanctionDate: new Date('2019-04-01'),
-    totalLoanAmount: null,
+    totalLoanAmount: 4000000,
     loanOutstanding: 1500000,
     interestOnLoan: 35000,
   },
@@ -281,10 +281,10 @@ export const TEST_FILING: Partial<FilingModel> = {
     interestOnLoan: 150000,
   },
   section80G: [
-    { deductionId: null, filingId: 0, doneeName: 'PM Relief Fund', doneePan: null, donationType: null, donationAmountCash: 0, donationAmountNonCash: 45000, donationAmount: 45000, qualifyingPercentage: null, limitOnDeduction: null, addressLine1: null, city: null, state: null },
+    { deductionId: null, filingId: 0, doneeName: 'Prime Minister National Relief Fund', doneePan: 'AACTP4637Q', donationType: null, donationAmountCash: 0, donationAmountNonCash: 45000, donationAmount: 45000, qualifyingPercentage: '100', limitOnDeduction: 'Without Limit', addressLine1: 'South Block, Raisina Hill', city: 'New Delhi', state: '07', pincode: '110011' },
   ],
   section80Gga: [
-    { deductionId: null, filingId: 0, doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 95000, totalDonationAmount: 95000, doneePan: 'AAAAB0001A', addressLine1: 'Plot 5, Science Park', city: 'Mumbai', state: '27', pincode: '400001' },
+    { deductionId: null, filingId: 0, clauseUnderDonation: '80GGA2a', doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 95000, totalDonationAmount: 95000, doneePan: 'AAAAB0001A', addressLine1: 'Plot 5, Science Park', city: 'Mumbai', state: '27', pincode: '400001' },
   ],
   section80Gg: {
     deductionId: null,
@@ -298,7 +298,7 @@ export const TEST_FILING: Partial<FilingModel> = {
   section80Tta: {
     deductionId: null,
     filingId: 0,
-    interestAmount: 10000,
+    interestAmount: 0,
   },
   section80Ttb: {
     deductionId: null,

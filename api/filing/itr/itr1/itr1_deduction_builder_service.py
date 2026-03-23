@@ -200,7 +200,7 @@ class Itr1DeductionBuilderService:
         ded.Section80G = ded_80g
 
         # Calculate totals
-        usr.TotalChapVIADeductions = sum([
+        usr.TotalChapVIADeductions = int(sum([
             getattr(usr, 'Section80C', 0) or 0,
             getattr(usr, 'Section80CCC', 0) or 0,
             getattr(usr, 'Section80CCDEmployeeOrSE', 0) or 0,
@@ -220,9 +220,9 @@ class Itr1DeductionBuilderService:
             getattr(usr, 'Section80TTA', 0) or 0,
             getattr(usr, 'Section80TTB', 0) or 0,
             getattr(usr, 'AnyOthSec80CCH', 0) or 0,
-        ])
+        ]))
 
-        ded.TotalChapVIADeductions = context.total_deductions_without_80g + (getattr(ded, 'Section80G', 0) or 0)
+        ded.TotalChapVIADeductions = int(context.total_deductions_without_80g + (getattr(ded, 'Section80G', 0) or 0))
 
         total_income = max(0, int(gross_tot_income - (getattr(ded, 'TotalChapVIADeductions', 0) or 0)))
 
@@ -1078,11 +1078,11 @@ class Itr1DeductionBuilderService:
         if filing.section_80ddb is not None:
             section_80_ddb_usr_type = filing.section_80ddb.treatment_for
             section_80_ddb_disease = filing.section_80ddb.disease
-            section_80_ddb = filing.section_80ddb.expenditure_incurred
+            section_80_ddb = int(filing.section_80ddb.expenditure_incurred or 0)
             if filing.section_80ddb.treatment_for == "1":
-                section_80_ddb_calc = min(section_80_ddb, self._SECTION_80DDB_MAX_ALLOWED)
+                section_80_ddb_calc = int(min(section_80_ddb, self._SECTION_80DDB_MAX_ALLOWED))
             else:
-                section_80_ddb_calc = min(section_80_ddb, self._SECTION_80DDB_SENIOR_MAX_ALLOWED)
+                section_80_ddb_calc = int(min(section_80_ddb, self._SECTION_80DDB_SENIOR_MAX_ALLOWED))
    
         return {
             "Section80DDBUsrType": section_80_ddb_usr_type,
