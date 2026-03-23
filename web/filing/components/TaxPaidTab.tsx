@@ -20,68 +20,9 @@ import { fyDatesFromAy } from '@/utils/tax-year';
 import type { TDSModel } from '@/filing/models/tax-credits/tds-model';
 import type { TCSModel } from '@/filing/models/tax-credits/tcs-model';
 import type { TaxPaidSelfModel } from '@/filing/models/tax-credits/tax-paid-self-model';
+import { useMasterData } from '@/filing/context/MasterDataContext';
 
 const fc = (n: number) => n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
-
-// Static master data options (no API in OpenTax)
-const INCOME_SOURCE_OPTIONS = [
-  { value: '', label: 'Select source' },
-  { value: 'SALARY', label: 'Salary' },
-  { value: 'INTEREST', label: 'Interest Income' },
-  { value: 'RENT', label: 'Rental Income' },
-  { value: 'DIVIDEND', label: 'Dividend Income' },
-  { value: 'COMMISSION', label: 'Commission' },
-  { value: 'PROFESSIONAL', label: 'Professional Fee' },
-  { value: 'OTHER', label: 'Other' },
-];
-
-const TDS_SECTION_OPTIONS = [
-  { value: '', label: 'Select section' },
-  { value: '192', label: '192 - Salary' },
-  { value: '192A', label: '192A - PF Premature Withdrawal' },
-  { value: '193', label: '193 - Interest on Securities' },
-  { value: '194', label: '194 - Dividend' },
-  { value: '194A', label: '194A - Interest (Other than Securities)' },
-  { value: '194B', label: '194B - Lottery/Puzzle Winnings' },
-  { value: '194C', label: '194C - Contractor Payments' },
-  { value: '194D', label: '194D - Insurance Commission' },
-  { value: '194H', label: '194H - Commission/Brokerage' },
-  { value: '194I', label: '194I - Rent' },
-  { value: '194IA', label: '194IA - Sale of Immovable Property' },
-  { value: '194J', label: '194J - Professional/Technical Fees' },
-  { value: '194N', label: '194N - Cash Withdrawal' },
-  { value: '194Q', label: '194Q - Purchase of Goods' },
-  { value: 'OTHER', label: 'Other' },
-];
-
-const QUARTER_OPTIONS = [
-  { value: '', label: 'Select quarter' },
-  { value: 'Q1', label: 'Q1 (Apr-Jun)' },
-  { value: 'Q2', label: 'Q2 (Jul-Sep)' },
-  { value: 'Q3', label: 'Q3 (Oct-Dec)' },
-  { value: 'Q4', label: 'Q4 (Jan-Mar)' },
-];
-
-const NATURE_OF_COLLECTION_OPTIONS = [
-  { value: '', label: 'Select nature' },
-  { value: '6CA', label: '6CA - Alcoholic Liquor' },
-  { value: '6CB', label: '6CB - Tendu Leaves' },
-  { value: '6CC', label: '6CC - Timber (Forest Lease)' },
-  { value: '6CD', label: '6CD - Timber (Other mode)' },
-  { value: '6CE', label: '6CE - Other Forest Produce' },
-  { value: '6CF', label: '6CF - Scrap' },
-  { value: '6CG', label: '6CG - Minerals' },
-  { value: '6CH', label: '6CH - Motor Vehicle above 10L' },
-  { value: '6CI', label: '6CI - Overseas Tour Package' },
-  { value: '6CJ', label: '6CJ - Remittance under LRS' },
-  { value: 'OTHER', label: 'Other' },
-];
-
-const TAX_TYPE_OPTIONS = [
-  { value: '', label: 'Select type' },
-  { value: '100', label: '100 - Advance Tax' },
-  { value: '300', label: '300 - Self Assessment Tax' },
-];
 
 // Interfaces
 interface TDSData { entries: TDSModel[]; totalAmount: number; }
@@ -95,6 +36,14 @@ const advSum = (e: TaxPaidSelfModel[]) => e.reduce((s, i) => s + (i.taxPaidAmoun
 export default function TaxPaidTab() {
   const { filing, updateSection } = useFilingContext();
   const { fyMinDate, fyMaxDate } = fyDatesFromAy(filing.assessmentYear);
+  const masterData = useMasterData();
+
+  // Master data dropdown options
+  const INCOME_SOURCE_OPTIONS = [{ value: '', label: 'Select source' }, ...masterData.tdsIncomeSources];
+  const TDS_SECTION_OPTIONS = [{ value: '', label: 'Select section' }, ...masterData.tdsSections];
+  const QUARTER_OPTIONS = [{ value: '', label: 'Select quarter' }, ...masterData.quarters];
+  const NATURE_OF_COLLECTION_OPTIONS = [{ value: '', label: 'Select nature' }, ...masterData.tcsNatureOfCollections];
+  const TAX_TYPE_OPTIONS = [{ value: '', label: 'Select type' }, ...masterData.taxPaymentTypes];
 
   // Assign stable temp IDs to entries missing them
   const assignTdsIds = (arr: TDSModel[]) => arr.map((e, i) => e.tdsId != null ? e : { ...e, tdsId: -(Date.now() + i) });
