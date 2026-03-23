@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts",
+    ".next\\dev/types/**/*.ts",
+    ".next\\dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "domain/filing/models/income/capital-gains/capital-deemed-api.ts",
+    "domain/filing/models/income/capital-gains/capital-foreign-api.ts",
+    "domain/filing/models/income/capital-gains/capital-movable-api.ts",
+    "domain/filing/models/income/capital-gains/capital-real-estate-api.ts",
+    "domain/filing/models/income/capital-gains/capital-securities-api.ts",
+    "domain/filing/models/income/capital-gains/capital-gains-others-model.ts",
+    "domain/filing/models/income/capital-gains/foreign-asset-model.ts",
+    "domain/filing/models/income/capital-gains/movable-asset-model.ts"
+  ]
+}
+
+
+
+
+
+
