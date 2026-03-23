@@ -32,7 +32,8 @@ export default function Home() {
       const result = await calculateTax(merged);
       updateFiling({
         taxComputation: result.taxComputation,
-        chapterVIADeductions: result.chapterVIADeductions,
+        chapterVIADeductionsNew: result.chapterVIADeductionsNew,
+        chapterVIADeductionsOld: result.chapterVIADeductionsOld,
         userValidationErrors: result.userValidationErrors,
         taxIntrest: result.taxIntrest,
       });

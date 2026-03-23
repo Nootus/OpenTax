@@ -186,7 +186,8 @@ export interface FilingModel {
   userValidationErrors?: ValidationErrorModel[]
 
   // ############# Chapter VIA Deductions Breakdown #############
-  chapterVIADeductions?: ChapterVIADeductions | null
+  chapterVIADeductionsNew?: ChapterVIADeductions | null
+  chapterVIADeductionsOld?: ChapterVIADeductions | null
 }
 
 export interface DeductionAmount {

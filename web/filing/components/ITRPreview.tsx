@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import type { ITR1Model } from '@/filing/models/itr1-model'
+import { useMasterData } from '@/filing/context/MasterDataContext'
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -74,6 +75,11 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
   const paid = itr1.TaxPaid
   const refund = itr1.Refund
   const filing = itr1.FilingStatus
+  const masterData = useMasterData()
+  const stateMap = Object.fromEntries(masterData.states.map(s => [s.value, s.label]))
+  const countryMap = Object.fromEntries(masterData.countries.map(c => [c.value, c.label]))
+  const employerCatMap = Object.fromEntries(masterData.employerTypes.map(e => [e.value, e.label]))
+  const returnFileSectionMap = Object.fromEntries(masterData.returnFileSections.map(r => [r.value, r.label]))
 
   const name = [pi.AssesseeName.FirstName, pi.AssesseeName.MiddleName, pi.AssesseeName.SurNameOrOrgName].filter(Boolean).join(' ') || '—'
   const isOldRegime = filing.OptOutNewTaxRegime === 'Y'
@@ -121,7 +127,7 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
                 const url = URL.createObjectURL(blob)
                 const a = document.createElement('a')
                 a.href = url
-                a.download = `ITR1_${itr1.Form_ITR1?.AssessmentYear ?? 'AY'}.json`
+                a.download = `ITR1_${pi.PAN ?? itr1.Form_ITR1?.AssessmentYear ?? 'AY'}.json`
                 document.body.appendChild(a)
                 a.click()
                 document.body.removeChild(a)
@@ -183,7 +189,7 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
           <Row label="Date of Birth" value={fmtDate(pi.DOB)} />
           <Row label="PAN" value={safe(pi.PAN)} />
           <Row label="Aadhaar Number" value={safe(pi.AadhaarCardNo)} />
-          <Row label="Employer Category" value={safe(pi.EmployerCategory)} />
+          <Row label="Employer Category" value={employerCatMap[safe(pi.EmployerCategory)] ?? safe(pi.EmployerCategory)} />
           <Row label="Email" value={safe(addr.EmailAddress)} />
           <Row label="Mobile" value={addr.MobileNo ? `+${addr.CountryCodeMobile}-${addr.MobileNo}` : '—'} />
 
@@ -193,12 +199,12 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
           <Row label="Road/Street" value={safe(addr.RoadOrStreet)} />
           <Row label="Area/Locality" value={safe(addr.LocalityOrArea)} />
           <Row label="Town/City/District" value={safe(addr.CityOrTownOrDistrict)} />
-          <Row label="State" value={safe(addr.StateCode)} />
-          <Row label="Country" value={safe(addr.CountryCode)} />
+          <Row label="State" value={stateMap[String(addr.StateCode ?? '')] ?? safe(addr.StateCode)} />
+          <Row label="Country" value={countryMap[String(addr.CountryCode ?? '')] ?? safe(addr.CountryCode)} />
           <Row label="Pin Code" value={safe(addr.PinCode)} />
 
           <SubHeader label="Filing Status" />
-          <Row label="Return Filed u/s" value={safe(filing.ReturnFileSec)} />
+          <Row label="Return Filed u/s" value={returnFileSectionMap[safe(filing.ReturnFileSec)] ?? safe(filing.ReturnFileSec)} />
           <Row label="Opted Out of New Regime" value={filing.OptOutNewTaxRegime === 'Y' ? 'Yes' : 'No'} />
           <Row label="ITR Filing Due Date" value={fmtDate(filing.ItrFilingDueDate)} />
         </div>

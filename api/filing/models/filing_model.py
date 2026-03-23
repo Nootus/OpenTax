@@ -164,8 +164,9 @@ class FilingModel(ApiBaseModel):
     # Computed views for ITR mappers
     # -----------------------------
     
-    chapterVIADeductions: ChapterVIADeductions = ChapterVIADeductions()
-    
+    chapterVIADeductionsNew: ChapterVIADeductions = ChapterVIADeductions()
+    chapterVIADeductionsOld: ChapterVIADeductions = ChapterVIADeductions()
+
     def has_income(self) -> bool:
         """Check if filing has any actual income data."""
         if self.salary:

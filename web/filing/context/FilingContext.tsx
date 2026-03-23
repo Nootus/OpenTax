@@ -80,7 +80,8 @@ const EMPTY_FILING: FilingModel = {
   taxComputation: null,
   taxIntrest: 0,
   userValidationErrors: [],
-  chapterVIADeductions: null,
+  chapterVIADeductionsNew: null,
+  chapterVIADeductionsOld: null,
 }
 
 // ── Context Types ──

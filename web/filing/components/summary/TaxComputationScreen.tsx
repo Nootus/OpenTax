@@ -28,7 +28,16 @@ export default function TaxComputationScreen({ onClose }: TaxComputationScreenPr
     setActiveModal({ type, regime })
   }
 
-  const chapterVIADeductions = filing.chapterVIADeductions
+  const getDeductionRows = (chapterVIA: ChapterVIADeductions | null | undefined) =>
+    chapterVIA
+      ? (Object.keys(SECTION_LABELS) as (keyof ChapterVIADeductions)[])
+          .map(key => ({
+            key,
+            label: SECTION_LABELS[key],
+            ...(chapterVIA[key] ?? { claimed: 0, maxAllowed: 0, allowed: 0 }),
+          }))
+          .filter(row => row.claimed > 0 || row.allowed > 0)
+      : []
 
   const SECTION_LABELS: Record<string, string> = {
     section80C:    '80C – Life Insurance / PPF / ELSS etc.',
@@ -54,16 +63,6 @@ export default function TaxComputationScreen({ onClose }: TaxComputationScreenPr
     section80Qqb:  '80QQB – Royalty (Books)',
     section80Rrb:  '80RRB – Royalty (Patents)',
   }
-
-  const deductionRows = chapterVIADeductions
-    ? (Object.keys(SECTION_LABELS) as (keyof ChapterVIADeductions)[])
-        .map(key => ({
-          key,
-          label: SECTION_LABELS[key],
-          ...(chapterVIADeductions[key] ?? { claimed: 0, maxAllowed: 0, allowed: 0 }),
-        }))
-        .filter(row => row.claimed > 0 || row.allowed > 0)
-    : []
 
   const renderRegimeCard = (regime: 'old' | 'new') => {
     const isOld = regime === 'old'
@@ -752,52 +751,56 @@ export default function TaxComputationScreen({ onClose }: TaxComputationScreenPr
     })()}
 
     {/* Chapter VIA Deductions Modal */}
-    {activeModal?.type === 'deductions' && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
-          <div className="flex items-center justify-between px-6 py-4 border-b">
-            <h2 className="text-lg font-bold text-gray-800">Chapter VI-A Deductions Breakdown</h2>
-            <button onClick={() => setActiveModal(null)} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
-          </div>
-          <div className="overflow-y-auto flex-1 px-6 py-4">
-            {deductionRows.length === 0 ? (
-              <p className="text-gray-500 text-sm text-center py-8">No deductions claimed.</p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
-                    <th className="text-left py-2 px-3 rounded-l">Section</th>
-                    <th className="text-right py-2 px-3">Claimed</th>
-                    <th className="text-right py-2 px-3">Max Allowed</th>
-                    <th className="text-right py-2 px-3 rounded-r">Allowed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {deductionRows.map(row => (
-                    <tr key={row.key} className="border-b last:border-0 hover:bg-gray-50">
-                      <td className="py-2.5 px-3 text-gray-700">{row.label}</td>
-                      <td className="py-2.5 px-3 text-right text-gray-800">{formatCurrency(row.claimed)}</td>
-                      <td className="py-2.5 px-3 text-right text-gray-500">{row.maxAllowed > 0 ? formatCurrency(row.maxAllowed) : '–'}</td>
-                      <td className={`py-2.5 px-3 text-right font-semibold ${row.allowed < row.claimed ? 'text-orange-600' : 'text-green-600'}`}>
-                        {formatCurrency(row.allowed)}
-                      </td>
+    {activeModal?.type === 'deductions' && (() => {
+      const chapterVIA = activeModal.regime === 'old' ? filing.chapterVIADeductionsOld : filing.chapterVIADeductionsNew
+      const deductionRows = getDeductionRows(chapterVIA)
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <h2 className="text-lg font-bold text-gray-800">Chapter VI-A Deductions — {activeModal.regime === 'old' ? 'Old' : 'New'} Regime</h2>
+              <button onClick={() => setActiveModal(null)} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+            </div>
+            <div className="overflow-y-auto flex-1 px-6 py-4">
+              {deductionRows.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-8">No deductions claimed.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 text-gray-600 text-xs uppercase">
+                      <th className="text-left py-2 px-3 rounded-l">Section</th>
+                      <th className="text-right py-2 px-3">Claimed</th>
+                      <th className="text-right py-2 px-3">Max Allowed</th>
+                      <th className="text-right py-2 px-3 rounded-r">Allowed</th>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-blue-50 font-semibold">
-                    <td className="py-2.5 px-3 text-gray-900">Total</td>
-                    <td className="py-2.5 px-3 text-right text-gray-800">{formatCurrency(deductionRows.reduce((s, r) => s + r.claimed, 0))}</td>
-                    <td className="py-2.5 px-3"></td>
-                    <td className="py-2.5 px-3 text-right text-blue-700">{formatCurrency(deductionRows.reduce((s, r) => s + r.allowed, 0))}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            )}
+                  </thead>
+                  <tbody>
+                    {deductionRows.map(row => (
+                      <tr key={row.key} className="border-b last:border-0 hover:bg-gray-50">
+                        <td className="py-2.5 px-3 text-gray-700">{row.label}</td>
+                        <td className="py-2.5 px-3 text-right text-gray-800">{formatCurrency(row.claimed)}</td>
+                        <td className="py-2.5 px-3 text-right text-gray-500">{row.maxAllowed > 0 ? formatCurrency(row.maxAllowed) : '–'}</td>
+                        <td className={`py-2.5 px-3 text-right font-semibold ${row.allowed < row.claimed ? 'text-orange-600' : 'text-green-600'}`}>
+                          {formatCurrency(row.allowed)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-blue-50 font-semibold">
+                      <td className="py-2.5 px-3 text-gray-900">Total</td>
+                      <td className="py-2.5 px-3 text-right text-gray-800">{formatCurrency(deductionRows.reduce((s, r) => s + r.claimed, 0))}</td>
+                      <td className="py-2.5 px-3"></td>
+                      <td className="py-2.5 px-3 text-right text-blue-700">{formatCurrency(deductionRows.reduce((s, r) => s + r.allowed, 0))}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )
+    })()}
 
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}

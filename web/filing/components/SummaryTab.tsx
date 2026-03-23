@@ -53,7 +53,8 @@ export default function SummaryTab() {
       const result = await calculateTax(filing);
       updateFiling({
         taxComputation: result.taxComputation,
-        chapterVIADeductions: result.chapterVIADeductions,
+        chapterVIADeductionsNew: result.chapterVIADeductionsNew,
+        chapterVIADeductionsOld: result.chapterVIADeductionsOld,
         userValidationErrors: result.userValidationErrors,
         taxIntrest: result.taxIntrest,
       });

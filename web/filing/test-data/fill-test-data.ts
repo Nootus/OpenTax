@@ -213,7 +213,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     expenditureIncurred: 45000,
   },
   section80E: [
-    { deductionId: null, filingId: 0, lenderType: 'Bank', lenderName: 'Axis Bank', loanAccountNumber: '3456782', loanSanctionDate: new Date('2025-03-01'), totalLoanAmount: 4000000, loanOutstanding: 4000000, interestOnLoan: 200000 },
+    { deductionId: null, filingId: 0, lenderType: 'Bank', lenderName: 'Axis Bank', loanAccountNumber: '3456782', loanSanctionDate: new Date('2025-03-01'), totalLoanAmount: 4500000, loanOutstanding: 4500000, interestOnLoan: 200000 },
   ],
   section80Eeb: {
     deductionId: null,
@@ -232,7 +232,7 @@ export const TEST_FILING: Partial<FilingModel> = {
     { deductionId: null, filingId: 0, doneeName: 'Prime Minister National Relief Fund', doneePan: 'AACTP4637Q', donationType: null, donationAmountCash: 0, donationAmountNonCash: 45000, donationAmount: 45000, qualifyingPercentage: '100', limitOnDeduction: 'Without Limit', addressLine1: 'South Block, Raisina Hill', city: 'New Delhi', state: '07', pincode: '110011' },
   ],
   section80Gga: [
-    { deductionId: null, filingId: 0, clauseUnderDonation: '80GGA2a', doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 95000, totalDonationAmount: 95000, doneePan: 'AAAAB0001A', addressLine1: 'Plot 5, Science Park', city: 'Mumbai', state: '27', pincode: '400001' },
+    { deductionId: null, filingId: 0, clauseUnderDonation: '80GGA2a', doneeName: 'Scientific Research Fund', donationAmountCash: 0, donationAmountNonCash: 82220, totalDonationAmount: 82220, doneePan: 'AAAAB0001A', addressLine1: 'Plot 5, Science Park', city: 'Mumbai', state: '27', pincode: '400001' },
   ],
   section80Ggc: [
     { deductionId: null, filingId: 0, politicalPartyName: 'Sample Political Party', contributionAmountCash: 0, contributionAmountNonCash: 55000, totalContribution: 55000, dateOfDonation: new Date('2024-08-15'), transactionId: 'TXN202408150001', donorBankIfsc: 'SBIN0001234' },

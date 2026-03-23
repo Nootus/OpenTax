@@ -39,7 +39,8 @@ function sanitizePayload(filing: FilingModel): FilingModel {
     otherAssets: filing.otherAssets ?? [],
     liabilities: filing.liabilities ?? [],
     investmentFirmLlpAop: filing.investmentFirmLlpAop ?? [],
-    chapterVIADeductions: filing.chapterVIADeductions ?? undefined,
+    chapterVIADeductionsNew: filing.chapterVIADeductionsNew ?? undefined,
+    chapterVIADeductionsOld: filing.chapterVIADeductionsOld ?? undefined,
   }
   return deepSanitize(cleaned)
 }

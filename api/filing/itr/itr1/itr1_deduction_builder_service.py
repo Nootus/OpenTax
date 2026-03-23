@@ -254,9 +254,10 @@ class Itr1DeductionBuilderService:
     ) -> tuple[int, int, Any]:
         """Section 80C: LIC, PPF, ELSS, etc."""
         user_claimed = int(sum(section_80c.amount or 0 for section_80c in filing.section_80c or []))
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW":
-            filing.chapterVIADeductions.section_80c.claimed = user_claimed
-            filing.chapterVIADeductions.section_80c.allowed = 0
+            chap.section_80c.claimed = user_claimed
+            chap.section_80c.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80c(filing)
@@ -264,9 +265,9 @@ class Itr1DeductionBuilderService:
         pool_150k = min(self._SECTION_80C_80CCC_MAX_ALLOWED, total_income)
         allowed = min(user_claimed, pool_150k)
 
-        filing.chapterVIADeductions.section_80c.claimed = user_claimed
-        filing.chapterVIADeductions.section_80c.allowed = allowed
-        filing.chapterVIADeductions.section_80c.max_allowed = self._SECTION_80C_80CCC_MAX_ALLOWED
+        chap.section_80c.claimed = user_claimed
+        chap.section_80c.allowed = allowed
+        chap.section_80c.max_allowed = self._SECTION_80C_80CCC_MAX_ALLOWED
 
         return user_claimed, allowed, schedule
     
@@ -276,9 +277,10 @@ class Itr1DeductionBuilderService:
         """Section 80CCC: Pension schemes. Returns (user_claimed, allowed, pran_num)."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccc or []))
         pran_num = filing.section_80ccc[0].pran_number if filing.section_80ccc else ""
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80ccc:
-            filing.chapterVIADeductions.section_80ccc.claimed = user_claimed
-            filing.chapterVIADeductions.section_80ccc.allowed = 0
+            chap.section_80ccc.claimed = user_claimed
+            chap.section_80ccc.allowed = 0
             return user_claimed, 0, pran_num
 
         total_income = max(0, int(gross_tot_income))
@@ -286,9 +288,9 @@ class Itr1DeductionBuilderService:
         remaining = max(0, pool_150k - section_80c_allowed)
         allowed = min(user_claimed, remaining)
 
-        filing.chapterVIADeductions.section_80ccc.claimed = user_claimed
-        filing.chapterVIADeductions.section_80ccc.allowed = allowed
-        filing.chapterVIADeductions.section_80ccc.max_allowed = min(self._SECTION_80C_80CCC_MAX_ALLOWED, int(gross_tot_income))
+        chap.section_80ccc.claimed = user_claimed
+        chap.section_80ccc.allowed = allowed
+        chap.section_80ccc.max_allowed = min(self._SECTION_80C_80CCC_MAX_ALLOWED, int(gross_tot_income))
 
         return user_claimed, allowed, pran_num
     
@@ -302,9 +304,10 @@ class Itr1DeductionBuilderService:
     ) -> tuple[int, int, None]:
         """Section 80CCD(1): NPS contributions by employee/self-employed."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccd1 or []))
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80ccd1:
-            filing.chapterVIADeductions.section_80ccd1.claimed = user_claimed
-            filing.chapterVIADeductions.section_80ccd1.allowed = 0
+            chap.section_80ccd1.claimed = user_claimed
+            chap.section_80ccd1.allowed = 0
             return user_claimed, 0, None
 
         total_income = max(0, int(gross_tot_income))
@@ -312,9 +315,9 @@ class Itr1DeductionBuilderService:
         remaining = max(0, pool_150k - section_80c_allowed - section_80ccc_allowed)
         allowed = min(user_claimed, remaining)
 
-        filing.chapterVIADeductions.section_80ccd1.claimed = user_claimed
-        filing.chapterVIADeductions.section_80ccd1.allowed = allowed
-        filing.chapterVIADeductions.section_80ccd1.max_allowed = (
+        chap.section_80ccd1.claimed = user_claimed
+        chap.section_80ccd1.allowed = allowed
+        chap.section_80ccd1.max_allowed = (
             min(self._SECTION_80C_80CCC_MAX_ALLOWED, int(gross_tot_income)) - section_80c_allowed - section_80ccc_allowed
         )
 
@@ -325,16 +328,17 @@ class Itr1DeductionBuilderService:
     ) -> tuple[int, int, None]:
         """Section 80CCD(1B): Additional NPS contribution (over and above 80C limit)."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccd1b or []))
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80ccd1b:
-            filing.chapterVIADeductions.section_80ccd1b.claimed = user_claimed
-            filing.chapterVIADeductions.section_80ccd1b.allowed = 0
+            chap.section_80ccd1b.claimed = user_claimed
+            chap.section_80ccd1b.allowed = 0
             return user_claimed, 0, None
         total_income = max(0, int(gross_tot_income))
         allowed = int(min(user_claimed, self._SECTION_80CCD1B_MAX_ALLOWED, total_income))
 
-        filing.chapterVIADeductions.section_80ccd1b.claimed = user_claimed
-        filing.chapterVIADeductions.section_80ccd1b.allowed = allowed
-        filing.chapterVIADeductions.section_80ccd1b.max_allowed = min(self._SECTION_80CCD1B_MAX_ALLOWED, int(gross_tot_income))
+        chap.section_80ccd1b.claimed = user_claimed
+        chap.section_80ccd1b.allowed = allowed
+        chap.section_80ccd1b.max_allowed = min(self._SECTION_80CCD1B_MAX_ALLOWED, int(gross_tot_income))
 
         return user_claimed, allowed, None
     
@@ -343,16 +347,17 @@ class Itr1DeductionBuilderService:
     ) -> tuple[int, int, None]:
         """Section 80CCD(2): Employer NPS contribution."""
         user_claimed = int(sum(item.amount for item in filing.section_80ccd2 or []))
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80ccd2:
-            filing.chapterVIADeductions.section_80ccd2.claimed = user_claimed
-            filing.chapterVIADeductions.section_80ccd2.allowed = 0
+            chap.section_80ccd2.claimed = user_claimed
+            chap.section_80ccd2.allowed = 0
             return user_claimed, 0, None
 
         total_income = max(0, int(gross_tot_income))
         allowed = int(min(user_claimed, total_income))
 
-        filing.chapterVIADeductions.section_80ccd2.claimed = user_claimed
-        filing.chapterVIADeductions.section_80ccd2.allowed = allowed
+        chap.section_80ccd2.claimed = user_claimed
+        chap.section_80ccd2.allowed = allowed
 
         return user_claimed, round(allowed), None
     
@@ -384,14 +389,15 @@ class Itr1DeductionBuilderService:
             else (self._SECTION_80D_PARENTS_NOT_SENIOR_MAX_ALLOWED if parents_senior_flag == "N" else 0)
         )
         max_allowed = self_max + parents_max
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80d:
-            filing.chapterVIADeductions.section_80d.claimed = user_claimed
-            filing.chapterVIADeductions.section_80d.allowed = 0
+            chap.section_80d.claimed = user_claimed
+            chap.section_80d.allowed = 0
             return user_claimed, 0, None
 
-        filing.chapterVIADeductions.section_80d.claimed = user_claimed
-        filing.chapterVIADeductions.section_80d.allowed = allowed_amount
-        filing.chapterVIADeductions.section_80d.max_allowed = max_allowed
+        chap.section_80d.claimed = user_claimed
+        chap.section_80d.allowed = allowed_amount
+        chap.section_80d.max_allowed = max_allowed
         return user_claimed, allowed_amount, schedule
     
     def _apply_section_80dd(
@@ -400,9 +406,10 @@ class Itr1DeductionBuilderService:
         """Section 80DD: Medical treatment of dependent with disability."""
         schedule = self.build_schedule_80dd(filing)
         user_claimed = int(getattr(filing.section_80dd, "expenditure_incurred", 0) or 0)
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80dd or schedule is None:
-            filing.chapterVIADeductions.section_80dd.claimed = user_claimed
-            filing.chapterVIADeductions.section_80dd.allowed = 0
+            chap.section_80dd.claimed = user_claimed
+            chap.section_80dd.allowed = 0
             return user_claimed, 0, None
 
         user_claimed = int(getattr(schedule, 'DeductionAmount', 0))
@@ -414,73 +421,77 @@ class Itr1DeductionBuilderService:
         else:
             allowed = min(user_claimed, 125000, total_income)
 
-        filing.chapterVIADeductions.section_80dd.claimed = user_claimed
-        filing.chapterVIADeductions.section_80dd.allowed = allowed
-        filing.chapterVIADeductions.section_80dd.max_allowed = user_claimed
+        chap.section_80dd.claimed = user_claimed
+        chap.section_80dd.allowed = allowed
+        chap.section_80dd.max_allowed = user_claimed
 
         return user_claimed, allowed, schedule
     
     def _apply_section_80e(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80E: Interest on education loan."""
         user_claimed = int(sum(getattr(item, 'interest_on_loan', 0) or 0 for item in filing.section_80e or []))
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80e:
-            filing.chapterVIADeductions.section_80e.claimed = user_claimed
-            filing.chapterVIADeductions.section_80e.allowed = 0
+            chap.section_80e.claimed = user_claimed
+            chap.section_80e.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80e(filing)
         allowed = int(getattr(schedule, 'TotalInterest80E', 0))
 
-        filing.chapterVIADeductions.section_80e.claimed = user_claimed
-        filing.chapterVIADeductions.section_80e.allowed = allowed
-        filing.chapterVIADeductions.section_80e.max_allowed = user_claimed
+        chap.section_80e.claimed = user_claimed
+        chap.section_80e.allowed = allowed
+        chap.section_80e.max_allowed = user_claimed
         return user_claimed, allowed, schedule
     
     def _apply_section_80ee(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80EE: Interest on home loan."""
         user_claimed = int(getattr(filing.section_80ee, "interest_on_loan", 0) or 0)
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80ee:
-            filing.chapterVIADeductions.section_80ee.claimed = user_claimed
-            filing.chapterVIADeductions.section_80ee.allowed = 0
+            chap.section_80ee.claimed = user_claimed
+            chap.section_80ee.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80ee(filing)
         allowed = int(getattr(schedule, 'TotalInterest80EE', 0))
 
-        filing.chapterVIADeductions.section_80ee.claimed = user_claimed
-        filing.chapterVIADeductions.section_80ee.allowed = allowed
-        filing.chapterVIADeductions.section_80ee.max_allowed = self._SECTION_80EE_MAX_ALLOWED
+        chap.section_80ee.claimed = user_claimed
+        chap.section_80ee.allowed = allowed
+        chap.section_80ee.max_allowed = self._SECTION_80EE_MAX_ALLOWED
         return user_claimed, allowed, schedule
     
     def _apply_section_80eeb(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80EEB: Interest on electric vehicle loan."""
         user_claimed = int(getattr(filing.section_80eeb, "interest_on_loan", 0) or 0)
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80eeb:
-            filing.chapterVIADeductions.section_80eeb.claimed = user_claimed
-            filing.chapterVIADeductions.section_80eeb.allowed = 0
+            chap.section_80eeb.claimed = user_claimed
+            chap.section_80eeb.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80eeb(filing)
         allowed = int(getattr(schedule, 'TotalInterest80EEB', 0))
 
-        filing.chapterVIADeductions.section_80eeb.claimed = user_claimed
-        filing.chapterVIADeductions.section_80eeb.allowed = allowed
-        filing.chapterVIADeductions.section_80eeb.max_allowed = self._SECTION_80EEB_MAX_ALLOWED
+        chap.section_80eeb.claimed = user_claimed
+        chap.section_80eeb.allowed = allowed
+        chap.section_80eeb.max_allowed = self._SECTION_80EEB_MAX_ALLOWED
         return user_claimed, allowed, schedule
     
     def _apply_section_80u(self, filing: FilingModel, regime: str) -> tuple[int, int, Any]:
         """Section 80U: Person with disability."""
         user_claimed = int(getattr(filing.section_80u, "expenditure_incurred", 0) or 0)
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80u:
-            filing.chapterVIADeductions.section_80u.claimed = user_claimed
-            filing.chapterVIADeductions.section_80u.allowed = 0
+            chap.section_80u.claimed = user_claimed
+            chap.section_80u.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80u(filing)
         user_claimed = allowed = int(getattr(schedule, 'DeductionAmount', 0))
-        filing.chapterVIADeductions.section_80u.claimed = user_claimed
-        filing.chapterVIADeductions.section_80u.allowed = allowed
-        filing.chapterVIADeductions.section_80u.max_allowed = user_claimed
+        chap.section_80u.claimed = user_claimed
+        chap.section_80u.allowed = allowed
+        chap.section_80u.max_allowed = user_claimed
         return user_claimed, allowed, schedule
     def _apply_section_80gga(
         self, filing: FilingModel, context: Itr1ComputationContext, regime: str
@@ -492,33 +503,35 @@ class Itr1DeductionBuilderService:
                 for item in filing.section_80gga or []
             )
         )
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW":
-            filing.chapterVIADeductions.section_80gga.claimed = user_claimed
-            filing.chapterVIADeductions.section_80gga.allowed = 0
+            chap.section_80gga.claimed = user_claimed
+            chap.section_80gga.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80gga(filing, context)
         allowed = int(getattr(schedule, "TotalEligibleDonationAmt80GGA", 0))
 
-        filing.chapterVIADeductions.section_80gga.claimed = user_claimed
-        filing.chapterVIADeductions.section_80gga.allowed = allowed
-        filing.chapterVIADeductions.section_80gga.max_allowed = allowed
+        chap.section_80gga.claimed = user_claimed
+        chap.section_80gga.allowed = allowed
+        chap.section_80gga.max_allowed = allowed
         return user_claimed, allowed, schedule
 
     def _apply_section_80ddb(self, filing: FilingModel, regime: str) -> tuple[int, int, str, str]:
         """Section 80DDB: Medical treatment of dependent with disability. Returns (user_claimed, allowed, usr_type, disease)."""
         user_claimed = int(getattr(filing.section_80ddb, "expenditure_incurred", 0) or 0)
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80ddb:
-            filing.chapterVIADeductions.section_80ddb.claimed = user_claimed
-            filing.chapterVIADeductions.section_80ddb.allowed = 0
+            chap.section_80ddb.claimed = user_claimed
+            chap.section_80ddb.allowed = 0
             return user_claimed, 0, "", ""
         schedule = self.build_section_80ddb(filing)
         allowed = schedule.get("Section80DDB_calc", 0)
         usr_type = schedule.get("Section80DDBUsrType", "")
         disease = schedule.get("NameOfSpecDisease80DDB", "")
-        filing.chapterVIADeductions.section_80ddb.claimed = user_claimed
-        filing.chapterVIADeductions.section_80ddb.allowed = allowed
-        filing.chapterVIADeductions.section_80ddb.max_allowed = (
+        chap.section_80ddb.claimed = user_claimed
+        chap.section_80ddb.allowed = allowed
+        chap.section_80ddb.max_allowed = (
             self._SECTION_80DDB_MAX_ALLOWED
             if getattr(filing.section_80ddb, 'treatment_for', '1') == "1"
             else self._SECTION_80DDB_SENIOR_MAX_ALLOWED
@@ -533,17 +546,18 @@ class Itr1DeductionBuilderService:
                 for item in filing.section_80ggc or []
             )
         )
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80ggc:
-            filing.chapterVIADeductions.section_80ggc.claimed = user_claimed
-            filing.chapterVIADeductions.section_80ggc.allowed = 0
+            chap.section_80ggc.claimed = user_claimed
+            chap.section_80ggc.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80ggc(filing)
         allowed = int(getattr(schedule, "TotalEligibleDonationAmt80GGC", 0))
 
-        filing.chapterVIADeductions.section_80ggc.claimed = user_claimed
-        filing.chapterVIADeductions.section_80ggc.allowed = allowed
-        filing.chapterVIADeductions.section_80ggc.max_allowed = allowed
+        chap.section_80ggc.claimed = user_claimed
+        chap.section_80ggc.allowed = allowed
+        chap.section_80ggc.max_allowed = allowed
         return user_claimed, allowed, schedule
     
     def _apply_section_80g(
@@ -556,17 +570,18 @@ class Itr1DeductionBuilderService:
                 for item in filing.section_80g or []
             )
         )
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.section_80g:
-            filing.chapterVIADeductions.section_80g.claimed = user_claimed
-            filing.chapterVIADeductions.section_80g.allowed = 0
+            chap.section_80g.claimed = user_claimed
+            chap.section_80g.allowed = 0
             return user_claimed, 0, None
 
         schedule = self.build_schedule_80g(filing, context)
         allowed = int(getattr(schedule, 'TotalEligibleDonationsUs80G', 0) or 0)
 
-        filing.chapterVIADeductions.section_80g.claimed = user_claimed
-        filing.chapterVIADeductions.section_80g.allowed = allowed
-        filing.chapterVIADeductions.section_80g.max_allowed = allowed
+        chap.section_80g.claimed = user_claimed
+        chap.section_80g.allowed = allowed
+        chap.section_80g.max_allowed = allowed
         return user_claimed, allowed, schedule
     
     def _apply_other_deductions(
@@ -581,33 +596,34 @@ class Itr1DeductionBuilderService:
         usr_80cch = result.get("AnyOthSec80CCH", 0)
         usr_80gg = result.get("Section80GG", 0)
         form10ba_ack_num = result.get("Form10BAAckNum", "")
+        chap = filing.chapterVIADeductionsNew if regime.upper() == "NEW" else filing.chapterVIADeductionsOld
         if regime.upper() == "NEW" or not filing.other_deductions:
-            filing.chapterVIADeductions.section_80tta.claimed = usr_80tta
-            filing.chapterVIADeductions.section_80tta.allowed = 0
-            filing.chapterVIADeductions.section_80ttb.claimed = usr_80ttb
-            filing.chapterVIADeductions.section_80ttb.allowed = 0
-            filing.chapterVIADeductions.section_80cch.claimed = usr_80cch
-            filing.chapterVIADeductions.section_80cch.allowed = 0
-            filing.chapterVIADeductions.section_80gg.claimed = usr_80gg
-            filing.chapterVIADeductions.section_80gg.allowed = 0
+            chap.section_80tta.claimed = usr_80tta
+            chap.section_80tta.allowed = 0
+            chap.section_80ttb.claimed = usr_80ttb
+            chap.section_80ttb.allowed = 0
+            chap.section_80cch.claimed = usr_80cch
+            chap.section_80cch.allowed = 0
+            chap.section_80gg.claimed = usr_80gg
+            chap.section_80gg.allowed = 0
             return usr_80tta, 0, usr_80ttb, 0, usr_80cch, 0, usr_80gg, 0, form10ba_ack_num
 
         ded_80tta = result.get("Section80TTA_calc", 0)
         ded_80ttb = result.get("Section80TTB_calc", 0)
         ded_80cch = result.get("AnyOthSec80CCH_calc", 0)
         ded_80gg = result.get("Section80GG_calc", 0)
-        filing.chapterVIADeductions.section_80tta.claimed = usr_80tta
-        filing.chapterVIADeductions.section_80tta.allowed = ded_80tta
-        filing.chapterVIADeductions.section_80tta.max_allowed = self._SECTION_80TTA_MAX_ALLOWED
-        filing.chapterVIADeductions.section_80ttb.claimed = usr_80ttb
-        filing.chapterVIADeductions.section_80ttb.allowed = ded_80ttb
-        filing.chapterVIADeductions.section_80ttb.max_allowed = self._SECTION_80TTB_MAX_ALLOWED
-        filing.chapterVIADeductions.section_80cch.claimed = usr_80cch
-        filing.chapterVIADeductions.section_80cch.allowed = ded_80cch
-        filing.chapterVIADeductions.section_80cch.max_allowed = self._SECTION_80CCH_MAX_ALLOWED
-        filing.chapterVIADeductions.section_80gg.claimed = usr_80gg
-        filing.chapterVIADeductions.section_80gg.allowed = ded_80gg
-        filing.chapterVIADeductions.section_80gg.max_allowed = self._SECTION_80GG_MAX_ALLOWED
+        chap.section_80tta.claimed = usr_80tta
+        chap.section_80tta.allowed = ded_80tta
+        chap.section_80tta.max_allowed = self._SECTION_80TTA_MAX_ALLOWED
+        chap.section_80ttb.claimed = usr_80ttb
+        chap.section_80ttb.allowed = ded_80ttb
+        chap.section_80ttb.max_allowed = self._SECTION_80TTB_MAX_ALLOWED
+        chap.section_80cch.claimed = usr_80cch
+        chap.section_80cch.allowed = ded_80cch
+        chap.section_80cch.max_allowed = self._SECTION_80CCH_MAX_ALLOWED
+        chap.section_80gg.claimed = usr_80gg
+        chap.section_80gg.allowed = ded_80gg
+        chap.section_80gg.max_allowed = self._SECTION_80GG_MAX_ALLOWED
         return (
             usr_80tta, ded_80tta,
             usr_80ttb, ded_80ttb,
@@ -634,8 +650,8 @@ class Itr1DeductionBuilderService:
                     IdentificationNo=(section_80c.policy_number or "")[:50],
                 )
             )
-        filing.chapterVIADeductions.section_80c.claimed = total_amt_80c
-        filing.chapterVIADeductions.section_80c.max_allowed = 150000
+        filing.chapterVIADeductionsOld.section_80c.claimed = total_amt_80c
+        filing.chapterVIADeductionsOld.section_80c.max_allowed = 150000
 
         return Schedule80CModel(Schedule80CDtls=Schedule80CDtls, TotalAmt=total_amt_80c)
 
