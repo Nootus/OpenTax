@@ -71,9 +71,14 @@ if os.path.isdir(build_dir):
     app.mount('/static', StaticFiles(directory=build_dir / '_next' / 'static'), name='static')
 
 # Serve index.html for root
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return FileResponse(build_dir / "index.html")
+
+@app.api_route("/about", methods=["GET", "HEAD"])
+def read_about():
+    return FileResponse(build_dir / "about.html")
+
 
 # Below is used in production deployments to serve the SPA and handle client-side routing
 @app.get("/{full_path:path}")
