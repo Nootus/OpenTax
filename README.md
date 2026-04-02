@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="web/public/ITAI-logo.png" alt="OpenTax" height="36" />
+  <img src="web/public/OpenTaxIcon.png" alt="OpenTax" height="48" />
   OpenTax
 </h1>
 
