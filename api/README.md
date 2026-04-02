@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../web/public/ITAI-logo.png" alt="OpenTax" height="72" />
+  <img src="../web/public/OpenTaxIcon.png" alt="OpenTax" height="72" />
 </p>
 
 <h1 align="center">OpenTax API</h1>

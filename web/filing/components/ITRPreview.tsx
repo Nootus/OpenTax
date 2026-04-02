@@ -91,7 +91,7 @@ export default function ITRPreview({ itr1, onClose }: ITRPreviewProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
           {/* Left — logo + name */}
           <div className="flex items-center gap-3">
-            <Image src="/ITAI-logo.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
+            <Image src="/OpenTaxIcon.png" alt="OpenTax" width={32} height={32} className="rounded-lg" />
             <div>
               <h1 className="text-base font-bold text-gray-900 leading-tight">OpenTax</h1>
               <p className="text-[10px] text-gray-400 leading-tight">Free &amp; Open-Source ITR Filing</p>
